@@ -28,6 +28,32 @@
      işləmədiyi üçün email/şifrə istifadə olunur — bu, heç bir xarici səhifəyə keçmir,
      hər şey səhifənin öz içində baş verir. Datası öz uid-inə bağlı ayrı sənəddə saxlanılır.
      DOM-da cihaz kilidindən ƏVVƏL yerləşir ki, ikisi də aktiv olsa cihaz kilidi üstdə qalsın. -->
+<!-- Brauzerdə (Safari/Chrome) açılanda: əvvəlcə ana ekrana əlavə etmək təklif olunur. Ana ekrandan açılanda görünmür. -->
+<div class="lock-screen qurasdir-ekrani" id="qurasdirEkrani">
+  <div class="lock-box">
+    <div class="dil-secici" data-dil-secici role="group" aria-label="Dil seçimi" data-i18n-aria="giris.dilSecimi"></div>
+    <img src="icon-192.png" alt="" class="brand-logo brand-logo-lg" width="76" height="76">
+    <h2 class="qr-basliq" data-i18n="qurasdir.basliq">Safe Money-i ana ekrana əlavə et</h2>
+    <p class="hint" data-i18n="qurasdir.izah">Tətbiq kimi tam ekranda açılsın və girişin yadda qalsın.</p>
+    <div id="qurasdirAndroid" style="display:none;">
+      <button class="btn btn-primary btn-ikonlu" id="qurasdirBtn" onclick="qurasdirBas()" style="width:100%; margin-bottom:10px;"><i data-ikon="asagi" data-olcu="18"></i><span data-i18n="qurasdir.duyme">Tətbiqi quraşdır</span></button>
+      <ol class="qr-addimlar" id="qurasdirAndroidAddim">
+        <li><span class="qr-no">1</span><span data-i18n="qurasdir.and1">Chrome-un sağ yuxarıdakı ⋮ menyusuna toxun</span></li>
+        <li><span class="qr-no">2</span><span data-i18n="qurasdir.and2">"Tətbiqi quraşdır" və ya "Ana ekrana əlavə et" seç</span></li>
+        <li><span class="qr-no">3</span><span data-i18n="qurasdir.ikondanAc">Ana ekranda yaranan Safe Money ikonundan aç</span></li>
+      </ol>
+    </div>
+    <ol class="qr-addimlar" id="qurasdirIos" style="display:none;">
+      <li><span class="qr-no">1</span><span><span data-i18n="qurasdir.ios1">Aşağıdakı menyu (⋯) və ya Paylaş düyməsinə toxun</span> <i class="qr-ik" data-ikon="paylas" data-olcu="18"></i></span></li>
+      <li><span class="qr-no">2</span><span><span data-i18n="qurasdir.ios2">"Ana ekrana əlavə et" seç</span> <i class="qr-ik" data-ikon="elaveKvadrat" data-olcu="18"></i></span></li>
+      <li><span class="qr-no">3</span><span data-i18n="qurasdir.ikondanAc">Ana ekranda yaranan Safe Money ikonundan aç</span></li>
+    </ol>
+    <p class="qr-qeyd" data-i18n="qurasdir.qeyd">Qeydiyyatı ana ekrandakı tətbiqin içində et — brauzerdə daxil olsan, tətbiqdə yenidən daxil olmalı olacaqsan.</p>
+    <div class="error-text ugur" id="qurasdirMesaj"></div>
+    <button type="button" class="link-btn" onclick="qurasdirKec()" data-i18n="qurasdir.kec">Brauzerdə davam et</button>
+  </div>
+</div>
+
 <div class="lock-screen" id="googleGirisEkrani">
   <div class="lock-box">
     <div class="dil-secici" data-dil-secici role="group" aria-label="Dil seçimi" data-i18n-aria="giris.dilSecimi"></div>
@@ -40,6 +66,7 @@
     <button type="button" class="link-btn" onclick="sifreSifirla()" data-i18n="giris.sifreniUnutdum">Şifrəni unutdum</button>
     <button data-i18n="giris.hesabYaratIlkDefedirse" class="btn btn-ghost" onclick="qeydiyyatModalAc()" style="width:100%; margin-bottom:10px; border:1px solid var(--line);">Qeydiyyatdan keç</button>
     <button type="button" class="btn btn-ghost qonaq-btn" onclick="qonaqKimiDaxilOl()" data-i18n="giris.qonaq">Qonaq kimi bax</button>
+    <button type="button" class="btn btn-ghost btn-ikonlu ana-ekran-btn" id="anaEkranBtn" onclick="anaEkranaElaveEt()" style="display:none;"><i data-ikon="elaveKvadrat" data-olcu="18"></i><span data-i18n="qurasdir.anaEkranBtn">Ana ekrana əlavə et</span></button>
     <button data-i18n="giris.tesdiqEPoctunuYeniden" class="btn btn-ghost" id="tesdiqYenidenBtn" onclick="tesdiqEmailiYenidenGonder()" style="width:100%; margin-bottom:10px; border:1px solid var(--line); display:none;">Təsdiq məktubunu yenidən göndər</button>
     <div class="error-text" id="googleGirisXeta"></div>
   </div>

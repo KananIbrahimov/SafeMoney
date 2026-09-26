@@ -1482,6 +1482,72 @@ function sonEmeliyyatlarPaneliniKapat() { modalKapat('sonEmeliyyatlarModal'); ay
 uygulamaGirisBaslat();
 kilidYoxla();
 
+// ==================== Ana ekrana əlavə et (brauzerdə açılanda) ====================
+let qurasdirHadise = null; // Android Chrome: sistemin "Quraşdır" pəncərəsi
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  qurasdirHadise = e;
+  const addim = document.getElementById('qurasdirAndroidAddim');
+  const btn = document.getElementById('qurasdirBtn');
+  if (btn) btn.style.display = '';
+  if (addim) addim.style.display = 'none';
+});
+window.addEventListener('appinstalled', () => {
+  const m = document.getElementById('qurasdirMesaj');
+  if (m) m.innerText = tr('qurasdir.quruldu', 'Quraşdırıldı! İndi ana ekrandakı Safe Money ikonundan aç.');
+});
+function tetbiqRejimindedir() {
+  return window.navigator.standalone === true || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+}
+function qurasdirmaYoxla() {
+  const ua = navigator.userAgent || '';
+  const ios = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const android = /Android/i.test(ua);
+  let kecib = false;
+  try { kecib = sessionStorage.getItem('qurasdir_kec') === '1'; } catch (e) {}
+  if (tetbiqRejimindedir() || kecib || !(ios || android)) return;
+  document.getElementById('qurasdirIos').style.display = ios ? '' : 'none';
+  document.getElementById('qurasdirAndroid').style.display = android ? '' : 'none';
+  const btn = document.getElementById('qurasdirBtn');
+  if (btn && !qurasdirHadise) btn.style.display = 'none'; // Chrome təklif verməyibsə — menyu addımları
+  document.getElementById('qurasdirEkrani').classList.add('active');
+}
+function qurasdirBas() {
+  if (!qurasdirHadise) return;
+  qurasdirHadise.prompt();
+  qurasdirHadise.userChoice.then((c) => {
+    if (c && c.outcome === 'accepted') {
+      const m = document.getElementById('qurasdirMesaj');
+      if (m) m.innerText = tr('qurasdir.quruldu', 'Quraşdırıldı! İndi ana ekrandakı Safe Money ikonundan aç.');
+    }
+    qurasdirHadise = null;
+  }).catch(() => {});
+}
+function qurasdirKec() {
+  try { sessionStorage.setItem('qurasdir_kec', '1'); } catch (e) {}
+  document.getElementById('qurasdirEkrani').classList.remove('active');
+}
+// Giriş ekranındakı "Ana ekrana əlavə et" düyməsi: Android-də birbaşa quraşdırır, iPhone-da təlimatı açır
+// (Apple heç bir saytın özünü avtomatik əlavə etməsinə icazə vermir).
+function anaEkranaElaveEt() {
+  if (qurasdirHadise) { qurasdirBas(); return; }
+  try { sessionStorage.removeItem('qurasdir_kec'); } catch (e) {}
+  const ua = navigator.userAgent || '';
+  const ios = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  document.getElementById('qurasdirIos').style.display = ios ? '' : 'none';
+  document.getElementById('qurasdirAndroid').style.display = ios ? 'none' : '';
+  const btn = document.getElementById('qurasdirBtn'); if (btn) btn.style.display = 'none';
+  const addim = document.getElementById('qurasdirAndroidAddim'); if (addim) addim.style.display = '';
+  document.getElementById('qurasdirEkrani').classList.add('active');
+}
+(function () {
+  const ua = navigator.userAgent || '';
+  const mobil = /iPhone|iPad|iPod|Android/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const btn = document.getElementById('anaEkranBtn');
+  if (btn && mobil && !tetbiqRejimindedir()) btn.style.display = '';
+})();
+qurasdirmaYoxla();
+
 // ==== PWA: Service Worker qeydiyyatı ====
 // Yalnız http(s):// üzərində işləyir; file:// ilə açsan səssizcə keçilir.
 if ('serviceWorker' in navigator && (location.protocol === 'http:' || location.protocol === 'https:')) {
