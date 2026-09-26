@@ -162,14 +162,14 @@ async function driveFayliOxu(fileId) {
 
 function driveVerisiniTetbiqEt(parsed) {
   // Kateqoriyaları normallaşdır: köhnə backup-larda sahələr çatışmaya bilər (sabitTutar, renk, ikon).
-  const hamKat = Array.isArray(parsed.kategoriler) && parsed.kategoriler.length ? parsed.kategoriler : varsayilanKategoriler;
+  const hamKat = Array.isArray(parsed.kategoriler) && parsed.kategoriler.length ? parsed.kategoriler : defoltKategoriler();
   kategoriler = hamKat.filter(k => k && typeof k.ad === 'string' && k.ad.trim()).map(k => ({
     ...k,
     sabitTutar: (typeof k.sabitTutar === 'number' && isFinite(k.sabitTutar) && k.sabitTutar > 0) ? k.sabitTutar : null,
     renk: k.renk || '#9a8a8f',
     ikon: k.ikon || '💰'
   }));
-  if (!kategoriler.length) kategoriler = varsayilanKategoriler.map(k => ({ ...k }));
+  if (!kategoriler.length) kategoriler = defoltKategoriler();
   // Pozulmuş qeydlər (məbləği rəqəm olmayan) cəmləri NaN etməsin deyə süzülür.
   // Hesablar: yeni model (hesablar massivi) və ya köhnə sahələrdən köçürmə (hesablar.js)
   const hd = hesabDatasiniHazirla(parsed);
@@ -718,7 +718,7 @@ function demoDatasiniQur() {
   // Son 40 gün üçün nümunə xərclər (sabit "təsadüfi" ardıcıllıq — hər dəfə eyni görünür)
   let toxum = 7; const rnd = () => { toxum = (toxum * 9301 + 49297) % 233280; return toxum / 233280; };
   const kat = kategoriler;
-  const nov = [[0, 0.6], [1, 0.6], [2, 3.5], [4, 12], [5, 4.5], [7, 9], [6, 15], [3, 4.6]];
+  const nov = [[0, 1.5], [1, 12], [2, 3.8], [3, 9], [0, 1.2], [2, 3.5], [4, 25], [5, 10], [6, 6], [1, 8]];
   giderler = [];
   for (let g = 40; g >= 0; g--) {
     const say = 1 + Math.floor(rnd() * 3);
@@ -732,19 +732,24 @@ function demoDatasiniQur() {
     }
   }
   // Aylıq sabit xərclər (kirayə, kommunal və s.) — bu ay və keçən ay üçün, hesabat qrafiki boş qalmasın
+  // Aylıq sabit xərclər — defolt aylıq kateqoriyalara (işıq, su, qaz, internet) məbləğ verilir,
+  // üstəlik kirayə və mobil rabitə əlavə olunur; bu ay və keçən ay üçün, hesabat qrafiki boş qalmasın.
   const sabitler = [
+    ['defKat.electricity', 'İşıq', '💡', '#b3a27a', 34.6, 3],
+    ['defKat.water', 'Su', '💧', '#7f9fa8', 11.2, 3],
+    ['defKat.gas', 'Qaz', '🔥', '#b08a7a', 27.9, 4],
+    ['defKat.internet', 'İnternet', '📶', '#8f9bb0', 25, 2],
     ['demo.katKiraye', 'Kirayə', '🏠', '#8f9bb0', 450, 1],
-    ['demo.katKommunal', 'Kommunal', '💡', '#b3a27a', 68.4, 3],
-    ['demo.katInternet', 'İnternet', '📶', '#7f9fa8', 25, 2],
-    ['demo.katMobil', 'Mobil rabitə', '📱', '#a08aa6', 15, 2],
-    ['demo.katIdman', 'İdman zalı', '🏋️', '#8fa58a', 60, 4]
+    ['demo.katMobil', 'Mobil rabitə', '📱', '#a08aa6', 15, 2]
   ];
   sabitler.forEach(([acar, ad, ikonu, renk, tutar, gun]) => {
     const katAd = tr(acar, ad);
-    kategoriler.push({ ad: katAd, ikon: ikonu, renk, sabitTutar: tutar, aylik: true });
+    const movcud = kategoriler.find(k => k.ad === katAd);
+    if (movcud) { movcud.aylik = true; movcud.sabitTutar = tutar; }
+    else kategoriler.push({ ad: katAd, ikon: ikonu, renk, sabitTutar: tutar, aylik: true });
     [0, 1].forEach(ayGeri => {
       const dt = new Date(bugun.getFullYear(), bugun.getMonth() - ayGeri, Math.min(gun, ayGeri ? gun : bugun.getDate()), 11, 0, 0, 0);
-      const mebleg = acar === 'demo.katKommunal' && ayGeri ? 74.9 : tutar;
+      const mebleg = ayGeri ? pulYuvarla(tutar * (acar === 'demo.katKiraye' || acar === 'defKat.internet' || acar === 'demo.katMobil' ? 1 : 1.12)) : tutar;
       giderler.push({ kategori: katAd, tutar: mebleg, tamTarix: dt.toISOString(), tarix: tarixSaatYaz(dt), hesabId: debet.id });
     });
   });

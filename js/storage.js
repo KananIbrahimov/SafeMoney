@@ -1,5 +1,5 @@
 /* Safe Money — vəziyyət, yükləmə, yadda saxlama */
-const APP_VERSION = '3.18'; // hər yeni göndərilən html versiyasında əl ilə +1 artırılır
+const APP_VERSION = '3.19'; // hər yeni göndərilən html versiyasında əl ilə +1 artırılır
 let goruntulenenTarix = new Date(); goruntulenenTarix.setHours(0, 0, 0, 0);
 let kategoriler = [];
 let giderler = [];
@@ -21,9 +21,8 @@ let veriMenbeGuvenli = false;
 let aylikGunlukChart = null; // Chart.js: aylıq hesabat — günlük xərclər dairəsi
 let aylikSabitChart = null; // Chart.js: aylıq hesabat — aylıq sabit xərclər dairəsi
 let aylikTrendChart = null; // Chart.js: günlük xərc trendi (xətt)
+let dashVeziyyetChart = null; // Chart.js: maliyyə — xalis vəziyyət
 let dashUmumiBorcChart = null; // Chart.js: dashboard — ümumi borc dairəvi diaqramı
-let dashKrediKartChart = null; // Chart.js: dashboard — kredit kartı limiti dairəvi diaqramı
-let dashKrediBorcuChart = null; // Chart.js: dashboard — kredit borcu (taksit) dairəvi diaqramı
 
 function cssVar(ad) {
   return getComputedStyle(document.documentElement).getPropertyValue(ad).trim();
@@ -43,16 +42,23 @@ function kategoriAylikdirmi(ad) {
   return !!(k && k.aylik);
 }
 
+// Yeni hesab üçün defolt kateqoriyalar: gündəlik (ümumi, hər kəsə uyğun) + aylıq kommunal xərclər.
+// Adlar istifadəçinin dilində yaradılır (defKat.* açarları); mövcud hesablara toxunulmur.
 const varsayilanKategoriler = [
-  { ad: 'Bus', sabitTutar: null, renk: '#8fa3b8', ikon: '🚌' },
-  { ad: 'Metro', sabitTutar: null, renk: '#7d93b0', ikon: '🚇' },
-  { ad: 'Coffee', sabitTutar: null, renk: '#b89a7a', ikon: '☕️' },
-  { ad: 'Sigaret', sabitTutar: null, renk: '#9aa0ad', ikon: '🚬' },
+  { ad: 'Transport', sabitTutar: null, renk: '#8fa3b8', ikon: '🚕' },
   { ad: 'Market', sabitTutar: null, renk: '#7fa08f', ikon: '🛒' },
-  { ad: 'Breakfast', sabitTutar: null, renk: '#c2a36b', ikon: '🥐' },
-  { ad: 'Dinner', sabitTutar: null, renk: '#b88482', ikon: '🍔' },
-  { ad: 'Lunch', sabitTutar: null, renk: '#a58aa8', ikon: '🍽️' }
+  { ad: 'Coffee', sabitTutar: null, renk: '#b89a7a', ikon: '☕️' },
+  { ad: 'Food', sabitTutar: null, renk: '#b88482', ikon: '🍽️' },
+  { ad: 'Shopping', sabitTutar: null, renk: '#a58aa8', ikon: '🛍️' },
+  { ad: 'Fun', sabitTutar: null, renk: '#c2a36b', ikon: '🎬' },
+  { ad: 'Pharmacy', sabitTutar: null, renk: '#7d93b0', ikon: '💊' },
+  { ad: 'Other', sabitTutar: null, renk: '#9aa0ad', ikon: '📦' },
+  { ad: 'Electricity', sabitTutar: null, renk: '#b3a27a', ikon: '💡', aylik: true },
+  { ad: 'Water', sabitTutar: null, renk: '#7f9fa8', ikon: '💧', aylik: true },
+  { ad: 'Gas', sabitTutar: null, renk: '#b08a7a', ikon: '🔥', aylik: true },
+  { ad: 'Internet', sabitTutar: null, renk: '#8f9bb0', ikon: '📶', aylik: true }
 ];
+function defoltKategoriler() { return varsayilanKategoriler.map(k => ({ ...k, ad: tr('defKat.' + k.ad.toLowerCase(), k.ad) })); }
 
 // Aylıq xərclər bölməsi ləğv olunub. Köhnə backuplarda kredit borcu bəzən həmin
 // siyahının içində saxlanılırdı — mövcud krediBorcu yoxdursa, oradan çıxarırıq.
@@ -74,7 +80,7 @@ function krediBorcuKohnaBackupdanCixar(eskiAylikXerclar) {
 // olmamış yerli məlumat heç vaxt ekrana çıxıb çaşdırmayacaq.
 function yerliVeriniYukle() {
   // Yeni hesab üçün defolt kateqoriyalar istifadəçinin seçdiyi dildə yaradılır (mövcud hesablara toxunulmur).
-  kategoriler = varsayilanKategoriler.map(k => ({ ...k, ad: tr('defKat.' + k.ad.toLowerCase(), k.ad) }));
+  kategoriler = defoltKategoriler();
   giderler = [];
   hesabTransferleri = [];
   hesablar = [];

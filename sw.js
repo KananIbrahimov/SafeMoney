@@ -25,7 +25,7 @@
 // (v10: dil faylları (lang/*.json) üçün network-first əlavə edildi.)
 // (v9: ad "Safe Money" olaraq dəyişdi və yeni logo əlavə edildi — köhnə keşlənmiş
 // ikonların/title-ın istifadəçilərdə qalmaması üçün versiya artırıldı.)
-const CACHE_ADI = 'safe-money-cache-v31';
+const CACHE_ADI = 'safe-money-cache-v32';
 
 const KESLENECEK_FAYLLAR = [
   './index.html',

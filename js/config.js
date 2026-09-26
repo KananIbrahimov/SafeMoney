@@ -45,6 +45,7 @@ const IKON_YOLLARI = {
   krediXett: '<path d="M7 2.5h7l5 5V20a1.5 1.5 0 0 1-1.5 1.5h-10A1.5 1.5 0 0 1 6 20V4a1.5 1.5 0 0 1 1-1.5z"/><path d="M14 2.5V7.5h5"/><path d="M9.5 13h5M9.5 16.5h5"/>',
   tesdiq: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
   ulduz: '<path d="M12 3.2l2.6 5.5 6 .8-4.4 4.1 1.1 5.9L12 16.6l-5.3 2.9 1.1-5.9-4.4-4.1 6-.8z"/>',
+  medaxil: '<path d="M12 3.5v10M7.5 9l4.5 4.5L16.5 9"/><path d="M4 14.5v3A2.5 2.5 0 0 0 6.5 20h11a2.5 2.5 0 0 0 2.5-2.5v-3"/>',
   istifadeci: '<circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/>'
 };
 function ikon(ad, olcu) {

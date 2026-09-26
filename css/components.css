@@ -323,7 +323,7 @@ select.filtr-inp { margin-bottom: 10px; }
 .ulduz-btn:hover { background: var(--panel-alt); color: var(--muted); }
 .ulduz-btn.aktiv { color: var(--brand-ink); }
 .ulduz-btn.aktiv svg { fill: currentColor; }
-.hesab-emeliyyat-btnlar { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 8px; margin-bottom: 16px; }
+.hesab-emeliyyat-btnlar { display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 16px; }
 .hesab-emeliyyat-btnlar .btn { width: 100%; padding: 11px 8px; }
 .ay-nav { display: flex; align-items: center; gap: 10px; }
 .ay-nav-etiket { flex: 1; text-align: center; font-weight: 600; font-size: 14px; color: var(--ink); }
@@ -379,3 +379,27 @@ body.demo-aktiv .page-inner { padding-top: calc(56px + env(safe-area-inset-top, 
 .drive-xatirlatma .dx-btn:disabled { opacity: .6; }
 .drive-xatirlatma .dx-bagla { flex-shrink: 0; display: flex; border: none; background: transparent; color: var(--muted); padding: 4px; cursor: pointer; }
 .en-son-etiket { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px; font-size: 10.5px; font-weight: 600; letter-spacing: .02em; border: 1px solid var(--brand-ink); color: var(--brand-ink); vertical-align: 1px; }
+
+/* Maliyyə səhifəsi */
+.pie-center-label .n.menfi { color: var(--danger); }
+.pie-alt:empty { display: none; }
+.pie-alt { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 4px; }
+.pie-alt-setir { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; color: var(--muted); }
+.pie-alt-setir b { color: var(--ink); font-weight: 600; white-space: nowrap; }
+.hf-ipucu { display: block; margin-top: 4px; font-size: 11px; color: var(--muted); line-height: 1.35; }
+.amt.medaxil-amt { color: var(--success-ink); }
+
+/* Açıb-bağlanan açar (checkbox → switch), Face ID açarı ilə eyni görünüş */
+.sw-qrup { display: flex; flex-direction: column; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin: 4px 0 8px; }
+.sw-setir { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; cursor: pointer; }
+.sw-setir + .sw-setir { border-top: 1px solid var(--line); }
+.sw-metn { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.sw-metn b { font-size: 13.5px; font-weight: 600; color: var(--ink); }
+.sw-metn small { font-size: 11.5px; color: var(--muted); line-height: 1.3; }
+.sw-inp { -webkit-appearance: none; appearance: none; flex-shrink: 0; width: 42px !important; height: 24px; min-height: 0 !important; margin: 0 !important; padding: 0 !important;
+  border-radius: 999px; border: none !important; background: var(--line); position: relative; cursor: pointer; transition: background .2s; }
+.sw-inp::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.35); transition: transform .2s, background .2s; }
+.sw-inp:checked { background: var(--brand); }
+.sw-inp:checked::after { transform: translateX(18px); background: var(--on-brand); }
+.sw-inp:focus-visible { outline: 2px solid var(--brand-ink); outline-offset: 2px; }
+.pie-title .pie-alt-basliq { display: block; font-size: 11px; font-weight: 500; color: var(--muted); margin-top: 2px; letter-spacing: 0; text-transform: none; }

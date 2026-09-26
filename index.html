@@ -117,11 +117,23 @@
 <div id="dashboardModal" class="page-screen">
   <div class="page-inner">
     <div style="padding-bottom:12px; margin-bottom:4px;">
-      <h2 data-i18n="nav.dashboard" style="margin:0;">Borclar</h2>
+      <h2 data-i18n="dash.basliq" style="margin:0;">Maliyyə vəziyyəti</h2>
+      <p class="hint" data-i18n="dash.izah" style="margin:6px 0 0;">Yalnız "Hesabatlarda göstər" tiki aktiv olan hesablar hesablanır.</p>
     </div>
 
-    <!-- 1. Ümumi Borc — dairəvi diaqram -->
-    <div class="pie-card">
+    <!-- 1. Ümumi maliyyə vəziyyəti: varlıq − borc -->
+    <div class="pie-card" id="dashKart1">
+      <div data-i18n="dash.umumiVeziyyet" class="pie-title">Ümumi maliyyə vəziyyəti</div>
+      <div class="pie-card-row">
+        <div class="pie-canvas-wrap"><canvas id="dashVeziyyetCanvas"></canvas>
+          <div class="pie-center-label"><span class="n" id="dashVeziyyetMerkez">—</span><span data-i18n="dash.xalis" class="l">xalis</span></div>
+        </div>
+        <div class="pie-legend" id="dashVeziyyetLegend"></div>
+      </div>
+    </div>
+
+    <!-- 2. Ümumi borc: mənfidə olan hər hesab -->
+    <div class="pie-card" id="dashKart2">
       <div data-i18n="dash.umumiBorc" class="pie-title">Ümumi borc</div>
       <div class="pie-card-row">
         <div class="pie-canvas-wrap"><canvas id="dashUmumiBorcCanvas"></canvas>
@@ -131,28 +143,9 @@
       </div>
     </div>
 
-    <!-- 2. Kredit kartı — istifadə olunan / istifadə edilə bilən — dairəvi diaqram -->
-    <div class="pie-card">
-      <div data-i18n="dash.kreditKartiLimiti" class="pie-title">Kredit kartının limiti</div>
-      <div class="pie-card-row">
-        <div class="pie-canvas-wrap"><canvas id="dashKrediKartCanvas"></canvas>
-          <div class="pie-center-label"><span class="n" id="dashKrediKartMerkez">—</span><span data-i18n="dash.limit" class="l">limit</span></div>
-        </div>
-        <div class="pie-legend" id="dashKrediKartLegend"></div>
-      </div>
-    </div>
-
-    <!-- 3. Kredit borcu (taksit) — ödənilib / qalıb — dairəvi diaqram -->
-    <div class="pie-card">
-      <div data-i18n="dash.kreditBorcuTaksitOdenilib" class="pie-title">Kredit xətti — ödənişlər</div>
-      <div class="pie-card-row">
-        <div class="pie-canvas-wrap"><canvas id="dashKrediBorcuCanvas"></canvas>
-          <div class="pie-center-label"><span class="n" id="dashKrediBorcuMerkez">—</span><span data-i18n="dash.taksit" class="l">taksit</span></div>
-        </div>
-        <div class="pie-legend" id="dashKrediBorcuLegend"></div>
-      </div>
-    </div>
-
+    <!-- 3. Hər kredit kartı üçün ayrıca qrafik; 4. hər kredit xətti üçün ayrıca qrafik (JS ilə yaradılır) -->
+    <div id="dashKartlarQrup"></div>
+    <div id="dashXettlerQrup"></div>
   </div>
 </div>
 
@@ -160,7 +153,7 @@
 <nav class="bottom-nav" id="bottomNav">
   <div class="bottom-nav-inner">
     <button class="nav-item" id="navDashboard" onclick="sekmeSec('dashboard')">
-      <span class="nav-icon"><i data-ikon="icmal" data-olcu="22"></i></span><span data-i18n="nav.dashboard">Borclar</span>
+      <span class="nav-icon"><i data-ikon="icmal" data-olcu="22"></i></span><span data-i18n="nav.dashboard">Maliyyə</span>
     </button>
     <button class="nav-item" id="navAylikHesabat" onclick="sekmeSec('aylikHesabat')">
       <span class="nav-icon"><i data-ikon="ayliq" data-olcu="22"></i></span><span data-i18n="nav.aylik">Hesabat</span>
@@ -207,19 +200,15 @@
         <input type="text" id="catPanelAd" placeholder="Kateqoriyanın adı" data-i18n-placeholder="katDuzenle.kateqoriyaAdiPlaceholder" style="flex:1;">
         <button id="catPanelSilBtn" onclick="catPanelSil()" style="background:none; border:none; cursor:pointer; font-size:14px;"><i data-ikon="zibil"></i></button>
       </div>
-      <label class="field-row" style="gap:8px; font-size:13px; font-weight:600; color:var(--ink); border-top:1px solid var(--line); padding-top:8px; cursor:pointer;">
-        <input type="checkbox" id="catPanelAylik" style="width:auto;">
-        <span><span data-i18n="katDuzenle.aylikSabitXerc">Aylıq sabit xərc</span> <span data-i18n="katDuzenle.tiksizGunluk" style="font-weight:400; color:var(--muted);">(seçilməyibsə — gündəlik)</span></span>
-      </label>
+      <div class="sw-qrup">
+        <label class="sw-setir"><span class="sw-metn"><b data-i18n="katDuzenle.aylikSabitXerc">Aylıq sabit xərc</b><small data-i18n="katDuzenle.sondurulubseGunluk">Söndürülübsə — gündəlik xərc</small></span><input type="checkbox" class="sw-inp" id="catPanelAylik" role="switch"></label>
+        <label class="sw-setir"><span class="sw-metn"><b data-i18n="katDuzenle.qeydSorus">Qeyd də soruşulsun</b><small data-i18n="katDuzenle.qeydSorusIzah">Xərc əlavə edəndə qısa qeyd yazmaq imkanı</small></span><input type="checkbox" class="sw-inp" id="catPanelSebeb" role="switch"></label>
+      </div>
       <div class="field-row" style="font-size:12px; color:var(--muted); gap:6px;">
         <span data-i18n="katDuzenle.sabitTutar">Sabit məbləğ:</span>
         <input type="number" step="0.01" min="0" id="catPanelSabit" placeholder="Soruş" data-i18n-placeholder="katDuzenle.sorusPlaceholder" style="width:78px;">
       </div>
       <div class="renk-grid" id="catPanelRenkGrid"></div>
-      <label class="field-row" style="gap:6px; font-size:12px; color:var(--muted); padding-top:2px; cursor:pointer;">
-        <input type="checkbox" id="catPanelSebeb" style="width:auto;">
-        <span data-i18n="katDuzenle.elaveEderkenSebebDe">Əlavə edəndə qeyd də soruşulsun</span>
-      </label>
     </div>
     <div class="error-text" id="catPanelError"></div>
     <div class="modal-footer">
@@ -492,6 +481,7 @@
     <p class="hint" data-i18n="hesab.sekmeHint" style="margin:10px 0 12px;">Ulduzlu hesab əsas hesabdır — bütün xərclər ondan çıxılır.</p>
     <div id="hesablarKartlari" class="hesab-kartlar"></div>
     <div class="hesab-emeliyyat-btnlar">
+      <button class="btn btn-primary btn-ikonlu" id="medaxilBtn" onclick="medaxilModalAc()"><i data-ikon="medaxil" data-olcu="18"></i><span data-i18n="medaxil.basliq">Mədaxil</span></button>
       <button class="btn btn-primary btn-ikonlu" id="transferBtn" onclick="transferModalAc()"><i data-ikon="kocurme" data-olcu="18"></i><span data-i18n="transfer.basliq">Köçürmə</span></button>
       <button class="btn btn-primary btn-ikonlu" id="krediOdeBtn" onclick="krediOdeModalAc()"><i data-ikon="krediXett" data-olcu="18"></i><span data-i18n="hesab.krediOdenisi">Kredit ödənişi</span></button>
     </div>
@@ -545,8 +535,9 @@
       <input type="text" id="hfAd" class="filtr-inp" maxlength="40">
       <div id="hfBankSatir" class="hf-satir"><label class="filtr-lbl" for="hfBank" data-i18n="hesab.bank">Bankın adı</label><input type="text" id="hfBank" class="filtr-inp" maxlength="40" placeholder="Məs.: Kapital Bank" data-i18n-placeholder="hesab.bankPlaceholder"></div>
       <div id="hfKartSatir" class="hf-satir"><label class="filtr-lbl" for="hfKart" data-i18n="hesab.kart">Kartın son 4 rəqəmi</label><input type="text" id="hfKart" class="filtr-inp" inputmode="numeric" maxlength="4" placeholder="0000"></div>
-      <div id="hfBalansSatir" class="hf-satir"><label class="filtr-lbl" for="hfBalans" id="hfBalansLbl" data-i18n="hesab.balans">Balans (AZN)</label><input type="number" step="0.01" id="hfBalans" class="filtr-inp" placeholder="0.00"></div>
-      <div id="hfLimitSatir" class="hf-satir"><label class="filtr-lbl" for="hfLimit" data-i18n="kreditKart.kreditLimitiAzn">Kredit limiti (AZN)</label><input type="number" step="0.01" min="0" id="hfLimit" class="filtr-inp" placeholder="Məs.: 2000" data-i18n-placeholder="kreditKart.mes2000Placeholder"></div>
+      <div id="hfLimitSatir" class="hf-satir"><label class="filtr-lbl" for="hfLimit" data-i18n="kreditKart.kreditLimitiAzn">Kredit limiti (AZN)</label><input type="number" step="0.01" min="0" id="hfLimit" class="filtr-inp" oninput="hesabFormKartHesabla('limit')" placeholder="Məs.: 2000" data-i18n-placeholder="kreditKart.mes2000Placeholder"></div>
+      <div id="hfBalansSatir" class="hf-satir"><label class="filtr-lbl" for="hfBalans" id="hfBalansLbl" data-i18n="hesab.balans">Balans (AZN)</label><input type="number" step="0.01" id="hfBalans" class="filtr-inp" placeholder="0.00" oninput="hesabFormKartHesabla('borc')"></div>
+      <div id="hfMuvcudSatir" class="hf-satir"><label class="filtr-lbl" for="hfMuvcud" data-i18n="hesab.istifadeEdileBilen">İstifadə edilə bilən (AZN)</label><input type="number" step="0.01" id="hfMuvcud" class="filtr-inp" placeholder="0.00" oninput="hesabFormKartHesabla('muvcud')"><small class="hf-ipucu" data-i18n="hesab.kartIpucu">Borcu və ya istifadə edilə bilən məbləği yaz — digəri limitdən özü hesablanır.</small></div>
       <div id="hfXettBlok" class="hf-satir">
         <label class="filtr-lbl" for="hfBaslangic" data-i18n="krediBorc.baslangicTarixi">Başlanğıc tarixi</label><input type="date" id="hfBaslangic" class="filtr-inp" oninput="hesabFormXettHesabla()">
         <div class="hf-iki">
@@ -560,7 +551,7 @@
     <div class="filtr-kart hf-tikler">
       <label id="hfAnaSatir" class="hf-tik"><input type="checkbox" id="hfAna"><span><b data-i18n="hesab.anaBaslik">Əsas hesab</b><small data-i18n="hesab.anaIzah">Bütün xərclər yalnız bu hesabdan çıxılır. Yalnız bir hesab əsas ola bilər.</small></span></label>
       <label id="hfMenfiSatir" class="hf-tik"><input type="checkbox" id="hfMenfi"><span><b data-i18n="hesab.menfiBaslik">Mənfi balansa icazə ver</b><small data-i18n="hesab.menfiIzah">Söndürülübsə, balansdan artıq xərc və köçürmə etmək olmur.</small></span></label>
-      <label class="hf-tik"><input type="checkbox" id="hfHesabat"><span><b data-i18n="hesab.hesabatBaslik">Hesabatda göstər</b><small data-i18n="hesab.hesabatIzah">Hesabat səhifəsində bu hesabın aylıq xülasəsi görünür.</small></span></label>
+      <label class="hf-tik"><input type="checkbox" id="hfHesabat"><span><b data-i18n="hesab.hesabatBaslik">Hesabatlarda göstər</b><small data-i18n="hesab.hesabatIzah2">Hesabat və Maliyyə səhifələrində (qrafiklərdə) bu hesab nəzərə alınır.</small></span></label>
     </div>
     <div class="error-text" id="hesabFormError"></div>
     <button class="btn btn-primary" onclick="hesabFormSaxla()" style="width:100%; margin:6px 0 10px;" data-i18n="umumi.yaddaSaxla">Yadda saxla</button>
@@ -590,6 +581,30 @@
 </div>
 
 <!-- Transfer modal -->
+<div id="medaxilModal" class="modal">
+  <div class="modal-content">
+    <h2 data-i18n="medaxil.basliq">Mədaxil</h2>
+    <p class="hint" data-i18n="medaxil.hint">Hesaba daxil olan pulu qeyd et (maaş, qaytarılan borc, hədiyyə və s.).</p>
+    <div style="margin-bottom:12px;">
+      <label class="filtr-lbl" for="medaxilHesab" data-i18n="medaxil.hesab">Hansı hesaba</label>
+      <select id="medaxilHesab" class="filtr-inp" style="width:100%;"></select>
+    </div>
+    <div style="margin-bottom:12px;">
+      <label class="filtr-lbl" for="medaxilMebleg" data-i18n="transfer.meblegLbl">Məbləğ (AZN)</label>
+      <input type="number" step="0.01" min="0" id="medaxilMebleg" placeholder="Məs.: 600" data-i18n-placeholder="medaxil.meblegPlaceholder" inputmode="decimal">
+    </div>
+    <div style="margin-bottom:6px;">
+      <label class="filtr-lbl" for="medaxilAciqlama" data-i18n="medaxil.aciqlama">Açıqlama (istəyə bağlı)</label>
+      <input type="text" id="medaxilAciqlama" maxlength="80" placeholder="Məs.: Maaş" data-i18n-placeholder="medaxil.aciqlamaPlaceholder">
+    </div>
+    <div class="error-text" id="medaxilError"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="modalKapat('medaxilModal')" data-i18n="umumi.legvEt">Ləğv et</button>
+      <button class="btn btn-primary" onclick="medaxilOnayla()" data-i18n="medaxil.elaveEt">Əlavə et</button>
+    </div>
+  </div>
+</div>
+
 <div id="transferModal" class="modal">
   <div class="modal-content">
     <h2 data-i18n="transfer.basliq">Köçürmə</h2>

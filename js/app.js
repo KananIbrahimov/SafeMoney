@@ -850,9 +850,9 @@ function modalListesiniDoldur() {
         <input type="text" value="${escapeHtml(kat.ad)}" onchange="kategoriAdGuncelle(${index}, this.value)" style="flex:1;">
         <button class="sira-btn sil" onclick="kategoriSilOnayla(${index})" aria-label="${escapeHtml(tr('kateqoriyalar.kateqoriyaniSil', 'Kateqoriyanı sil'))}">${ikon('zibil', 18)}</button>
       </div>
-      <label class="field-row" style="gap:8px; font-size:13px; font-weight:600; color:var(--ink); border-top:1px solid var(--line); padding-top:8px; cursor:pointer;">
-        <input type="checkbox" ${kat.aylik ? 'checked' : ''} onchange="kategoriAylikToggle(${index}, this.checked)" style="width:auto;">
-        <span>${escapeHtml(tr('katDuzenle.aylikSabitXerc', 'Aylıq sabit xərc'))} <span style="font-weight:400; color:var(--muted);">${escapeHtml(tr('katDuzenle.tiksizGunluk', '(seçilməyibsə — gündəlik)'))}</span></span>
+      <label class="sw-setir" style="border-top:1px solid var(--line);">
+        <span class="sw-metn"><b>${escapeHtml(tr('katDuzenle.aylikSabitXerc', 'Aylıq sabit xərc'))}</b><small>${escapeHtml(tr('katDuzenle.sondurulubseGunluk', 'Söndürülübsə — gündəlik xərc'))}</small></span>
+        <input type="checkbox" class="sw-inp" role="switch" ${kat.aylik ? 'checked' : ''} onchange="kategoriAylikToggle(${index}, this.checked)">
       </label>
       <div class="field-row" style="font-size:12px; color:var(--muted); gap:6px;">
         <span>${escapeHtml(tr('katDuzenle.sabitTutar', 'Sabit məbləğ:'))}</span>
@@ -979,41 +979,80 @@ function dairaviCiz(canvasId, mevcudChart, parcalar, legendId, vahid, emptyMesaj
   });
 }
 
+let dashElaveChartlar = []; // hər kredit kartı / kredit xətti üçün ayrıca qrafiklər
 function dashboardDairaviDiaqramlariCiz() {
+  const legendler = ['dashVeziyyetLegend', 'dashUmumiBorcLegend'];
+  const merkezler = ['dashVeziyyetMerkez', 'dashUmumiBorcMerkez'];
   if (typeof Chart === 'undefined') {
     // Chart.js CDN yüklənməyibsə (internet yoxdursa) istifadəçiyə xəbər ver.
-    ['dashUmumiBorcLegend', 'dashKrediKartLegend', 'dashKrediBorcuLegend'].forEach(id => {
+    legendler.forEach(id => {
       const el = document.getElementById(id);
-      if (el) el.innerHTML = `<div class="pie-empty">${tr('dash.qrafikInternetLazimdir', 'Qrafik üçün internet lazımdır.')}</div>`;
+      if (el) el.innerHTML = `<div class="pie-empty">${escapeHtml(tr('dash.qrafikInternetLazimdir', 'Qrafik üçün internet lazımdır.'))}</div>`;
     });
-    ['dashUmumiBorcMerkez', 'dashKrediKartMerkez', 'dashKrediBorcuMerkez'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.innerText = '—';
-    });
+    merkezler.forEach(id => { const el = document.getElementById(id); if (el) el.innerText = '—'; });
     return;
   }
+  const c = maliyyeCemleri();
+  const reng = ['--chart-1', '--chart-2', '--chart-3'].map(v => cssVar(v)).concat(['#6f767e', '#a9afb7', '#3a3f45', '#bfc4cb', '#565c63']);
+  const altYaz = (id, setirler) => {
+    const el = document.getElementById(id); if (!el) return;
+    el.innerHTML = setirler.map(x => `<div class="pie-alt-setir"><span>${escapeHtml(x[0])}</span><b>${escapeHtml(x[1])}</b></div>`).join('');
+  };
 
-  // Bütün hesablar üzrə cəmlər (hesablar.js → borcCemleri)
-  const c = borcCemleri();
-  const umumiCemi = pulYuvarla(c.kk + c.diger + c.kx);
-  document.getElementById('dashUmumiBorcMerkez').innerText = umumiCemi.toFixed(2);
-  dashUmumiBorcChart = dairaviCiz('dashUmumiBorcCanvas', dashUmumiBorcChart, [
-    { ad: tr('dash.kkBorcu', 'Kredit kartı'), tutar: c.kk, renk: cssVar('--chart-1') || '#c9ced6' },
-    { ad: tr('dash.depozitBorcu', 'Digər hesablar'), tutar: c.diger, renk: cssVar('--chart-2') || '#8b929b' },
-    { ad: tr('dash.krediXettBorcu', 'Kredit xətti'), tutar: c.kx, renk: cssVar('--chart-3') || '#5b6168' }
-  ], 'dashUmumiBorcLegend', ' AZN', tr('dash.borcYoxdur', 'Borc yoxdur.'));
+  // 1. Ümumi maliyyə vəziyyəti: varlıq − borc
+  const xEl = document.getElementById('dashVeziyyetMerkez');
+  xEl.innerText = (c.xalis > 0 ? '+' : '') + c.xalis.toFixed(2);
+  xEl.classList.toggle('menfi', c.xalis < 0);
+  dashVeziyyetChart = dairaviCiz('dashVeziyyetCanvas', dashVeziyyetChart, [
+    { ad: tr('dash.varliq', 'Varlıq (müsbət hesablar)'), tutar: c.varliq, renk: cssVar('--chart-1') || '#d4d8de' },
+    { ad: tr('dash.borcCemi', 'Borc (mənfi hesablar)'), tutar: c.borc, renk: cssVar('--danger') || '#d63a3a' }
+  ], 'dashVeziyyetLegend', ' AZN', tr('dash.hesabYoxdur', 'Hesabatda göstərilən hesab yoxdur.'));
 
-  document.getElementById('dashKrediKartMerkez').innerText = c.kartVar ? c.limit.toFixed(2) : '—';
-  dashKrediKartChart = dairaviCiz('dashKrediKartCanvas', dashKrediKartChart, c.kartVar ? [
-    { ad: tr('dash.istifadeOlunan', 'İstifadə olunub'), tutar: c.istifade, renk: cssVar('--danger') || '#d63a3a' },
-    { ad: tr('dash.istifadeEdileBilen', 'İstifadə edilə bilər'), tutar: Math.max(0, pulYuvarla(c.limit - c.istifade)), renk: cssVar('--chart-1') || '#d4d8de' }
-  ] : [], 'dashKrediKartLegend', ' AZN', tr('dash.kkYoxdur', 'Kredit kartı hələ əlavə edilməyib.'));
+  // 2. Ümumi borc: mənfidə olan hər hesab ayrıca
+  document.getElementById('dashUmumiBorcMerkez').innerText = c.borc.toFixed(2);
+  dashUmumiBorcChart = dairaviCiz('dashUmumiBorcCanvas', dashUmumiBorcChart,
+    c.borclar.map((b, i) => ({ ad: b.ad, tutar: b.tutar, renk: reng[i % reng.length] })),
+    'dashUmumiBorcLegend', ' AZN', tr('dash.borcYoxdur', 'Borc yoxdur.'));
 
-  document.getElementById('dashKrediBorcuMerkez').innerText = c.xettVar ? (c.odenmis + '/' + c.cemTaksit) : '—';
-  dashKrediBorcuChart = dairaviCiz('dashKrediBorcuCanvas', dashKrediBorcuChart, c.xettVar ? [
-    { ad: tr('dash.odenilib', 'Ödənilib'), tutar: c.odenmis, renk: cssVar('--chart-1') || '#c9ced6' },
-    { ad: tr('dash.qalib', 'Qalıb'), tutar: c.cemTaksit - c.odenmis, renk: cssVar('--input-border') || '#d9c9cd' }
-  ] : [], 'dashKrediBorcuLegend', ' ' + tr('dash.taksitVahid', 'taksit'), tr('dash.krediXettYoxdur', 'Kredit xətti hələ əlavə edilməyib.'));
+  // 3–4. Hər kredit kartı və hər kredit xətti üçün ayrıca qrafik (yalnız tiki aktiv olanlar)
+  dashElaveChartlar.forEach(ch => { try { ch.destroy(); } catch (e) {} });
+  dashElaveChartlar = [];
+  const kartQutu = (qrup, n, basliq, altBasliq, merkez, merkezLbl) => {
+    const el = document.createElement('div');
+    el.className = 'pie-card';
+    el.innerHTML = `<div class="pie-title">${escapeHtml(basliq)}${altBasliq ? `<small class="pie-alt-basliq">${escapeHtml(altBasliq)}</small>` : ''}</div>
+      <div class="pie-card-row"><div class="pie-canvas-wrap"><canvas id="dashEx${n}Canvas"></canvas>
+        <div class="pie-center-label"><span class="n">${escapeHtml(merkez)}</span><span class="l">${escapeHtml(merkezLbl)}</span></div></div>
+        <div class="pie-legend" id="dashEx${n}Legend"></div></div><div class="pie-alt" id="dashEx${n}Alt"></div>`;
+    qrup.appendChild(el);
+    return el;
+  };
+  let n = 0;
+  const kq = document.getElementById('dashKartlarQrup');
+  kq.innerHTML = '';
+  c.kartlar.forEach(k => {
+    n++;
+    const limitVar = k.limit !== null;
+    kartQutu(kq, n, k.ad, k.altYazi, limitVar ? k.limit.toFixed(2) : '—', tr('dash.limit', 'limit'));
+    dashElaveChartlar.push(dairaviCiz('dashEx' + n + 'Canvas', null, limitVar ? [
+      { ad: tr('dash.istifadeOlunan', 'İstifadə olunub'), tutar: k.istifade, renk: cssVar('--danger') || '#d63a3a' },
+      { ad: tr('dash.istifadeEdileBilen', 'İstifadə edilə bilər'), tutar: Math.max(0, pulYuvarla(k.limit - k.istifade)), renk: cssVar('--chart-1') || '#d4d8de' }
+    ] : [{ ad: tr('dash.borcCemi', 'Borc (mənfi hesablar)'), tutar: k.istifade, renk: cssVar('--danger') || '#d63a3a' }], 'dashEx' + n + 'Legend', ' AZN', tr('dash.borcYoxdur', 'Borc yoxdur.')));
+  });
+  const xq = document.getElementById('dashXettlerQrup');
+  xq.innerHTML = '';
+  c.xettler.forEach(x => {
+    n++;
+    kartQutu(xq, n, x.ad, x.altYazi, x.qalan > 0 ? x.aylik.toFixed(2) : '0.00', tr('dash.ayda', 'AZN / ay'));
+    dashElaveChartlar.push(dairaviCiz('dashEx' + n + 'Canvas', null, [
+      { ad: tr('dash.odenilib', 'Ödənilib'), tutar: x.odenmis, renk: cssVar('--chart-1') || '#c9ced6' },
+      { ad: tr('dash.qalib', 'Qalıb'), tutar: x.say - x.odenmis, renk: cssVar('--input-border') || '#d9c9cd' }
+    ], 'dashEx' + n + 'Legend', ' ' + tr('dash.taksitVahid', 'taksit'), tr('dash.krediXettYoxdur', 'Kredit xətti hələ əlavə edilməyib.')));
+    altYaz('dashEx' + n + 'Alt', [
+      [tr('dash.qalanBorc', 'Qalan borc'), x.qalan.toFixed(2) + ' AZN'],
+      [tr('dash.bitis', 'Bitmə tarixi'), typeof tarixFormat === 'function' ? tarixFormat(x.bitis) : (x.bitis || '—')]
+    ]);
+  });
 }
 
 // ==== Ayarlar: Günlük limit + Kateqoriyalar + Son əməliyyatlar + İşıq rejimi ====
