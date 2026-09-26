@@ -25,7 +25,17 @@
 // (v10: dil faylları (lang/*.json) üçün network-first əlavə edildi.)
 // (v9: ad "Safe Money" olaraq dəyişdi və yeni logo əlavə edildi — köhnə keşlənmiş
 // ikonların/title-ın istifadəçilərdə qalmaması üçün versiya artırıldı.)
-const CACHE_ADI = 'safe-money-cache-v32';
+// (v33: Oflayn rejim — js/oflayn.js; Firebase və Chart.js kitabxanaları da ayrıca keşdə saxlanılır ki,
+//  tətbiq internetsiz də açılsın.)
+const CACHE_ADI = 'safe-money-cache-v33';
+// Xarici kitabxanalar (versiya nömrəli ünvanlar — dəyişmir): tətbiq yeniləndikdə silinmir.
+const CDN_KESH = 'safe-money-cdn-v1';
+const CDN_FAYLLAR = [
+  'https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js',
+  'https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js',
+  'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js',
+  'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js'
+];
 
 const KESLENECEK_FAYLLAR = [
   './index.html',
@@ -43,6 +53,7 @@ const KESLENECEK_FAYLLAR = [
   './js/sync.js',
   './js/storage.js',
   './js/hesablar.js',
+  './js/oflayn.js',
   './js/app.js',
   './lang/az.json',
   './lang/en.json',
@@ -60,7 +71,9 @@ self.addEventListener('install', (event) => {
           cache.add(new Request(f, { cache: 'reload' })).catch((e) => console.warn('[SW] Keş xətası:', f, e))
         )
       );
-    })
+    }).then(() => caches.open(CDN_KESH)).then((cache) => Promise.all(CDN_FAYLLAR.map((u) =>
+      cache.match(u).then((var_) => var_ || fetch(u, { mode: 'no-cors' }).then((c) => cache.put(u, c))).catch(() => {})
+    )))
   );
   self.skipWaiting();
 });
@@ -68,7 +81,7 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((adlar) =>
-      Promise.all(adlar.filter((ad) => ad !== CACHE_ADI).map((ad) => caches.delete(ad)))
+      Promise.all(adlar.filter((ad) => ad !== CACHE_ADI && ad !== CDN_KESH).map((ad) => caches.delete(ad)))
     )
   );
   self.clients.claim();
@@ -77,8 +90,17 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Yalnız öz origin-imizdəki GET sorğularını keşlə; xarici (Google, CDN) sorğulara toxunma.
-  if (event.request.method !== 'GET' || url.origin !== self.location.origin) return;
+  if (event.request.method !== 'GET') return;
+  // Firebase / Chart.js kitabxanaları: KEŞ-ƏVVƏL (ünvan versiyalıdır, məzmun dəyişmir) — internetsiz açılış üçün
+  if (CDN_FAYLLAR.indexOf(event.request.url) !== -1) {
+    event.respondWith(
+      caches.open(CDN_KESH).then((cache) => cache.match(event.request.url).then((var_) => var_ ||
+        fetch(event.request).then((c) => { if (c && (c.ok || c.type === 'opaque')) cache.put(event.request.url, c.clone()); return c; })))
+    );
+    return;
+  }
+  // Digər xarici sorğulara (Google API, Firestore) toxunmuruq.
+  if (url.origin !== self.location.origin) return;
 
   // HTML naviqasiya sorğuları üçün NETWORK-FIRST:
   // GitHub Pages cavabı brauzerin HTTP keşində ~10 dəq saxlaya bilər, ona görə

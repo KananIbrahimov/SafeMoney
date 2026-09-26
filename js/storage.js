@@ -1,5 +1,5 @@
 /* Safe Money — vəziyyət, yükləmə, yadda saxlama */
-const APP_VERSION = '3.19'; // hər yeni göndərilən html versiyasında əl ilə +1 artırılır
+const APP_VERSION = '3.20'; // hər yeni göndərilən html versiyasında əl ilə +1 artırılır
 let goruntulenenTarix = new Date(); goruntulenenTarix.setHours(0, 0, 0, 0);
 let kategoriler = [];
 let giderler = [];
@@ -108,20 +108,41 @@ function vaxtAsimiIle(promise, ms) {
 async function veriYukle() {
   let firebaseDenGeldi = false;
   let senedTesdiqlenmisBosdur = false; // Firebase-ə çatdıq VƏ sənəd HƏQİQƏTƏN boşdur
+  let gozleyenGonderilmeli = false;    // telefonda göndərilməmiş dəyişiklik var
+  const telefonda = (typeof oflaynOxu === 'function') ? oflaynOxu() : null;
   try {
     const hazir = await vaxtAsimiIle(firebaseBaslat(), 15000);
-    if (hazir && firestoreDb && senkronKey) {
-      const snap = await firestoreDb.collection('syncs').doc(senkronKey).get();
-      if (snap.exists && snap.data() && snap.data().data) {
-        driveVerisiniTetbiqEt(snap.data().data);
-        bazaRev = Number(snap.data().rev) || 0;
+    if (hazir && firestoreDb && senkronKey && navigator.onLine !== false) {
+      const snap = await vaxtAsimiIle(firestoreDb.collection('syncs').doc(senkronKey).get(), 10000);
+      if (snap && snap.exists && snap.data() && snap.data().data) {
+        const bulud = snap.data().data, rev = Number(snap.data().rev) || 0;
+        if (telefonda && telefonda.yerli) {
+          // Əvvəlki açılışda göndərilə bilməmiş dəyişikliklər: buluddakı son vəziyyətlə birləşdirilib göndərilir
+          driveVerisiniTetbiqEt(telefonda.bazaRev === rev ? telefonda.yerli : dataBirlesdir(telefonda.baza, telefonda.yerli, bulud));
+          gozleyenGonderilmeli = true;
+        } else {
+          driveVerisiniTetbiqEt(bulud);
+        }
+        bazaRev = rev;
+        bazaData = jsonKopya(bulud);
         firebaseDenGeldi = true;
-      } else {
+      } else if (snap && !snap.exists) {
         senedTesdiqlenmisBosdur = true;
       }
     }
   } catch (e) {
     console.warn('Firebase-dən oxuma xətası:', e);
+  }
+
+  // İnternet yoxdur, amma telefonda son nüsxə var → oflayn rejimdə aç
+  if (!firebaseDenGeldi && !senedTesdiqlenmisBosdur && senkronKey && telefonda && (telefonda.yerli || telefonda.baza)) {
+    driveVerisiniTetbiqEt(telefonda.yerli || telefonda.baza);
+    bazaRev = Number(telefonda.bazaRev) || 0;
+    bazaData = jsonKopya(telefonda.baza);
+    gozleyenGonderilmeli = !!telefonda.yerli;
+    firebaseDenGeldi = true;
+    oflaynYazmaXetasi = true;
+    setTimeout(() => toastGoster(tr('oflayn.acildi', 'İnternet yoxdur — telefonda saxlanan son məlumatla açıldı. Dəyişikliklər internet gələndə göndəriləcək.')), 600);
   }
 
   if (!firebaseDenGeldi) {
@@ -149,6 +170,7 @@ async function veriYukle() {
   }
 
   yazilmisSurum = yerliSurum;
+  if (gozleyenGonderilmeli) { yerliSurum++; oflaynGonderilir = true; }
   veriYuklendi = true;
   appIskeletiOlustur();
   ekraniGuncelle();
@@ -157,6 +179,9 @@ async function veriYukle() {
   if (firebaseHazir && senkronKey) {
     firebaseDinlemeyeBasla();
   }
+  if (gozleyenGonderilmeli) firebaseYazPlanla();
+  else if (firebaseDenGeldi && typeof bazaTeyinEt === 'function' && veriMenbeGuvenli && !oflaynYazmaXetasi) bazaTeyinEt(bazaData, bazaRev);
+  if (typeof oflaynGostericiYenile === 'function') oflaynGostericiYenile();
   if (typeof driveAcilisYoxla === 'function') driveAcilisYoxla();
 }
 
@@ -176,6 +201,7 @@ async function veriKaydet() {
     }
     // QƏSDƏN localStorage-a YAZILMIR — məlumatın YEGANƏ mənbəyi Firestore-dur.
     yerliSurum++;
+    if (typeof oflaynDeyisiklikSaxla === 'function') oflaynDeyisiklikSaxla(); // internet olmasa da itməsin
     firebaseYazPlanla();
   } catch (e) {
     console.error('Yadda saxlama xətası:', e);

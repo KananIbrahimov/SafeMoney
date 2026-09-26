@@ -499,7 +499,7 @@ function kategoriyeTikla(index) {
 function giderEkle(kategori, tutar, sebeb) {
   const simdi = new Date();
   const kayit = {
-    kategori, tutar,
+    id: qeydIdUret('g'), kategori, tutar,
     tamTarix: simdi.toISOString(),
     tarix: tarixSaatYaz(simdi)
   };
@@ -603,7 +603,7 @@ function islemFormOnayla() {
   } else {
     const dt = tamTarixQur(tarixVal, null);
     const kayit = {
-      kategori, tutar, tamTarix: dt.toISOString(),
+      id: qeydIdUret('g'), kategori, tutar, tamTarix: dt.toISOString(),
       tarix: tarixSaatYaz(dt)
     };
     if (sebeb) kayit.sebeb = sebeb;
@@ -1378,7 +1378,7 @@ function aylikHesabatGoster() {
 // ==== Son əməliyyatlar (tam tarixçə) ====
 // ==== Son əməliyyatlar: filtr (kateqoriya + tarix aralığı), keçmiş xərcləri dəyiş/sil ====
 // Açılanda defolt olaraq yalnız bu gün göstərilir. Filtr yalnız bu səhifənin vəziyyətidir, buluda yazılmır.
-let sonFiltr = { kat: '', bas: '', son: '' };
+let sonFiltr = { kat: '', bas: '', son: '', q: '' };
 
 function sonFiltrAraliq(nov) {
   const bugun = new Date(); bugun.setHours(0, 0, 0, 0);
@@ -1391,7 +1391,8 @@ function sonFiltrAraliq(nov) {
 
 function sonEmeliyyatlarPaneliniAc() {
   const a = sonFiltrAraliq('bugun');
-  sonFiltr = { kat: '', bas: a.bas, son: a.son };
+  sonFiltr = { kat: '', bas: a.bas, son: a.son, q: '' };
+  const axtarEl = document.getElementById('sonAxtar'); if (axtarEl) axtarEl.value = '';
   sonFiltrFormuDoldur();
   modalAc('sonEmeliyyatlarModal');
   sonEmeliyyatlarCiz();
@@ -1418,12 +1419,33 @@ function sonFiltrDeyisdi() {
   let bas = document.getElementById('sonFiltrBas').value || '';
   let son = document.getElementById('sonFiltrSon').value || '';
   if (bas && son && bas > son) { const x = bas; bas = son; son = x; } // tərs seçilibsə yerini dəyiş
-  sonFiltr = { kat: sel ? sel.value : '', bas, son };
+  sonFiltr = { kat: sel ? sel.value : '', bas, son, q: sonFiltr.q || '' };
   sonFiltrFormuDoldur();
   sonEmeliyyatlarCiz();
 }
 
 // Sürətli seçim düymələri: Bu gün / 7 gün / Bu ay / Hamısı
+// Axtarış: kateqoriya, qeyd, hesab adı və ya məbləğ (məs. "20" → 20.00, 20.50; "3,5" → 3.50)
+function sonAxtarDeyisdi() {
+  const el = document.getElementById('sonAxtar');
+  const evvelBos = !sonFiltr.q;
+  sonFiltr.q = el ? el.value.trim() : '';
+  // "Bu gün" seçili ikən axtarışa başlayanda bütün tarixçədə axtar
+  if (evvelBos && sonFiltr.q) {
+    const bugun = sonFiltrAraliq('bugun');
+    if (sonFiltr.bas === bugun.bas && sonFiltr.son === bugun.son) { const h = sonFiltrAraliq('hamisi'); sonFiltr.bas = h.bas; sonFiltr.son = h.son; sonFiltrFormuDoldur(); }
+  }
+  sonEmeliyyatlarCiz();
+}
+function xercAxtarisaUygun(g, q) {
+  if (!q) return true;
+  const kicik = x => String(x == null ? '' : x).toLocaleLowerCase(dilKodu === 'az' ? 'az-AZ' : undefined);
+  const s = kicik(q);
+  const reqem = s.replace(',', '.');
+  if (/^\d+(\.\d*)?$/.test(reqem) && Number(g.tutar).toFixed(2).startsWith(reqem)) return true;
+  const h = g.hesabId && typeof hesabTap === 'function' ? hesabTap(g.hesabId) : null;
+  return [g.kategori, g.sebeb, h ? hesabGorunenAd(h) : ''].some(x => kicik(x).includes(s));
+}
 function sonFiltrSec(nov) {
   const a = sonFiltrAraliq(nov);
   sonFiltr.bas = a.bas; sonFiltr.son = a.son;
@@ -1442,6 +1464,7 @@ function sonEmeliyyatlarCiz() {
     const gun = g.tamTarix ? yerliTarixStr(new Date(g.tamTarix)) : '';
     if (bas && (!gun || gun < bas)) return;
     if (son && (!gun || gun > son)) return;
+    if (!xercAxtarisaUygun(g, sonFiltr.q)) return;
     html += xercSetirHtml(g, index, true); // burada keçmiş xərcləri də dəyişmək / silmək olar
     say++; cem += g.tutar;
   });

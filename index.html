@@ -449,6 +449,7 @@
     <button class="btn btn-primary btn-ikonlu" onclick="islemFormModalAc(null)" style="width:100%; margin-bottom:12px;"><i data-ikon="artir" data-olcu="18"></i><span data-i18n="ana.kohneTarixliXerc">Keçmiş tarixə xərc əlavə et</span></button>
 
     <div class="filtr-kart">
+      <div class="axtar-sahe"><i data-ikon="axtar" data-olcu="17"></i><input type="search" id="sonAxtar" class="filtr-inp" oninput="sonAxtarDeyisdi()" placeholder="Axtar: məbləğ, kateqoriya, qeyd" data-i18n-placeholder="sonEm.axtarPlaceholder" aria-label="Axtar" data-i18n-aria="sonEm.axtar" autocomplete="off"></div>
       <div class="filtr-cips" id="sonFiltrCips">
         <button type="button" data-nov="bugun" onclick="sonFiltrSec('bugun')" data-i18n="ana.bugun">Bu gün</button>
         <button type="button" data-nov="7gun" onclick="sonFiltrSec('7gun')" data-i18n="sonEm.son7">7 gün</button>
@@ -634,6 +635,7 @@
 <script src="js/ui.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/sync.js"></script>
+<script src="js/oflayn.js"></script>
 <script src="js/storage.js"></script>
 <script src="js/hesablar.js"></script>
 <script src="js/app.js"></script>

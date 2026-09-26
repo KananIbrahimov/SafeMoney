@@ -774,9 +774,15 @@ function tesdiqEmailiYenidenGonder() {
 
 function cixisEt() {
   if (demoRejim) { qonaqdanCix(); return; }
+  if (yerliDeyisiklikVar()) {
+    alertAc(tr('oflayn.cixisBlok', 'Hələ buluda göndərilməmiş dəyişikliklər var. İnternetə qoşul, göndərilsin, sonra çıx.'));
+    firebaseYazPlanla();
+    return;
+  }
   confirmAc(tr('ayarlar.cixisEt', 'Çıxış et'), tr('ayarlar.cixisSual', 'Hesabdan çıxmaq istəyirsən? Bu cihazda yenidən giriş ekranı açılacaq.'), () => {
     if (firebaseUnsubscribe) { firebaseUnsubscribe(); firebaseUnsubscribe = null; }
     driveCihazMelumatiniSil();
+    oflaynSil();
     if (typeof kilidTemizle === 'function') kilidTemizle(); // növbəti istifadəçi əvvəlkinin kilidi ilə qarşılaşmasın
     firebase.auth().signOut().catch(() => {}).then(() => location.reload());
   });
@@ -815,7 +821,7 @@ async function uygulamaGirisBaslat() {
       // Sessiya bitib (çıxış və ya başqa cihazdan ləğv): dinləməni dayandır, əvvəlki istifadəçinin
       // yaddaşdakı datası və Drive bağlantısı növbəti girişə qalmasın.
       if (firebaseUnsubscribe) { firebaseUnsubscribe(); firebaseUnsubscribe = null; }
-      if (cariGoogleIstifadeci) { driveCihazMelumatiniSil(); yerliVeriniYukle(); }
+      if (cariGoogleIstifadeci) { driveCihazMelumatiniSil(); oflaynSil(cariGoogleIstifadeci.uid); yerliVeriniYukle(); }
       cariGoogleIstifadeci = null;
       senkronKey = null;
       veriYuklendi = false;
@@ -882,6 +888,7 @@ let yazilmisSurum = 0;    // buluda çatmış son yerli sürüm
 let yazmaGedir = false;
 let yazmaTekrarGerek = false;
 let yazmaTekrarTimer = null;
+let oflaynGonderilir = false; // göndərilməmiş oflayn dəyişikliklər var idi — göndəriləndə xəbər ver
 
 function yerliDeyisiklikVar() { return yerliSurum !== yazilmisSurum; }
 
@@ -934,6 +941,7 @@ function firebaseDinlemeyeBasla() {
     bazaRev = remoteRev;
     yazilmisSurum = yerliSurum;
     veriMenbeGuvenli = true;
+    bazaTeyinEt(remote.data, remoteRev);
     buludVerisiTetbiqSonrasi();
   }, (err) => {
     console.warn('Firestore dinləmə xətası:', err);
@@ -953,7 +961,7 @@ async function firebaseYazEt() {
   if (yazmaGedir) { yazmaTekrarGerek = true; return; }
   yazmaGedir = true;
   yazmaTekrarGerek = false;
-  let konflikt = null, yeniRev = bazaRev, yazilanSurum = yerliSurum;
+  let konflikt = null, yeniRev = bazaRev, yazilanSurum = yerliSurum, yazilanData = null;
   try {
     const ref = firestoreDb.collection('syncs').doc(senkronKey);
     await firestoreDb.runTransaction(async (tx) => {
@@ -964,37 +972,48 @@ async function firebaseYazEt() {
       if (bulud && bulud.data && budRev !== bazaRev) { konflikt = bulud; return; } // başqa cihaz arada yazıb
       yazilanSurum = yerliSurum;
       yeniRev = budRev + 1;
+      yazilanData = driveBackupVerisi();
       tx.set(ref, {
-        data: driveBackupVerisi(),
+        data: yazilanData,
         cihazId,
         rev: yeniRev,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
     });
     if (konflikt) {
-      // Bizim yazmamız başqa cihazın daha yeni dəyişikliyinin üstünə düşərdi — onun versiyasını yükləyirik.
-      driveVerisiniTetbiqEt(konflikt.data);
+      // Başqa cihaz arada yazıb. Əvvəl onun versiyası yüklənir və bizim dəyişikliklər atılırdı —
+      // indi hər iki tərəfin dəyişiklikləri birləşdirilir (oflayn.js → dataBirlesdir) və yenidən yazılır.
+      const birlesmis = dataBirlesdir(bazaData, driveBackupVerisi(), konflikt.data);
+      driveVerisiniTetbiqEt(birlesmis);
       bazaRev = Number(konflikt.rev) || 0;
-      yazilmisSurum = yerliSurum;
+      bazaData = jsonKopya(konflikt.data);
+      yerliSurum++; // birləşmiş vəziyyət göndərilməlidir
       veriMenbeGuvenli = true;
+      oflaynDeyisiklikSaxla();
       buludVerisiTetbiqSonrasi();
-      firebasePanelGuncelle(tr('sinx.konflikt', 'Başqa cihazda daha yeni dəyişiklik var və o yükləndi. Son əməliyyatını yoxla, lazım olsa təkrarla.'), true);
-      toastGoster(tr('sinx.konflikt', 'Başqa cihazda daha yeni dəyişiklik var və o yükləndi. Son əməliyyatını yoxla, lazım olsa təkrarla.'));
+      toastGoster(tr('sinx.birlesdirildi', 'Başqa cihazdakı dəyişikliklərlə birləşdirildi.'), 'birlesme');
     } else {
       bazaRev = yeniRev;
       yazilmisSurum = yazilanSurum;
+      oflaynYazmaXetasi = false;
+      oflaynYazildi(yazilanData, yeniRev);
+      if (oflaynGonderilir && !yerliDeyisiklikVar()) { oflaynGonderilir = false; toastGoster(tr('oflayn.gonderildi', 'Oflayn dəyişikliklər buluda göndərildi.')); }
     }
   } catch (e) {
     console.warn('Firestore yazma xətası:', e);
     firebasePanelGuncelle(tr('sinx.gonderilmediPanel', 'Göndərmək alınmadı — yenidən cəhd edilir.'), true);
-    toastGoster(tr('sinx.gonderilmediToast', 'Dəyişiklik buluda saxlanmadı. İnterneti yoxla — avtomatik yenidən cəhd edilir.'), 'yazma-xeta');
+    // Dəyişiklik artıq telefonda saxlanıb (oflayn.js) — itmir; internet gələndə özü göndəriləcək
+    oflaynYazmaXetasi = true;
+    oflaynGonderilir = true;
+    oflaynGostericiYenile();
     yazmaGedir = false;
     clearTimeout(yazmaTekrarTimer);
-    yazmaTekrarTimer = setTimeout(firebaseYazPlanla, 5000);
+    yazmaTekrarTimer = setTimeout(firebaseYazPlanla, navigator.onLine ? 5000 : 15000);
     return;
   }
   yazmaGedir = false;
-  if (!konflikt && (yerliDeyisiklikVar() || yazmaTekrarGerek)) firebaseYazPlanla(); // yazma zamanı yeni dəyişiklik olub
+  // yazma zamanı yeni dəyişiklik olub və ya konfliktdən sonra birləşmiş vəziyyət göndərilməlidir
+  if (yerliDeyisiklikVar() || yazmaTekrarGerek) firebaseYazPlanla();
 }
 
 // ==================== /Firebase ====================

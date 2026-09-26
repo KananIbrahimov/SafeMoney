@@ -350,7 +350,7 @@ function medaxilOnayla() {
   if (!(tutar > 0)) { errEl.innerText = tr('umumi.duzgunMebleg', 'Düzgün məbləğ yaz.'); return; }
   h.balans = pulYuvarla(h.balans + tutar);
   const simdi = new Date();
-  const qeyd = { menbeId: null, hedefId: h.id, hedefTip: h.tip, tutar, medaxil: true, tamTarix: simdi.toISOString(), tarix: tarixSaatYaz(simdi) };
+  const qeyd = { id: qeydIdUret('t'), menbeId: null, hedefId: h.id, hedefTip: h.tip, tutar, medaxil: true, tamTarix: simdi.toISOString(), tarix: tarixSaatYaz(simdi) };
   if (aciqlama) qeyd.aciqlama = aciqlama;
   hesabTransferleri.unshift(qeyd);
   veriKaydet();
@@ -408,7 +408,7 @@ function transferOnayla() {
   if (h.tip === 'krediXett') h.elaveOdenis = pulYuvarla((h.elaveOdenis || 0) + tutar);
   else h.balans = pulYuvarla(h.balans + tutar);
   const simdi = new Date();
-  hesabTransferleri.unshift({ menbeId: m.id, hedefId: h.id, menbeTip: m.tip, hedefTip: h.tip, tutar, tamTarix: simdi.toISOString(), tarix: tarixSaatYaz(simdi) });
+  hesabTransferleri.unshift({ id: qeydIdUret('t'), menbeId: m.id, hedefId: h.id, menbeTip: m.tip, hedefTip: h.tip, tutar, tamTarix: simdi.toISOString(), tarix: tarixSaatYaz(simdi) });
   veriKaydet();
   modalKapat('transferModal');
   hesablarGoster();
@@ -447,7 +447,7 @@ function krediOdeOnayla() {
   m.balans = pulYuvarla(m.balans - tutar);
   x.odenmisTaksitSayi += 1;
   const simdi = new Date();
-  hesabTransferleri.unshift({ menbeId: m.id, hedefId: x.id, menbeTip: m.tip, hedefTip: 'krediXett', tutar, taksit: true, tamTarix: simdi.toISOString(), tarix: tarixSaatYaz(simdi) });
+  hesabTransferleri.unshift({ id: qeydIdUret('t'), menbeId: m.id, hedefId: x.id, menbeTip: m.tip, hedefTip: 'krediXett', tutar, taksit: true, tamTarix: simdi.toISOString(), tarix: tarixSaatYaz(simdi) });
   veriKaydet();
   modalKapat('krediOdeModal');
   hesablarGoster();
