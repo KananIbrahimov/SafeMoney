@@ -71,7 +71,7 @@ function hesabNormallasdir(x) {
   const tip = HESAB_TIPLERI.indexOf(x && x.tip) !== -1 ? x.tip : 'nagd';
   const eded = (v, d) => (typeof v === 'number' && isFinite(v)) ? v : d;
   const h = {
-    id: (x && typeof x.id === 'string' && x.id) ? x.id : hesabIdUret(),
+    id: (x && typeof x.id === 'string' && /^[\w-]{1,40}$/.test(x.id)) ? x.id : hesabIdUret(),
     tip,
     ad: (x && typeof x.ad === 'string') ? x.ad.trim().slice(0, 40) : '',
     bank: (x && typeof x.bank === 'string') ? x.bank.trim().slice(0, 40) : '',
@@ -208,9 +208,9 @@ function hesabKartHtml(h, idareRejimi) {
     elave = `<div class="hk-alt">${escapeHtml(tr('hesablar.taksitOdenilib', '{odenmis}/{say} taksit ödənilib · Aylıq: {aylik} AZN', { odenmis: h.odenmisTaksitSayi, say: h.taksitSayi, aylik: h.aylikMebleg.toFixed(2) }))} · ${escapeHtml(tarixFormat(h.baslangic))}–${escapeHtml(tarixFormat(h.bitis))}${h.elaveOdenis > 0 ? ' · ' + escapeHtml(tr('hesablar.elaveOdenis', 'əlavə ödəniş: −{mebleg} AZN', { mebleg: h.elaveOdenis.toFixed(2) })) : ''}</div>`;
   }
   const ulduz = h.tip === 'krediXett' ? '' :
-    `<button class="ulduz-btn${h.ana ? ' aktiv' : ''}" onclick="event.stopPropagation(); anaHesabSec('${h.id}')" aria-label="${escapeHtml(tr('hesab.anaSec', 'Əsas hesab et'))}" title="${escapeHtml(tr('hesab.anaSec', 'Əsas hesab et'))}">${ikon('ulduz', 20)}</button>`;
+    `<button class="ulduz-btn${h.ana ? ' aktiv' : ''}" onclick="event.stopPropagation(); anaHesabSec('${escapeHtml(h.id)}')" aria-label="${escapeHtml(tr('hesab.anaSec', 'Əsas hesab et'))}" title="${escapeHtml(tr('hesab.anaSec', 'Əsas hesab et'))}">${ikon('ulduz', 20)}</button>`;
   const sag = idareRejimi ? `<span class="hk-ox">${ikon('sag', 18)}</span>` : ulduz;
-  const tikla = idareRejimi ? ` onclick="hesabFormAc('${h.id}', 'idare')" role="button" tabindex="0"` : '';
+  const tikla = idareRejimi ? ` onclick="hesabFormAc('${escapeHtml(h.id)}', 'idare')" role="button" tabindex="0"` : '';
   return `<div class="hesab-kart${idareRejimi ? ' tiklanir' : ''}"${tikla}>
     <div class="hk-bas"><span class="hesab-ikon">${ikon(h.tip)}</span><div class="hk-ad"><b>${escapeHtml(hesabGorunenAd(h))}</b><small>${escapeHtml(hesabAltYazi(h))}${h.ana ? ' · ' + escapeHtml(tr('hesab.anaQisa', 'Əsas')) : ''}</small></div>${sag}</div>
     <div class="hk-bal" style="color:${renk};">${bal.toFixed(2)} AZN</div>${elave}
@@ -224,7 +224,7 @@ function hesablarGoster() {
     ? hesablar.map(h => hesabKartHtml(h, false)).join('')
     : `<p class="empty-note" style="padding:8px 0;">${escapeHtml(tr('hesablar.hecHesabYox', 'Hələ hesab yoxdur. Yuxarıdakı + düyməsi ilə əlavə et.'))}</p>`;
   const kxBtn = document.getElementById('krediOdeBtn');
-  if (kxBtn) kxBtn.style.display = hesablar.some(h => h.tip === 'krediXett' && h.odenmisTaksitSayi < h.taksitSayi) ? '' : 'none';
+  if (kxBtn) kxBtn.style.display = hesablar.some(krediOdenisiMumkun) ? '' : 'none';
   const trBtn = document.getElementById('transferBtn');
   if (trBtn) trBtn.style.display = hesablar.length >= 2 ? '' : 'none';
   hesabEmeliyyatlariCiz();
@@ -261,7 +261,7 @@ function hesabEmeliyyatlariCiz() {
   if (sel) {
     if (hesabFiltrId && !hesabTap(hesabFiltrId)) hesabFiltrId = '';
     sel.innerHTML = `<option value="">${escapeHtml(tr('hesab.butunHesablar', 'Bütün hesablar'))}</option>` +
-      hesablar.map(h => `<option value="${h.id}"${h.id === hesabFiltrId ? ' selected' : ''}>${escapeHtml(hesabGorunenAd(h))}</option>`).join('');
+      hesablar.map(h => `<option value="${escapeHtml(h.id)}"${h.id === hesabFiltrId ? ' selected' : ''}>${escapeHtml(hesabGorunenAd(h))}</option>`).join('');
   }
   const ayEl = document.getElementById('hesabAyEtiket');
   if (ayEl) ayEl.innerText = ayAdi(hesabAyi);
@@ -291,14 +291,20 @@ function transferSilOnayla(index) {
     const idx = hesabTransferleri.indexOf(t);
     if (idx === -1) { alertAc(tr('umumi.siyahiYenilendiXeta', 'Siyahı bu arada yeniləndi. Yenidən cəhd et.')); hesablarGoster(); return; }
     const m = hesabTap(t.menbeId), h = hesabTap(t.hedefId);
-    if (m && m.tip !== 'krediXett') m.balans = pulYuvarla(m.balans + t.tutar);
-    if (h) {
-      if (h.tip === 'krediXett') {
-        if (t.taksit) h.odenmisTaksitSayi = Math.max(0, h.odenmisTaksitSayi - 1);
-        else h.elaveOdenis = Math.max(0, pulYuvarla((h.elaveOdenis || 0) - t.tutar));
-      } else {
-        h.balans = pulYuvarla(h.balans - t.tutar);
-      }
+    if (!m || !h) {
+      // Hesablardan biri silinib: yarımçıq qaytarış pulu "itirər" və ya "yaradar" — yalnız qeyd silinir
+      hesabTransferleri.splice(idx, 1);
+      veriKaydet(); hesablarGoster(); ekraniGuncelle();
+      alertAc(tr('transfer.silinmisHesab', 'Hesablardan biri silindiyi üçün balanslar dəyişmədi — yalnız qeyd silindi.'));
+      return;
+    }
+    if (h.tip !== 'krediXett' && !hesabdanCixmaOlar(h, t.tutar)) { alertAc(kifayetYoxdurMetni(h)); return; }
+    if (m.tip !== 'krediXett') m.balans = pulYuvarla(m.balans + t.tutar);
+    if (h.tip === 'krediXett') {
+      if (t.taksit) h.odenmisTaksitSayi = Math.max(0, h.odenmisTaksitSayi - 1);
+      else h.elaveOdenis = Math.max(0, pulYuvarla((h.elaveOdenis || 0) - t.tutar));
+    } else {
+      h.balans = pulYuvarla(h.balans - t.tutar);
     }
     hesabTransferleri.splice(idx, 1);
     veriKaydet();
@@ -310,7 +316,7 @@ function transferSilOnayla(index) {
 // ---- Köçürmə ----
 function hesabSecimleri(selId, siyahi, secili) {
   const sel = document.getElementById(selId);
-  sel.innerHTML = siyahi.map(h => `<option value="${h.id}"${h.id === secili ? ' selected' : ''}>${escapeHtml(hesabGorunenAd(h))} — ${escapeHtml(hesabBalansi(h).toFixed(2))} AZN</option>`).join('');
+  sel.innerHTML = siyahi.map(h => `<option value="${escapeHtml(h.id)}"${h.id === secili ? ' selected' : ''}>${escapeHtml(hesabGorunenAd(h))} — ${escapeHtml(hesabBalansi(h).toFixed(2))} AZN</option>`).join('');
 }
 function transferModalAc() {
   const menbeler = hesablar.filter(h => h.tip !== 'krediXett');
@@ -348,8 +354,11 @@ function transferOnayla() {
 }
 
 // ---- Kredit xətti ödənişi (aylıq taksit) ----
+function krediOdenisiMumkun(h) { return h.tip === 'krediXett' && h.odenmisTaksitSayi < h.taksitSayi && krediQalan(h) > 0; }
+// Növbəti taksitin məbləği: əlavə ödənişlərdən sonra qalıq aylıq məbləğdən azdırsa — yalnız qalıq qədər
+function krediNovbetiTaksit(h) { return pulYuvarla(Math.min(h.aylikMebleg, krediQalan(h))); }
 function krediOdeModalAc() {
-  const xettler = hesablar.filter(h => h.tip === 'krediXett' && h.odenmisTaksitSayi < h.taksitSayi);
+  const xettler = hesablar.filter(krediOdenisiMumkun);
   const menbeler = hesablar.filter(h => h.tip !== 'krediXett');
   if (!xettler.length) return;
   hesabSecimleri('krediOdeXett', xettler, xettler[0].id);
@@ -363,15 +372,15 @@ function krediOdeModalAc() {
 function krediOdeInfoYaz() {
   const x = hesabTap(document.getElementById('krediOdeXett').value);
   const el = document.getElementById('krediOdeInfo');
-  if (x && el) el.innerText = tr('taksitOde.info', 'Taksit {nomre}/{say} · {mebleg} AZN', { nomre: x.odenmisTaksitSayi + 1, say: x.taksitSayi, mebleg: x.aylikMebleg.toFixed(2) });
+  if (x && el) el.innerText = tr('taksitOde.info', 'Taksit {nomre}/{say} · {mebleg} AZN', { nomre: x.odenmisTaksitSayi + 1, say: x.taksitSayi, mebleg: krediNovbetiTaksit(x).toFixed(2) });
 }
 function krediOdeOnayla() {
   const errEl = document.getElementById('krediOdeError');
   const x = hesabTap(document.getElementById('krediOdeXett').value);
   const m = hesabTap(document.getElementById('krediOdeMenbe').value);
   if (!x || !m) { errEl.innerText = tr('taksitOde.hesabSecXeta', 'Ödəniş üçün hesab seç.'); return; }
-  if (x.odenmisTaksitSayi >= x.taksitSayi) { errEl.innerText = tr('taksitOde.hamisiOdenibXeta', 'Bütün taksitlər artıq ödənilib.'); return; }
-  const tutar = x.aylikMebleg;
+  if (!krediOdenisiMumkun(x)) { errEl.innerText = tr('taksitOde.hamisiOdenibXeta', 'Bütün taksitlər artıq ödənilib.'); return; }
+  const tutar = krediNovbetiTaksit(x);
   if (!hesabdanCixmaOlar(m, tutar)) { errEl.innerText = kifayetYoxdurMetni(m); return; }
   m.balans = pulYuvarla(m.balans - tutar);
   x.odenmisTaksitSayi += 1;
@@ -413,7 +422,7 @@ function hesabFormAc(id, qayit) {
   v('hfAd', h ? h.ad : '');
   v('hfBank', h ? h.bank : '');
   v('hfKart', h ? h.kartSon4 : '');
-  v('hfBalans', h ? (h.tip === 'kredit' ? Math.abs(Math.min(0, h.balans)) : h.balans) : '');
+  v('hfBalans', h ? (h.tip === 'kredit' ? pulYuvarla(-h.balans) : h.balans) : ''); // kredit kartı: borc müsbət göstərilir, artıq ödəniş mənfi
   v('hfLimit', h && typeof h.limit === 'number' ? h.limit : '');
   v('hfAylik', h && h.tip === 'krediXett' ? h.aylikMebleg : '');
   v('hfSay', h && h.tip === 'krediXett' ? h.taksitSayi : '');
@@ -498,7 +507,7 @@ function hesabFormSaxla() {
       const limVal = document.getElementById('hfLimit').value;
       const lim = limVal.trim() === '' ? null : eded('hfLimit');
       if (lim !== null && (isNaN(lim) || lim < 0)) return err(tr('hesabDuzelt.limitReqemXeta', 'Limit düzgün rəqəm olmalıdır.'));
-      bal = -Math.abs(bal); // kredit kartı: borc mənfi saxlanılır
+      bal = pulYuvarla(-bal) || 0; // kredit kartı: borc mənfi saxlanılır; mənfi yazılıbsa — kartda artıq ödəniş (müsbət balans) var
       Object.assign(h, qeyd, { balans: bal, limit: lim, menfiOlar: true });
     } else {
       if (bal < 0 && !menfi) return err(tr('hesab.menfiIcazeYox', 'Mənfi balans üçün "Mənfi balansa icazə ver" tikini aktiv et.'));
@@ -519,9 +528,17 @@ function hesabFormSil() {
   if (!h) return;
   confirmAc(tr('hesab.silBaslik', 'Hesabı sil'), tr('hesab.silSual', '"{ad}" hesabı silinsin? Keçmiş xərclər və köçürmələr tarixçədə qalacaq.', { ad: hesabGorunenAd(h) }), () => {
     hesablar = hesablar.filter(x => x.id !== h.id);
+    let yeniAna = null;
+    if (h.ana) {
+      yeniAna = hesablar.find(x => x.tip !== 'krediXett') || null;
+      if (yeniAna) yeniAna.ana = true;
+    }
     veriKaydet();
     hesabFormKapat();
     ekraniGuncelle();
+    if (h.ana) toastGoster(yeniAna
+      ? tr('hesab.yeniAna', 'Əsas hesab indi: {ad}. Xərclər bu hesabdan çıxılacaq.', { ad: hesabGorunenAd(yeniAna) })
+      : tr('hesab.anaYoxdur', 'Əsas hesab qalmadı — yeni xərclər heç bir hesabdan çıxılmayacaq.'));
   });
 }
 

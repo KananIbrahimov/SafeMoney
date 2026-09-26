@@ -25,7 +25,7 @@
 // (v10: dil faylları (lang/*.json) üçün network-first əlavə edildi.)
 // (v9: ad "Safe Money" olaraq dəyişdi və yeni logo əlavə edildi — köhnə keşlənmiş
 // ikonların/title-ın istifadəçilərdə qalmaması üçün versiya artırıldı.)
-const CACHE_ADI = 'safe-money-cache-v30';
+const CACHE_ADI = 'safe-money-cache-v31';
 
 const KESLENECEK_FAYLLAR = [
   './index.html',
@@ -100,9 +100,11 @@ self.addEventListener('fetch', (event) => {
   }
 
   // Dil, CSS və JS: NETWORK-FIRST — yeni kod dərhal görünsün; internet yoxdursa keşdən.
+  // cache:'no-cache' — brauzerin HTTP keşi (GitHub Pages ~10 dəq) köhnə JS-i verməsin: HTML yeni, JS köhnə
+  // olanda düymələr "funksiya tapılmadı" xətası verirdi. Server dəyişməyibsə cavab qısa 304 olur.
   if (url.pathname.includes('/lang/') || url.pathname.includes('/css/') || url.pathname.includes('/js/')) {
     event.respondWith(
-      fetch(event.request)
+      fetch(event.request, { cache: 'no-cache' })
         .then((cavab) => {
           if (cavab && cavab.ok) {
             const kopya = cavab.clone();

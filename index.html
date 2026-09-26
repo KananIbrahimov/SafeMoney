@@ -91,6 +91,7 @@
       <button data-i18n="kilid.ac" class="btn btn-primary" onclick="kilidPinIleAc()" style="width:100%;">Aç</button>
     </div>
     <div class="error-text" id="kilidError"></div>
+    <button type="button" class="link-btn" onclick="kilidSifirlaCixis()" data-i18n="kilid.unutdum" style="margin-top:14px;">Kilidi aça bilmirəm — hesabdan çıx</button>
   </div>
 </div>
 
@@ -195,28 +196,6 @@
 </div>
 
 <!-- New category modal -->
-<div id="newCatModal" class="modal">
-  <div class="modal-content">
-    <h2 data-i18n="yeniKat.yeniKateqoriya">Yeni kateqoriya</h2>
-    <p data-i18n="yeniKat.adVerVeIstesen" class="hint">Ad ver və istəsən sabit məbləğ təyin et.</p>
-    <div class="field-row" style="margin-bottom:10px;">
-      <input type="text" id="newCatName" placeholder="Məs.: metro, qəhvə, kommunal" data-i18n-placeholder="yeniKat.mesMetroKofeFaturaPlaceholder">
-    </div>
-    <div class="field-row" style="margin-bottom:6px;">
-      <input type="number" step="0.01" min="0" id="newCatFixed" placeholder="Sabit məbləğ (boş — hər dəfə soruşulsun)" data-i18n-placeholder="yeniKat.sabitTutarBosHerPlaceholder">
-    </div>
-    <label class="field-row" style="gap:8px; font-size:13px; color:var(--ink); margin:4px 0 10px; cursor:pointer;">
-      <input type="checkbox" id="newCatAylik" style="width:auto;">
-      <span><span data-i18n="yeniKat.aylikSabitXercdir">Aylıq sabit xərcdir</span> <span data-i18n="yeniKat.tikYoxdursaGunlukXerc" style="color:var(--muted);">(seçilməyibsə — gündəlik xərc)</span></span>
-    </label>
-    <div class="error-text" id="newCatError"></div>
-    <div class="modal-footer">
-      <button data-i18n="umumi.legvEt" class="btn btn-ghost" onclick="modalKapat('newCatModal')">Ləğv et</button>
-      <button data-i18n="yeniKat.elaveEt" class="btn btn-primary" onclick="yeniKategoriOnayla()">Əlavə et</button>
-    </div>
-  </div>
-</div>
-
 <!-- Kateqoriya paneli: "Ekranı düzənlə" rejimində qələm (✏️) ilə mövcud kateqoriyanı düzənləmək,
      yaxud "➕ Yeni kateqoriya" ilə yenisini əlavə etmək üçün eyni panel istifadə olunur. -->
 <div id="catPanelModal" class="modal">
@@ -416,7 +395,7 @@
     <p data-i18n="kateqoriyalar.adiniIkonunuRenginiSabit" class="hint">Adı, ikonu, rəngi, sabit məbləği və növü (gündəlik/aylıq) dəyiş.</p>
     <div id="kategoriDuzenlemeListesi" class="modal-list"></div>
     <div class="modal-footer" style="justify-content:space-between;">
-      <button data-i18n="kateqoriyalar.yeniKateqoriya" class="btn btn-ghost" onclick="yeniKategoriModalAc()">Yeni kateqoriya</button>
+      <button data-i18n="kateqoriyalar.yeniKateqoriya" class="btn btn-ghost" onclick="catPanelYeniAc()">Yeni kateqoriya</button>
       <button data-i18n="umumi.bagla" class="btn btn-primary" onclick="yonetimPaneliniKapat()">Bağla</button>
     </div>
   </div>

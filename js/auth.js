@@ -1,7 +1,33 @@
 /* Safe Money — tətbiq kilidi (Face ID / PIN) */
 let kilidVar = localStorage.getItem('kilit_aktiv') === '1';
 let kilidCredentialId = localStorage.getItem('kilit_webauthn_id') || null;
-let kilidPin = localStorage.getItem('kilit_pin') || null;
+// PIN açıq mətn kimi saxlanılmır: duz (salt) + SHA-256 heşi. Köhnə açıq PIN ilk açılışda heşə çevrilir.
+let kilidPinHash = localStorage.getItem('kilit_pin_h') || null;
+let kilidPinDuz = localStorage.getItem('kilit_pin_s') || null;
+let kilidKohnePin = localStorage.getItem('kilit_pin') || null;
+function kilidPinVar() { return !!(kilidPinHash || kilidKohnePin); }
+
+async function pinHeshle(pin, duz) {
+  if (!(window.crypto && crypto.subtle)) return 'p:' + duz + ':' + pin; // çox köhnə brauzer — heş mümkün deyil
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(duz + ':' + pin));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+async function pinYaddaSaxla(pin) {
+  const duz = Array.from(crypto.getRandomValues(new Uint8Array(12))).map(b => b.toString(16).padStart(2, '0')).join('');
+  const h = await pinHeshle(pin, duz);
+  kilidPinHash = h; kilidPinDuz = duz; kilidKohnePin = null;
+  localStorage.setItem('kilit_pin_h', h); localStorage.setItem('kilit_pin_s', duz); localStorage.removeItem('kilit_pin');
+}
+async function pinDogrudur(pin) {
+  if (kilidPinHash && kilidPinDuz) return (await pinHeshle(pin, kilidPinDuz)) === kilidPinHash;
+  if (kilidKohnePin) { const ok = pin === kilidKohnePin; if (ok) await pinYaddaSaxla(pin); return ok; }
+  return false;
+}
+if (kilidKohnePin && window.crypto && crypto.subtle) pinYaddaSaxla(kilidKohnePin).catch(() => {});
+
+// Səhv PIN cəhdləri: 5 səhvdən sonra 30 san., sonra hər dəfə iki qat uzun gözləmə
+function kilidCehdOxu() { try { return JSON.parse(localStorage.getItem('kilit_cehd') || '{"n":0,"t":0}'); } catch (e) { return { n: 0, t: 0 }; } }
+function kilidCehdYaz(c) { try { localStorage.setItem('kilit_cehd', JSON.stringify(c)); } catch (e) {} }
 
 function kilidYoxla() {
   if (!kilidVar) return;
@@ -10,16 +36,12 @@ function kilidYoxla() {
   const pinWrap = document.getElementById('kilidPinWrap');
   const hint = document.getElementById('kilidHint');
   ekran.classList.add('active');
-  if (kilidCredentialId && window.PublicKeyCredential) {
-    faceBtn.style.display = 'block';
-    pinWrap.style.display = 'none';
-    hint.innerText = tr('kilid.faceIdHint', 'Davam etmək üçün Face ID / Touch ID ilə təsdiqlə.');
-    setTimeout(kilidWebAuthnDogrula, 350); // avtomatik sına — bəzi brauzerlər düymə klikini gözləyəcək
-  } else {
-    faceBtn.style.display = 'none';
-    pinWrap.style.display = 'block';
-    hint.innerText = tr('kilid.pinHint', 'Davam etmək üçün PIN kodu daxil et.');
-  }
+  const faceVar = !!(kilidCredentialId && window.PublicKeyCredential);
+  faceBtn.style.display = faceVar ? 'block' : 'none';
+  // PIN təyin olunubsa həmişə görünür — Face ID işləməsə də giriş yolu qalsın
+  pinWrap.style.display = kilidPinVar() ? 'block' : 'none';
+  hint.innerText = faceVar ? tr('kilid.faceIdHint', 'Davam etmək üçün Face ID / Touch ID ilə təsdiqlə.') : tr('kilid.pinHint', 'Davam etmək üçün PIN kodu daxil et.');
+  if (faceVar) setTimeout(kilidWebAuthnDogrula, 350); // avtomatik sına — bəzi brauzerlər düymə klikini gözləyəcək
 }
 
 function kilidAc() {
@@ -42,19 +64,50 @@ async function kilidWebAuthnDogrula() {
     });
     kilidAc();
   } catch (e) {
-    errEl.innerText = tr('kilid.tesdiqlenmediXeta', 'Təsdiqlənmədi. Yenidən cəhd et və ya PIN koddan istifadə et.');
-    if (kilidPin) document.getElementById('kilidPinWrap').style.display = 'block';
+    errEl.innerText = kilidPinVar()
+      ? tr('kilid.tesdiqlenmediXeta', 'Təsdiqlənmədi. Yenidən cəhd et və ya PIN koddan istifadə et.')
+      : tr('kilid.tesdiqlenmediPinsiz', 'Təsdiqlənmədi. Yenidən cəhd et və ya aşağıdan hesabdan çıx.');
+    if (kilidPinVar()) document.getElementById('kilidPinWrap').style.display = 'block';
   }
 }
 
-function kilidPinIleAc() {
-  const val = document.getElementById('kilidPinInput').value.trim();
-  if (kilidPin && val === kilidPin) {
-    document.getElementById('kilidPinInput').value = '';
+async function kilidPinIleAc() {
+  const errEl = document.getElementById('kilidError');
+  const inp = document.getElementById('kilidPinInput');
+  const c = kilidCehdOxu();
+  if (c.t > Date.now()) {
+    errEl.innerText = tr('kilid.gozle', 'Çox səhv cəhd. {san} saniyə sonra yenidən yoxla.', { san: Math.ceil((c.t - Date.now()) / 1000) });
+    return;
+  }
+  const val = inp.value.trim();
+  if (kilidPinVar() && await pinDogrudur(val)) {
+    inp.value = '';
+    kilidCehdYaz({ n: 0, t: 0 });
     kilidAc();
   } else {
-    document.getElementById('kilidError').innerText = tr('kilid.yanlisPin', 'PIN kod yanlışdır.');
+    c.n += 1;
+    if (c.n >= 5) c.t = Date.now() + 30000 * Math.pow(2, Math.min(c.n - 5, 6));
+    kilidCehdYaz(c);
+    inp.value = '';
+    errEl.innerText = c.n >= 5
+      ? tr('kilid.gozle', 'Çox səhv cəhd. {san} saniyə sonra yenidən yoxla.', { san: Math.ceil((c.t - Date.now()) / 1000) })
+      : tr('kilid.yanlisPin', 'PIN kod yanlışdır.');
   }
+}
+
+// Kilidi unutmusansa: hesabdan çıx — məlumatlar buludda qalır, yenidən e-poçt və şifrə ilə girəndə kilid olmayacaq.
+function kilidSifirlaCixis() {
+  confirmAc(tr('kilid.sifirlaBaslik', 'Hesabdan çıx'), tr('kilid.sifirlaSual', 'Kilid bu cihazda sıfırlanacaq və hesabdan çıxacaqsan. Məlumatların buludda qalır — e-poçt və şifrənlə yenidən daxil ol.'), () => {
+    kilidTemizle();
+    kilidAc();
+    if (typeof driveCihazMelumatiniSil === 'function') driveCihazMelumatiniSil();
+    try { if (firebaseUnsubscribe) { firebaseUnsubscribe(); firebaseUnsubscribe = null; } } catch (e) {}
+    try { firebase.auth().signOut().catch(() => {}).then(() => location.reload()); } catch (e) { location.reload(); }
+  });
+}
+function kilidTemizle() {
+  kilidVar = false; kilidCredentialId = null; kilidPinHash = null; kilidPinDuz = null; kilidKohnePin = null;
+  ['kilit_aktiv', 'kilit_webauthn_id', 'kilit_pin', 'kilit_pin_h', 'kilit_pin_s', 'kilit_cehd'].forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
 }
 
 function kilidAyarGoster() {
@@ -72,10 +125,7 @@ function kilidAyarGoster() {
 function kilidToggle() {
   if (kilidVar) {
     confirmAc(tr('kilid.sondurBaslik', 'Kilidi söndür'), tr('kilid.sondurSual', 'Tətbiq kilidini söndürmək istəyirsən?'), () => {
-      kilidVar = false; kilidCredentialId = null; kilidPin = null;
-      localStorage.removeItem('kilit_aktiv');
-      localStorage.removeItem('kilit_webauthn_id');
-      localStorage.removeItem('kilit_pin');
+      kilidTemizle();
       kilidAyarGoster();
     });
   } else {
@@ -110,11 +160,10 @@ async function kilidKurulumBaslat() {
             timeout: 60000
           }
         });
-        kilidCredentialId = btoa(String.fromCharCode(...new Uint8Array(cred.rawId)));
-        localStorage.setItem('kilit_webauthn_id', kilidCredentialId);
-        kilidVar = true;
-        localStorage.setItem('kilit_aktiv', '1');
-        kilidAyarGoster();
+        // Face ID hazırdır, amma kilid yalnız ehtiyat PIN təyin olunandan sonra aktiv olur —
+        // Face ID gələcəkdə işləməsə tətbiqə girmək mümkün olsun.
+        kilidGozleyenFaceId = btoa(String.fromCharCode(...new Uint8Array(cred.rawId)));
+        pinAyarlaModalAc(true);
         return;
       }
     } catch (e) {
@@ -124,21 +173,31 @@ async function kilidKurulumBaslat() {
   pinAyarlaModalAc();
 }
 
-function pinAyarlaModalAc() {
+let kilidGozleyenFaceId = null;
+function pinAyarlaModalAc(faceIdIle) {
+  if (!faceIdIle) kilidGozleyenFaceId = null;
+  const izah = document.querySelector('#pinAyarlaModal .hint');
+  if (izah) izah.innerText = faceIdIle
+    ? tr('pin.faceIdEhtiyat', 'Face ID hazırdır. Face ID işləməyəndə istifadə etmək üçün 4 rəqəmli ehtiyat PIN kod təyin et.')
+    : tr('pin.buCihazFaceId', 'Bu cihaz Face ID / Touch ID dəstəkləmir və ya icazə verilmədi. 4 rəqəmli PIN kod təyin et.');
   document.getElementById('pinAyarlaInput').value = '';
   document.getElementById('pinAyarlaError').innerText = '';
   modalAc('pinAyarlaModal');
 }
-function pinAyarlaOnayla() {
+async function pinAyarlaOnayla() {
   const val = document.getElementById('pinAyarlaInput').value.trim();
   if (!/^\d{4}$/.test(val)) {
     document.getElementById('pinAyarlaError').innerText = tr('pin.dordReqemliXeta', '4 rəqəmli PIN kod yaz.');
     return;
   }
-  kilidPin = val;
-  localStorage.setItem('kilit_pin', val);
+  await pinYaddaSaxla(val);
+  if (kilidGozleyenFaceId) {
+    kilidCredentialId = kilidGozleyenFaceId; kilidGozleyenFaceId = null;
+    localStorage.setItem('kilit_webauthn_id', kilidCredentialId);
+  }
   kilidVar = true;
   localStorage.setItem('kilit_aktiv', '1');
+  kilidCehdYaz({ n: 0, t: 0 });
   modalKapat('pinAyarlaModal');
   kilidAyarGoster();
 }

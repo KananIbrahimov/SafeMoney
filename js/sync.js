@@ -1,8 +1,4 @@
 /* Safe Money — Google Drive backup + Firebase sinxron */
-function driveLog(msg) {
-  console.log('[Drive]', msg);
-}
-
 // GIS yalnız istifadəçi "Bağlan / Göndər / Çək" basanda yüklənir — hər səhifə açılışında Google-a sorğu yoxdur.
 function driveGisSkriptiniYukle() {
   return new Promise((resolve, reject) => {
@@ -62,6 +58,15 @@ function driveTokenGerekliyse(sessiz, sonra) {
     }
     if (driveAccessToken && Date.now() < driveTokenBitisZamani) { sonra(); return; }
     driveGeriCagirisFn = sonra;
+    // Google pəncərəsi heç cavab qaytarmasa (iPhone ana ekran tətbiqində pəncərə itə bilər) düymələr əbədi bağlı qalmasın
+    setTimeout(() => {
+      if (driveGeriCagirisFn === sonra) {
+        driveGeriCagirisFn = null; driveSyncGedirmi = false;
+        driveMenyuGuncelle(tr('drive.cavabYoxdur', 'Google-dan cavab gəlmədi. Yenidən cəhd et və ya "Faylda saxla" seçimindən istifadə et.'), true);
+        const btn = document.querySelector('#driveXatirlatma .dx-btn');
+        if (btn) { btn.disabled = false; btn.innerText = tr('drive.indiGonder', 'İndi göndər'); }
+      }
+    }, 60000);
     // prompt:'' — Google təsdiq ekranını yalnız həqiqətən lazım olanda (ilk dəfə / icazə geri alınıbsa) göstərir.
     // Əvvəllər həmişə 'consent' göndərilirdi və buna görə hər dəfə yenidən təsdiq istənilirdi.
     const ayar = { prompt: '' };
@@ -98,6 +103,13 @@ function driveMenyuGuncelle(mesaj, xetaMi) {
   const subEl = document.getElementById('driveSub');
   const btnsEl = document.getElementById('driveBtns');
   if (!statusEl) return;
+  if (demoRejim) {
+    statusEl.className = 'drive-status';
+    statusEl.innerText = tr('demo.driveYox', 'Nümunə rejimində Google Drive istifadə olunmur.');
+    subEl.innerText = '';
+    btnsEl.innerHTML = '';
+    return;
+  }
   if (!driveBagli) {
     statusEl.className = 'drive-status' + (xetaMi ? ' err' : '');
     statusEl.innerText = xetaMi ? mesaj : tr('drive.bagliDeyil', 'Google Drive-a qoşulmayıb');
@@ -163,15 +175,8 @@ function driveVerisiniTetbiqEt(parsed) {
   const hd = hesabDatasiniHazirla(parsed);
   hesablar = hd.hesablar;
   giderler = hd.giderler.filter(g => g && typeof g.tutar === 'number' && isFinite(g.tutar));
-  anaHesap = (typeof parsed.anaHesap === 'number') ? parsed.anaHesap : null;
-  kreditLimit = (typeof parsed.kreditLimit === 'number') ? parsed.kreditLimit : null;
-  krediBorcu = parsed.krediBorcu || krediBorcuKohnaBackupdanCixar(parsed.aylikXerclar);
-  nagdBakiye = (typeof parsed.nagdBakiye === 'number') ? parsed.nagdBakiye : 0;
-  debitBakiye = (typeof parsed.debitBakiye === 'number') ? parsed.debitBakiye : 0;
-  depozitBakiye = (typeof parsed.depozitBakiye === 'number') ? parsed.depozitBakiye : 0;
   hesabTransferleri = hd.transferler;
   gunlukLimit = (typeof parsed.gunlukLimit === 'number') ? parsed.gunlukLimit : null;
-  hesabEklenib = parsed.hesabEklenib || { nagd: false, debit: false, depozit: false };
   istifadeciProfili = parsed.profil || { ad: '', soyad: '' };
   sonDeyisiklikVaxti = parsed.backupTarixi || new Date().toISOString();
   // QƏSDƏN localStorage-a YAZILMIR — yeganə mənbə Firestore-dur.
@@ -217,6 +222,7 @@ function driveSonSyncQeydEt() {
 // pəncərəsi açılır (bu, istifadəçi kliki ilə açıldığı üçün brauzer bunu bloklamır).
 // Hər göndəriş köhnə backup-ın üstünə yazmır — tarix/saat möhürü ilə YENİ fayl yaradır.
 function driveManualGonder() {
+  if (demoRejim) { alertAc(tr('demo.driveYox', 'Nümunə rejimində Google Drive istifadə olunmur.')); return; }
   if (!driveBagli) { driveBaglan(); return; }
   if (driveSyncGedirmi) return;
   driveSyncGedirmi = true;
@@ -231,6 +237,7 @@ function driveManualGonder() {
       driveMenyuGuncelle();
     } catch (e) {
       driveSyncGedirmi = false;
+      if (e && /401|403/.test(String(e.message))) { driveAccessToken = null; driveTokenBitisZamani = 0; driveTokenSil(); }
       driveMenyuGuncelle(tr('drive.gonderilmedi', 'Göndərmək alınmadı: {xeta}', { xeta: (e && e.message ? e.message : e) }), true);
     }
   });
@@ -238,6 +245,7 @@ function driveManualGonder() {
 
 // Drive-dakı bütün backupları siyahılayır ki, istifadəçi hansını çəkəcəyini özü seçsin.
 function driveManualCek() {
+  if (demoRejim) { alertAc(tr('demo.driveYox', 'Nümunə rejimində Google Drive istifadə olunmur.')); return; }
   if (!driveBagli) { driveBaglan(); return; }
   if (driveSyncGedirmi) return;
   driveSyncGedirmi = true;
@@ -276,7 +284,9 @@ function driveBackupSecimGoster(fayllar) {
 }
 
 function driveBackupSecildi(fileId, createdTime) {
+  if (demoRejim) return;
   modalKapat('driveBackupSecModal');
+  if (!berpaMumkundur()) return;
   confirmAc(tr('drive.berpaBaslik', 'Ehtiyat nüsxə bərpa edilsin?'), tr('drive.berpaSual', '{tarix} tarixli nüsxə indiki məlumatların yerinə yazılacaq. Bu əməliyyatı geri qaytarmaq olmur.', { tarix: driveTarixSaatFormat(createdTime) }), () => {
     driveSyncGedirmi = true;
     driveMenyuGuncelle();
@@ -290,7 +300,6 @@ function driveBackupSecildi(fileId, createdTime) {
         const hesablarModalEl = document.getElementById('hesablarModal');
         if (hesablarModalEl && hesablarModalEl.classList.contains('active') && typeof hesablarGoster === 'function') {
           hesablarGoster();
-          if (typeof krediBorcuGoster === 'function') krediBorcuGoster();
         }
         driveSonSyncQeydEt();
         driveSyncGedirmi = false;
@@ -310,6 +319,12 @@ function driveTokenYaddaSaxla() {
 }
 function driveTokenSil() {
   try { localStorage.removeItem('drive_token'); } catch (e) {}
+}
+// Hesabdan çıxanda: bu cihazda Drive-a aid hər şey silinir — növbəti istifadəçi əvvəlkinin Drive-ına
+// nə yaza, nə də oradan oxuya bilməsin.
+function driveCihazMelumatiniSil() {
+  ['drive_token', 'drive_bagli', 'drive_email', 'drive_son_sync', 'drive_son_backup_ms'].forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
+  driveBagli = false; driveAccessToken = null; driveTokenBitisZamani = 0; driveSonSync = null;
 }
 (function driveTokenBerpa() {
   try {
@@ -359,7 +374,7 @@ function driveXatirlatmaBas() {
 // Göndərişi edir. Token keşdədirsə heç bir pəncərə açılmır; deyilsə (yalnız istifadəçi basanda) Google
 // pəncərəsi açılıb adətən sual vermədən özü bağlanır.
 function driveArxaPlanGonder(sessizMi) {
-  if (driveSyncGedirmi) return;
+  if (demoRejim || driveSyncGedirmi) return;
   driveSyncGedirmi = true;
   driveMenyuGuncelle();
   const et = async () => {
@@ -414,8 +429,14 @@ function faylaYukle() {
   a.href = url; a.download = ad; document.body.appendChild(a); a.click();
   setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 1500);
 }
+function berpaMumkundur() {
+  if (veriMenbeGuvenli && veriYuklendi) return true;
+  alertAc(tr('berpa.buludYoxdur', 'Buluda qoşulmaq alınmayıb — bərpa indi yadda saxlanmaz. İnterneti yoxla və tətbiqi yenidən aç.'));
+  return false;
+}
 function fayldanBerpaAc() {
   if (demoRejim) { alertAc(tr('demo.driveYox', 'Nümunə rejimində Google Drive istifadə olunmur.')); return; }
+  if (!berpaMumkundur()) return;
   let inp = document.getElementById('berpaFaylInput');
   if (!inp) {
     inp = document.createElement('input');
@@ -430,7 +451,9 @@ function fayldanBerpaOxu(fayl) {
   oxu.onload = () => {
     let d = null;
     try { d = JSON.parse(String(oxu.result)); } catch (e) { d = null; }
-    if (!d || typeof d !== 'object' || Array.isArray(d) || !(Array.isArray(d.giderler) || Array.isArray(d.kategoriler))) {
+    // Tam backup olmalıdır: xərclər massivi + hesablar (yeni) və ya köhnə hesab sahələri. Yarımçıq fayl hər şeyi silməsin.
+    const hesabVar = d && (Array.isArray(d.hesablar) || typeof d.anaHesap === 'number' || typeof d.nagdBakiye === 'number' || d.hesabEklenib);
+    if (!d || typeof d !== 'object' || Array.isArray(d) || !Array.isArray(d.giderler) || !Array.isArray(d.kategoriler) || !hesabVar) {
       alertAc(tr('fayl.etibarsiz', 'Bu fayl Safe Money ehtiyat nüsxəsi deyil.'));
       return;
     }
@@ -541,7 +564,7 @@ function emailIleGirisEt() {
         tesdiqGozleyenIstifadeci = istifadeci;
         xetaEl.innerText = tr('giris.epoctTesdiqlenmeyibUzun', 'E-poçtun hələ təsdiqlənməyib. Poçt qutunu ("Spam" qovluğunu da) yoxla, linkə keçid et və yenidən daxil ol.');
         document.getElementById('tesdiqYenidenBtn').style.display = 'block';
-        firebase.auth().signOut();
+        firebase.auth().signOut().catch(() => {});
       }
     }).catch((e) => {
       console.warn('Email giriş xətası:', e);
@@ -748,8 +771,9 @@ function cixisEt() {
   if (demoRejim) { qonaqdanCix(); return; }
   confirmAc(tr('ayarlar.cixisEt', 'Çıxış et'), tr('ayarlar.cixisSual', 'Hesabdan çıxmaq istəyirsən? Bu cihazda yenidən giriş ekranı açılacaq.'), () => {
     if (firebaseUnsubscribe) { firebaseUnsubscribe(); firebaseUnsubscribe = null; }
-    driveTokenSil();
-    firebase.auth().signOut().then(() => location.reload());
+    driveCihazMelumatiniSil();
+    if (typeof kilidTemizle === 'function') kilidTemizle(); // növbəti istifadəçi əvvəlkinin kilidi ilə qarşılaşmasın
+    firebase.auth().signOut().catch(() => {}).then(() => location.reload());
   });
 }
 
@@ -772,7 +796,7 @@ async function uygulamaGirisBaslat() {
       document.getElementById('googleGirisXeta').innerText = tr('giris.epoctTesdiqlenmeyibQisa', 'E-poçtun hələ təsdiqlənməyib. Poçtunu yoxla, linkə keçid et və yenidən daxil ol.');
       document.getElementById('tesdiqYenidenBtn').style.display = 'block';
       document.getElementById('googleGirisEkrani').classList.add('active');
-      firebase.auth().signOut();
+      firebase.auth().signOut().catch(() => {});
       return;
     }
     if (istifadeci) {
@@ -783,9 +807,14 @@ async function uygulamaGirisBaslat() {
       veriYuklendi = false;
       veriYukle();
     } else {
+      // Sessiya bitib (çıxış və ya başqa cihazdan ləğv): dinləməni dayandır, əvvəlki istifadəçinin
+      // yaddaşdakı datası və Drive bağlantısı növbəti girişə qalmasın.
+      if (firebaseUnsubscribe) { firebaseUnsubscribe(); firebaseUnsubscribe = null; }
+      if (cariGoogleIstifadeci) { driveCihazMelumatiniSil(); yerliVeriniYukle(); }
       cariGoogleIstifadeci = null;
       senkronKey = null;
       veriYuklendi = false;
+      veriMenbeGuvenli = false;
       istifadeciProfili = { ad: '', soyad: '' };
       document.getElementById('googleGirisEkrani').classList.add('active');
     }

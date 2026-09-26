@@ -517,6 +517,7 @@ function giderEkle(kategori, tutar, sebeb) {
 // Yalnız adi (manual) xərclər üçündür — kredit taksiti / transfer kimi avtomatik
 // qeydlərin tarixi bu formadan dəyişdirilmir.
 let islemFormIndex = null; // null = yeni (köhnə tarixli) əlavə, ədəd = mövcud qeydin index-i
+let islemFormGider = null; // redaktə olunan qeydin özü — arada sinxron olsa sıra dəyişə bilər, obyekt dəyişmir
 
 function islemKategoriSecenekleriDoldur(seciliAd) {
   const sel = document.getElementById('islemFormKategori');
@@ -533,13 +534,16 @@ function islemKategoriSecenekleriDoldur(seciliAd) {
 function tamTarixQur(tarixStr, saatMenbeIso) {
   const [yy, mm, dd] = tarixStr.split('-').map(Number);
   const saatMenbe = saatMenbeIso ? new Date(saatMenbeIso) : new Date();
-  return new Date(yy, mm - 1, dd, saatMenbe.getHours(), saatMenbe.getMinutes(), saatMenbe.getSeconds());
+  const dt = new Date(yy, mm - 1, dd, saatMenbe.getHours(), saatMenbe.getMinutes(), saatMenbe.getSeconds());
+  const indi = new Date();
+  return dt > indi ? indi : dt; // köhnə xərc bu günə keçiriləndə saatı gələcəkdə qalmasın
 }
 
 function islemFormModalAc(index) {
   islemFormIndex = (typeof index === 'number') ? index : null;
   const duzeltMi = islemFormIndex !== null;
   const g = duzeltMi ? giderler[islemFormIndex] : null;
+  islemFormGider = g;
 
   const baslikEl = document.getElementById('islemFormBaslik');
   if (baslikEl) baslikEl.innerText = duzeltMi ? tr('islemForm.xerciDuzelt', 'Xərci dəyiş') : tr('islemForm.kohneTarixliBaslik', 'Keçmiş tarixə xərc');
@@ -578,14 +582,15 @@ function islemFormOnayla() {
   if (tarixVal > bugunStr) { if (errEl) errEl.innerText = tr('islemForm.gelecekTarixXeta', 'Gələcək tarixi seçmək olmaz.'); return; }
 
   if (islemFormIndex !== null) {
-    const g = giderler[islemFormIndex];
-    if (!g) { modalKapat('islemFormModal'); return; }
+    const g = islemFormGider;
+    if (!g || giderler.indexOf(g) === -1) { modalKapat('islemFormModal'); alertAc(tr('umumi.siyahiYenilendiXeta', 'Siyahı bu arada yeniləndi. Yenidən cəhd et.')); ekraniGuncelle(); return; }
     // Köhnə məbləği öz hesabına qaytar, yeni məbləği eyni hesabdan çıx (hesab silinibsə — əsas hesabdan).
     const kohneTutar = g.tutar, kohneHesab = g.hesabId;
     xercHesabaQaytar(g);
     g.tutar = tutar;
-    // Heç bir hesaba bağlı olmayan köhnə xərc dəyişəndə birdən ⭐ hesabdan çıxılmasın
-    const xeta = kohneHesab ? xercHesabdanCix(g, kohneHesab) : '';
+    // Heç bir hesaba bağlı olmayan köhnə xərc, eləcə də hesabı artıq silinmiş xərc dəyişəndə
+    // birdən ⭐ hesabdan çıxılmasın (silinmiş hesaba pul qaytarılmır — çıxılmamalıdır da).
+    const xeta = (kohneHesab && hesabTap(kohneHesab)) ? xercHesabdanCix(g, kohneHesab) : '';
     if (xeta) {
       g.tutar = kohneTutar; if (kohneHesab) { g.hesabId = kohneHesab; const kh = hesabTap(kohneHesab); if (kh && kh.tip !== 'krediXett') kh.balans = pulYuvarla(kh.balans - kohneTutar); }
       if (errEl) errEl.innerText = xeta; return;
@@ -613,8 +618,10 @@ function islemFormOnayla() {
 
 function islemFormSilOnayla() {
   if (islemFormIndex === null) return;
-  const index = islemFormIndex;
+  const g = islemFormGider;
   modalKapat('islemFormModal');
+  const index = giderler.indexOf(g);
+  if (index === -1) { alertAc(tr('umumi.siyahiYenilendiXeta', 'Siyahı bu arada yeniləndi. Yenidən cəhd et.')); ekraniGuncelle(); return; }
   giderSilOnayla(index);
 }
 
@@ -673,40 +680,6 @@ function amountModalOnayla() {
 }
 
 // ---- New category modal ----
-function yeniKategoriModalAc() {
-  document.getElementById('newCatName').value = '';
-  document.getElementById('newCatFixed').value = '';
-  const aylikTikSifir = document.getElementById('newCatAylik'); if (aylikTikSifir) aylikTikSifir.checked = false;
-  document.getElementById('newCatError').innerText = '';
-  modalAc('newCatModal');
-}
-function yeniKategoriOnayla() {
-  const ad = document.getElementById('newCatName').value.trim();
-  if (!ad) {
-    document.getElementById('newCatError').innerText = tr('kateqoriyalar.adBosXeta', 'Kateqoriyanın adı boş ola bilməz.');
-    return;
-  }
-  if (kategoriler.some(k => k.ad.toLocaleLowerCase('az-AZ') === ad.toLocaleLowerCase('az-AZ'))) {
-    document.getElementById('newCatError').innerText = tr('kateqoriyalar.adTekrarXeta', 'Bu adda kateqoriya artıq var.');
-    return;
-  }
-  const fixedVal = document.getElementById('newCatFixed').value;
-  let sabitTutar = null;
-  if (fixedVal.trim() !== '') {
-    const p = parseFloat(fixedVal.replace(',', '.'));
-    if (!isNaN(p) && p > 0) sabitTutar = p;
-  }
-  // Yeni kateqoriyaya hələ heç bir kateqoriyanın istifadə etmədiyi ilk rəngi ver (20 rəngdən)
-  const istifadeOlunanRenkler = new Set(kategoriler.map(k => k.renk));
-  const bosRenk = renkPaleti.find(r => !istifadeOlunanRenkler.has(r)) || renkPaleti[kategoriler.length % renkPaleti.length];
-  const aylikTikEl = document.getElementById('newCatAylik');
-  kategoriler.push({ ad, sabitTutar, renk: bosRenk, ikon: '💰', aylik: !!(aylikTikEl && aylikTikEl.checked) });
-  modalKapat('newCatModal');
-  veriKaydet();
-  ekraniGuncelle();
-  if (document.getElementById('yonetimModal').classList.contains('active')) modalListesiniDoldur();
-}
-
 // ---- Kateqoriya paneli (✏️ ilə düzənləmə və ➕ ilə əlavə etmə eyni paneldən keçir) ----
 let catPanelIndex = null; // null = yeni kateqoriya əlavə edilir, əks halda düzənlənən kateqoriyanın indeksidir
 let catPanelSecilenRenk = null;
@@ -794,6 +767,7 @@ function catPanelSaxla() {
     const kohneAd = kat.ad;
     if (kohneAd !== ad) {
       giderler.forEach(g => { if (g.kategori === kohneAd) g.kategori = ad; });
+      if (sonFiltr.kat === kohneAd) sonFiltr.kat = ad; // tarixçə süzgəci köhnə adda qalıb boş görünməsin
       if (amountModalKategoriAdi === kohneAd) amountModalKategoriAdi = ad;
     }
     kat.ad = ad; kat.ikon = ikon; kat.sabitTutar = sabitTutar; kat.renk = renk; kat.aylik = aylik; kat.sebebSoruş = sebeb;
@@ -830,7 +804,8 @@ function alertAc(text, title, onOk) {
 }
 function giderSilOnayla(index) {
   const hedef = giderler[index]; // sıra nömrəsi yox, qeydin özünü izləyirik (arada sinxron olsa səhv qeyd silinməsin)
-  confirmAc(tr('islemForm.xerciSil', 'Xərci sil'), tr('islemForm.buQeydiSilmekEminsen', 'Bu xərci silmək istədiyinə əminsən?'), () => {
+  if (!hedef) return;
+  confirmAc(tr('islemForm.xerciSil', 'Xərci sil'), tr('islemForm.buXerciSil', '"{kat}" · {tutar} AZN · {tarix} — bu xərc silinsin?', { kat: hedef.kategori, tutar: Number(hedef.tutar).toFixed(2), tarix: hedef.tamTarix ? tarixSaatYaz(new Date(hedef.tamTarix)) : (hedef.tarix || '') }), () => {
     const idx = giderler.indexOf(hedef);
     if (!hedef || idx === -1) { alertAc(tr('umumi.siyahiYenilendiXeta', 'Siyahı bu arada yeniləndi. Yenidən cəhd et.')); ekraniGuncelle(); return; }
     xercHesabaQaytar(hedef); // məbləğ çıxıldığı hesaba qayıdır
@@ -840,8 +815,8 @@ function giderSilOnayla(index) {
   });
 }
 function listeyiTemizleOnayla() {
-  confirmAc(tr('sonEmeliyyat.hamisiniSil', 'Bütün tarixçəni sil'), tr('sonEmeliyyat.hamisiniSilSual', 'Bütün xərc tarixçəsi silinsin? Bu əməliyyatı geri qaytarmaq olmur.'), () => {
-    giderler.filter(g => !g.aylikRef).forEach(xercHesabaQaytar); // hər xərc öz hesabına qaytarılır
+  confirmAc(tr('sonEmeliyyat.hamisiniSil', 'Bütün tarixçəni sil'), tr('sonEmeliyyat.hamisiniSilSual2', 'Bütün xərc tarixçəsi silinsin? Hesab balansları dəyişməyəcək. Bu əməliyyatı geri qaytarmaq olmur.'), () => {
+    // Yalnız qeydlər silinir — pul artıq xərclənib, balanslar olduğu kimi qalır
     giderler = giderler.filter(g => !!g.aylikRef);
     veriKaydet();
     ekraniGuncelle();
@@ -906,6 +881,7 @@ window.kategoriAdGuncelle = (i, val) => {
   }
   const kohneAd = kat.ad;
   giderler.forEach(g => { if (g.kategori === kohneAd) g.kategori = yeniAd; });
+  if (sonFiltr.kat === kohneAd) sonFiltr.kat = yeniAd;
   if (amountModalKategoriAdi === kohneAd) amountModalKategoriAdi = yeniAd;
   kat.ad = yeniAd;
   veriKaydet();
@@ -928,8 +904,7 @@ function modalAc(id) { const el = document.getElementById(id); if (el) el.classL
 function modalKapat(id) { const el = document.getElementById(id); if (el) el.classList.remove('active'); }
 
 // ---- Alt naviqasiya (bottom tab bar) ----
-function menuAc() {} // köhnə hamburger menyusundan qalan çağırışlar üçün zərərsiz boş funksiya
-function menuKapat() {} // eyni səbəbdən boş funksiya
+function menuKapat() {} // köhnə hamburger menyusundan qalan çağırışlar üçün zərərsiz boş funksiya
 
 function navAktifGuncelle(secilen) {
   const el1 = document.getElementById('navDashboard'); if (el1) el1.classList.toggle('active', secilen === 'dashboard');
@@ -1069,6 +1044,8 @@ function ayarlarPaneliniAc() {
   document.getElementById('gunlukLimitError').innerText = '';
   kilidAyarGoster();
   driveMenyuGuncelle();
+  // Google skriptini əvvəlcədən yüklə: "Qoşul"/"Göndər" basılanda pəncərə dərhal açılsın (iPhone gecikəni bloklayır)
+  if (!demoRejim && typeof driveGisSkriptiniYukle === 'function') driveGisSkriptiniYukle().then(driveTokenClientHazirla).catch(() => {});
   firebasePanelGuncelle();
   const versEl = document.getElementById('tetbiqVersiyaGoster');
   if (versEl) versEl.innerText = APP_VERSION;

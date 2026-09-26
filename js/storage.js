@@ -1,20 +1,14 @@
 /* Safe Money — vəziyyət, yükləmə, yadda saxlama */
-const APP_VERSION = '3.17'; // hər yeni göndərilən html versiyasında əl ilə +1 artırılır
-let aktifDonem = 'gunluk';
+const APP_VERSION = '3.18'; // hər yeni göndərilən html versiyasında əl ilə +1 artırılır
 let goruntulenenTarix = new Date(); goruntulenenTarix.setHours(0, 0, 0, 0);
 let kategoriler = [];
 let giderler = [];
 // Qeydiyyatda yazılan ad/soyad — 'syncs/{uid}' sənədinin bir hissəsi kimi saxlanır.
 let istifadeciProfili = { ad: '', soyad: '' };
-let anaHesap = null; // borc (kredit kartı balansı, mənfi ədəd kimi saxlanılır)
-let kreditLimit = null; // kredit kartının limiti
-let krediBorcu = null; // taksitli kredit (ayrıca bölmə) — istifadəçi "Düzəlt" ilə özü təyin edir
-let nagdBakiye = 0; // Cash Hesab
-let debitBakiye = 0; // Debit bank Hesabım
-let depozitBakiye = 0; // Bank Deposit Hesabım
+// Köhnə hesab sahələri (anaHesap, nagdBakiye, krediBorcu ...) artıq yaddaşda saxlanılmır — yalnız buluda
+// güzgü kimi yazılır (hesablarGuzgusu) və köhnə datadan köçürmədə oxunur (hesabDatasiniHazirla).
 let hesabTransferleri = []; // hesablar arası transfer tarixçəsi
 let gunlukLimit = null; // gündəlik xərc limiti — istifadəçi "Ayarlar" bölməsindən özü təyin edir, invented default yoxdur
-let hesabEklenib = { nagd: false, debit: false, depozit: false }; // hansı hesablar "+" ilə əlavə edilib
 let veriYuklendi = false;
 // Qonaq (nümunə) rejimi: data yalnız yaddaşdadır, buluda heç nə yazılmır.
 let demoRejim = false;
@@ -60,12 +54,6 @@ const varsayilanKategoriler = [
   { ad: 'Lunch', sabitTutar: null, renk: '#a58aa8', ikon: '🍽️' }
 ];
 
-const varsayilanGiderler = [];
-
-function idUret() {
-  return 'ay_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
-}
-
 // Aylıq xərclər bölməsi ləğv olunub. Köhnə backuplarda kredit borcu bəzən həmin
 // siyahının içində saxlanılırdı — mövcud krediBorcu yoxdursa, oradan çıxarırıq.
 function krediBorcuKohnaBackupdanCixar(eskiAylikXerclar) {
@@ -87,17 +75,10 @@ function krediBorcuKohnaBackupdanCixar(eskiAylikXerclar) {
 function yerliVeriniYukle() {
   // Yeni hesab üçün defolt kateqoriyalar istifadəçinin seçdiyi dildə yaradılır (mövcud hesablara toxunulmur).
   kategoriler = varsayilanKategoriler.map(k => ({ ...k, ad: tr('defKat.' + k.ad.toLowerCase(), k.ad) }));
-  giderler = varsayilanGiderler.map(g => ({ ...g }));
-  anaHesap = null;
-  kreditLimit = null;
-  krediBorcu = null;
-  nagdBakiye = 0;
-  debitBakiye = 0;
-  depozitBakiye = 0;
+  giderler = [];
   hesabTransferleri = [];
   hesablar = [];
   gunlukLimit = null;
-  hesabEklenib = { nagd: false, debit: false, depozit: false };
   sonDeyisiklikVaxti = null;
 }
 

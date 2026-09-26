@@ -2,7 +2,7 @@
 .modal { position: fixed; inset: 0; background: var(--overlay); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 70; }
 .modal.active { display: flex; }
 #confirmModal { z-index: 70; }
-#newCatModal { z-index: 70; }
+#catPanelModal { z-index: 70; }
 #transferModal { z-index: 70; }
 #hesabDuzeltModal { z-index: 70; }
 #krediBorcuDuzeltModal { z-index: 70; }
