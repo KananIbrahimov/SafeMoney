@@ -27,7 +27,7 @@
 // ikonların/title-ın istifadəçilərdə qalmaması üçün versiya artırıldı.)
 // (v33: Oflayn rejim — js/oflayn.js; Firebase və Chart.js kitabxanaları da ayrıca keşdə saxlanılır ki,
 //  tətbiq internetsiz də açılsın.)
-const CACHE_ADI = 'safe-money-cache-v33';
+const CACHE_ADI = 'safe-money-cache-v34';
 // Xarici kitabxanalar (versiya nömrəli ünvanlar — dəyişmir): tətbiq yeniləndikdə silinmir.
 const CDN_KESH = 'safe-money-cdn-v1';
 const CDN_FAYLLAR = [
@@ -44,6 +44,7 @@ const KESLENECEK_FAYLLAR = [
   './icon-512.png',
   './icon-maskable-192.png',
   './icon-maskable-512.png',
+  './apple-touch-icon.png',
   './css/main.css',
   './css/components.css',
   './fonts/brand.woff',
