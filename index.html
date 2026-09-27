@@ -81,6 +81,7 @@
       </div>
     </div>
     <div class="error-text" id="googleGirisXeta"></div>
+    <p class="huquqi-linkler"><a data-huquqi="privacy.html" data-i18n="ayarlar.mexfilik" target="_blank" rel="noopener">Məxfilik siyasəti</a> · <a data-huquqi="terms.html" data-i18n="ayarlar.sertler" target="_blank" rel="noopener">İstifadə şərtləri</a></p>
   </div>
 </div>
 
@@ -291,6 +292,21 @@
 </div>
 
 <!-- Generic confirm modal -->
+<!-- Hesabın silinməsi (App Store tələbi): şifrə ilə təsdiq, buluddakı sənəd + Firebase istifadəçisi silinir -->
+<div id="hesabSilModal" class="modal">
+  <div class="modal-content">
+    <h2 data-i18n="hesabSil.basliq">Hesabı sil</h2>
+    <p class="hint" data-i18n="hesabSil.izah">Hesabın və buluddakı bütün məlumatların — xərclər, hesablar, kateqoriyalar — həmişəlik silinəcək. Bu əməliyyatı geri qaytarmaq olmur. Google Drive-dakı ehtiyat nüsxələrə toxunulmur.</p>
+    <label class="filtr-lbl" for="hesabSilSifre" data-i18n="hesabSil.sifreLbl">Təsdiq üçün şifrəni daxil et</label>
+    <input type="password" id="hesabSilSifre" autocomplete="current-password" style="width:100%; box-sizing:border-box;">
+    <div class="error-text" id="hesabSilXeta"></div>
+    <div class="modal-footer">
+      <button data-i18n="umumi.legvEt" class="btn btn-ghost" onclick="modalKapat('hesabSilModal')">Ləğv et</button>
+      <button data-i18n="hesabSil.sil" class="btn btn-danger" id="hesabSilBtn" onclick="hesabiSilTesdiq()">Həmişəlik sil</button>
+    </div>
+  </div>
+</div>
+
 <div id="confirmModal" class="modal">
   <div class="modal-content">
     <h2 data-i18n="tesdiq.eminsen" id="confirmTitle">Əminsən?</h2>
@@ -388,7 +404,8 @@
     <div class="modal-footer" style="justify-content:flex-end; margin-top:16px;">
       <button class="btn btn-ghost" onclick="ayarlarPaneliniKapat()" data-i18n="umumi.bagla">Bağla</button>
     </div>
-    <p style="text-align:center; font-size:11px; color:var(--muted); margin:18px 0 0;">Powered by Kanan Ibrahimov</p>
+    <p class="huquqi-linkler" style="margin:18px 0 0;"><a data-huquqi="privacy.html" data-i18n="ayarlar.mexfilik" target="_blank" rel="noopener">Məxfilik siyasəti</a> · <a data-huquqi="terms.html" data-i18n="ayarlar.sertler" target="_blank" rel="noopener">İstifadə şərtləri</a></p>
+    <p style="text-align:center; font-size:11px; color:var(--muted); margin:8px 0 0;">Powered by Kanan Ibrahimov</p>
     <p style="text-align:center; font-size:10px; color:var(--muted); margin:2px 0 0;"><span data-i18n="ayarlar.versiya">Versiya</span> <span id="tetbiqVersiyaGoster"></span></p>
   </div>
 </div>

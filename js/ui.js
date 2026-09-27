@@ -295,7 +295,13 @@ function girisFormasiniBerpaEt() {
     yaz('qeydiyyatAd', f.ad); yaz('qeydiyyatSoyad', f.soyad); yaz('qeydiyyatEmail', f.qEmail);
   }
 }
-document.addEventListener('DOMContentLoaded', () => { girisDilSeciciCiz(); girisFormasiniBerpaEt(); });
+// Məxfilik siyasəti / şərtlər linkləri: səhifə dilin bölməsinə açılır (#az, #en, #ru)
+function huquqiLinkleriQur() {
+  document.querySelectorAll('a[data-huquqi]').forEach(a => {
+    a.href = (typeof HUQUQI_SEHIFE_BAZA === 'string' ? HUQUQI_SEHIFE_BAZA : '') + a.dataset.huquqi + '#' + dilKodu;
+  });
+}
+document.addEventListener('DOMContentLoaded', () => { girisDilSeciciCiz(); girisFormasiniBerpaEt(); huquqiLinkleriQur(); });
 dilHazirPromise.then(girisDilSeciciCiz);
 // ==================== /Dil (i18n) ====================
 

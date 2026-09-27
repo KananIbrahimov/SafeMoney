@@ -495,6 +495,18 @@
     "hesab.kartBorc": "Borc: {borc} AZN",
     "hesab.kartArtiqOdenis": "Artıq ödəniş: +{mebleg} AZN",
     "hesab.kartLimitLazim": "Kredit limitini yaz.",
-    "hesab.borcEtiket": "Borc"
+    "hesab.borcEtiket": "Borc",
+    "hesabSil.duyme": "Hesabı sil",
+    "hesabSil.basliq": "Hesabı sil",
+    "hesabSil.izah": "Hesabın və buluddakı bütün məlumatların — xərclər, hesablar, kateqoriyalar — həmişəlik silinəcək. Bu əməliyyatı geri qaytarmaq olmur. Google Drive-dakı ehtiyat nüsxələrə toxunulmur.",
+    "hesabSil.sifreLbl": "Təsdiq üçün şifrəni daxil et",
+    "hesabSil.sil": "Həmişəlik sil",
+    "hesabSil.gedir": "Silinir…",
+    "hesabSil.sifreYaz": "Şifrəni daxil et.",
+    "hesabSil.oflayn": "Hesabı silmək üçün internet lazımdır.",
+    "hesabSil.alinmadi": "Hesabı silmək alınmadı: {xeta}",
+    "hesabSil.silindi": "Hesabın və bütün məlumatların silindi.",
+    "ayarlar.mexfilik": "Məxfilik siyasəti",
+    "ayarlar.sertler": "İstifadə şərtləri"
   }
 }

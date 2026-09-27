@@ -494,6 +494,18 @@
     "hesab.kartBorc": "Задолженность: {borc} AZN",
     "hesab.kartArtiqOdenis": "Переплата: +{mebleg} AZN",
     "hesab.kartLimitLazim": "Укажите кредитный лимит.",
-    "hesab.borcEtiket": "Задолженность"
+    "hesab.borcEtiket": "Задолженность",
+    "hesabSil.duyme": "Удалить аккаунт",
+    "hesabSil.basliq": "Удаление аккаунта",
+    "hesabSil.izah": "Ваш аккаунт и все данные в облаке — расходы, счета, категории — будут удалены безвозвратно. Это действие нельзя отменить. Резервные копии в Google Drive не затрагиваются.",
+    "hesabSil.sifreLbl": "Введите пароль для подтверждения",
+    "hesabSil.sil": "Удалить навсегда",
+    "hesabSil.gedir": "Удаление…",
+    "hesabSil.sifreYaz": "Введите пароль.",
+    "hesabSil.oflayn": "Для удаления аккаунта нужно подключение к интернету.",
+    "hesabSil.alinmadi": "Не удалось удалить аккаунт: {xeta}",
+    "hesabSil.silindi": "Ваш аккаунт и все данные удалены.",
+    "ayarlar.mexfilik": "Политика конфиденциальности",
+    "ayarlar.sertler": "Условия использования"
   }
 }

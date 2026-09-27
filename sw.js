@@ -32,7 +32,7 @@ const CACHE_PREFIKS = 'safemoney-app-cache-';
 // (v51: Firebase/Chart.js NETWORK-FIRST keşi — yalnız tam (CORS, 200) cavab keşlənir, keşdən yalnız şəbəkə
 //  xətasında verilir. v33-dəki problem: keş-first + no-cors (opaque) cavablar idi — pozulmuş cavab keşdə
 //  qalıb girişi sındırırdı. İnternet olanda davranış brauzerin öz yükləməsi ilə eynidir.)
-const CACHE_ADI = CACHE_PREFIKS + 'v55';
+const CACHE_ADI = CACHE_PREFIKS + 'v56';
 // Xarici kitabxanalar ayrıca keşdə saxlanılır (versiya nömrəli ünvanlar); "Tətbiqi yenilə" bunu silmir.
 // Ad KananTest-in keşindən fərqlidir (eyni domen).
 const CDN_KESH = 'safemoney-app-cdn-v1';
@@ -121,7 +121,10 @@ self.addEventListener('fetch', (event) => {
   // GitHub Pages cavabı brauzerin HTTP keşində ~10 dəq saxlaya bilər, ona görə
   // cache:'no-store' ilə HƏMİŞƏ serverdən təzə versiyanı çəkirik.
   // Yalnız internet yoxdursa keşdən veririk.
-  if (event.request.mode === 'navigate') {
+  // Yalnız tətbiqin öz səhifəsi (index.html) — privacy.html / terms.html kimi səhifələr adi qaydada açılır
+  // (əks halda onların cavabı index.html kimi keşə yazılıb oflayn açılışı pozurdu).
+  const tetbiqSehifesi = url.pathname.endsWith('/') || url.pathname.endsWith('/index.html');
+  if (event.request.mode === 'navigate' && tetbiqSehifesi) {
     event.respondWith(
       fetch(event.request.url, { cache: 'no-store' })
         .then((cavab) => {

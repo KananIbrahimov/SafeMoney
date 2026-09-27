@@ -863,6 +863,73 @@ function cixisEt() {
   });
 }
 
+// ==================== Hesabın silinməsi ====================
+// Şifrə ilə yenidən təsdiq (Firebase son girişi tələb edir) → buluddakı syncs/{uid} sənədi → Firebase istifadəçisi.
+// Sənəd silinə bilməsə istifadəçi SİLİNMİR — sahibsiz məlumat buludda qalmasın.
+function hesabSilModalAc() {
+  if (demoRejim || !cariGoogleIstifadeci) return;
+  document.getElementById('hesabSilSifre').value = '';
+  document.getElementById('hesabSilXeta').innerText = '';
+  const btn = document.getElementById('hesabSilBtn'); btn.disabled = false; btn.innerText = tr('hesabSil.sil', 'Həmişəlik sil');
+  modalAc('hesabSilModal');
+  setTimeout(() => { const el = document.getElementById('hesabSilSifre'); if (el) el.focus(); }, 50);
+}
+async function hesabiSilTesdiq() {
+  const xetaEl = document.getElementById('hesabSilXeta');
+  const btn = document.getElementById('hesabSilBtn');
+  const sifre = document.getElementById('hesabSilSifre').value;
+  const user = firebase.auth().currentUser;
+  xetaEl.innerText = '';
+  if (!user) { modalKapat('hesabSilModal'); return; }
+  if (!sifre) { xetaEl.innerText = tr('hesabSil.sifreYaz', 'Şifrəni daxil et.'); return; }
+  if (navigator.onLine === false) { xetaEl.innerText = tr('hesabSil.oflayn', 'Hesabı silmək üçün internet lazımdır.'); return; }
+  btn.disabled = true; btn.innerText = tr('hesabSil.gedir', 'Silinir…');
+  const uid = user.uid, email = user.email;
+  let senedSilindi = false, dayandirildi = false;
+  try {
+    await user.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(email, sifre));
+    // Canlı dinləmə və planlaşdırılmış yazmalar dayandırılır — silinmiş sənəd yenidən yaradılmasın
+    if (firebaseUnsubscribe) { firebaseUnsubscribe(); firebaseUnsubscribe = null; }
+    clearTimeout(firebaseYazTimer); clearTimeout(yazmaTekrarTimer);
+    veriMenbeGuvenli = false; dayandirildi = true;
+    await firestoreDb.collection('syncs').doc(uid).delete();
+    senedSilindi = true;
+    await user.delete();
+  } catch (e) {
+    console.warn('Hesab silinmədi:', e);
+    btn.disabled = false; btn.innerText = tr('hesabSil.sil', 'Həmişəlik sil');
+    const kod = e && e.code;
+    if (kod === 'auth/wrong-password' || kod === 'auth/invalid-credential' || kod === 'auth/invalid-login-credentials') xetaEl.innerText = tr('giris.sifreSehvdir', 'Şifrə yanlışdır.');
+    else xetaEl.innerText = tr('hesabSil.alinmadi', 'Hesabı silmək alınmadı: {xeta}', { xeta: firebaseXetaMetni(e) });
+    if (senedSilindi) {
+      // Məlumat silinib, amma istifadəçi silinməyib — boş vəziyyət yenidən yazılmasın deyə sessiya bağlanır
+      oflaynSil(uid);
+      try { await firebase.auth().signOut(); } catch (e2) {}
+      location.reload();
+    } else if (dayandirildi) {
+      // Heç nə silinməyib — sinxronizasiya əvvəlki kimi davam edir
+      veriMenbeGuvenli = true;
+      firebaseDinlemeyeBasla();
+      if (yerliDeyisiklikVar()) firebaseYazPlanla();
+    }
+    return;
+  }
+  // Bu cihazda qalan hər şey: oflayn nüsxə, Drive bağlantısı, kilid, gözləyən profil
+  oflaynSil(uid);
+  driveCihazMelumatiniSil();
+  if (typeof kilidTemizle === 'function') kilidTemizle();
+  gozleyenProfilSil(email);
+  try { sessionStorage.setItem('hesab_silindi', '1'); } catch (e) {}
+  location.reload();
+}
+function hesabSilindiMesajiGoster() {
+  let var_ = false;
+  try { var_ = sessionStorage.getItem('hesab_silindi') === '1'; sessionStorage.removeItem('hesab_silindi'); } catch (e) {}
+  if (!var_) return;
+  const el = document.getElementById('googleGirisXeta');
+  if (el) { el.classList.add('ugur'); el.innerText = tr('hesabSil.silindi', 'Hesabın və bütün məlumatların silindi.'); }
+}
+
 // Tətbiqin əsas "qapısı": giriş olmadan heç bir data yüklənmir/göstərilmir.
 let cariGoogleIstifadeci = null;
 async function uygulamaGirisBaslat() {
@@ -904,6 +971,7 @@ async function uygulamaGirisBaslat() {
       veriMenbeGuvenli = false;
       istifadeciProfili = { ad: '', soyad: '' };
       document.getElementById('googleGirisEkrani').classList.add('active');
+      hesabSilindiMesajiGoster();
       qeydiyyatParametriniYoxla(true);
     }
   });
@@ -932,7 +1000,7 @@ function firebasePanelGuncelle(mesaj, xetaMi) {
 
   if (cariGoogleIstifadeci) {
     subEl.innerText = (istifadeciProfili && istifadeciProfili.ad) ? (istifadeciProfili.ad + ' ' + istifadeciProfili.soyad) : (cariGoogleIstifadeci.email || tr('ayarlar.hesablaBaglisan', 'Hesaba daxil olmusan.'));
-    btnsEl.innerHTML = `<button onclick="cixisEt()">${tr('ayarlar.cixisEt', 'Çıxış et')}</button>`;
+    btnsEl.innerHTML = `<button onclick="cixisEt()">${escapeHtml(tr('ayarlar.cixisEt', 'Çıxış et'))}</button><button class="hesab-sil-btn" onclick="hesabSilModalAc()">${escapeHtml(tr('hesabSil.duyme', 'Hesabı sil'))}</button>`;
   } else {
     subEl.innerText = tr('ayarlar.daxilOlmamisan', 'Hesaba daxil olmamısan.');
     btnsEl.innerHTML = '';

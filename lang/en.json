@@ -494,6 +494,18 @@
     "hesab.kartBorc": "Debt: {borc} AZN",
     "hesab.kartArtiqOdenis": "Overpayment: +{mebleg} AZN",
     "hesab.kartLimitLazim": "Enter the credit limit.",
-    "hesab.borcEtiket": "Debt"
+    "hesab.borcEtiket": "Debt",
+    "hesabSil.duyme": "Delete account",
+    "hesabSil.basliq": "Delete account",
+    "hesabSil.izah": "Your account and all your cloud data — expenses, accounts, categories — will be permanently deleted. This can't be undone. Backups in your Google Drive are not affected.",
+    "hesabSil.sifreLbl": "Enter your password to confirm",
+    "hesabSil.sil": "Delete permanently",
+    "hesabSil.gedir": "Deleting…",
+    "hesabSil.sifreYaz": "Enter your password.",
+    "hesabSil.oflayn": "An internet connection is needed to delete your account.",
+    "hesabSil.alinmadi": "Couldn't delete the account: {xeta}",
+    "hesabSil.silindi": "Your account and all your data have been deleted.",
+    "ayarlar.mexfilik": "Privacy Policy",
+    "ayarlar.sertler": "Terms of Use"
   }
 }

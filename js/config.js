@@ -95,6 +95,9 @@ document.addEventListener('DOMContentLoaded', () => ikonlariYerlesdir());
 // Boşdursa, qeydiyyat bu tətbiqin özündə aparılır. (KananTest-də bura SafeMoney ünvanı yazılıb.)
 const QEYDIYYAT_UNVANI = '';
 
+// Məxfilik siyasəti və istifadə şərtləri səhifələrinin yeri ('' = bu tətbiqin öz qovluğu).
+const HUQUQI_SEHIFE_BAZA = '';
+
 const GOOGLE_DRIVE_CLIENT_ID = '865101295183-8fe3gmkc0keka7rf36k0opn6j3sj9a3u.apps.googleusercontent.com';
 const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
 const DRIVE_FILE_PREFIX = 'gider-takibi-backup';
