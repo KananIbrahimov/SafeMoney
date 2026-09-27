@@ -32,7 +32,7 @@ const CACHE_PREFIKS = 'safemoney-app-cache-';
 // (v51: Firebase/Chart.js NETWORK-FIRST keşi — yalnız tam (CORS, 200) cavab keşlənir, keşdən yalnız şəbəkə
 //  xətasında verilir. v33-dəki problem: keş-first + no-cors (opaque) cavablar idi — pozulmuş cavab keşdə
 //  qalıb girişi sındırırdı. İnternet olanda davranış brauzerin öz yükləməsi ilə eynidir.)
-const CACHE_ADI = CACHE_PREFIKS + 'v60';
+const CACHE_ADI = CACHE_PREFIKS + 'v61';
 // Xarici kitabxanalar ayrıca keşdə saxlanılır (versiya nömrəli ünvanlar); "Tətbiqi yenilə" bunu silmir.
 // Ad KananTest-in keşindən fərqlidir (eyni domen).
 const CDN_KESH = 'safemoney-app-cdn-v1';
@@ -67,9 +67,11 @@ const KESLENECEK_FAYLLAR = [
   './js/oflayn.js',
   './js/app.js',
   './js/tur.js',
+  './js/kurulum.js',
   './lang/az.json',
   './lang/en.json',
   './lang/ru.json',
+  './lang/tr.json',
   './lang/index.json',
   './lang/languages.json'
 ];

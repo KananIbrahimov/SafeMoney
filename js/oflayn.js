@@ -161,6 +161,7 @@ function dataBirlesdir(baza, yerli, bulud) {
     schema: 2,
     kategoriler: katlar,
     gunlukLimit: sec('gunlukLimit'),
+    valyuta: sec('valyuta'),
     profil: sec('profil'),
     hesablar: hesablarBirlesdir(baza.hesablar, yerli.hesablar, bulud.hesablar),
     giderler: siyahiBirlesdir(baza.giderler, yerli.giderler, bulud.giderler, xercAcari).map(adKocur)

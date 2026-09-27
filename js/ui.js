@@ -99,7 +99,7 @@ function tr(key, defolt, params) {
     if (dilVar(key)) s = dilSozlugu[key];
   } catch (e) {}
   if (params) s = String(s).replace(/\{(\w+)\}/g, (m, k) => (k in params ? params[k] : m));
-  return s;
+  return valyutaMetne(s);
 }
 
 // ---- Tarix/saat formatı (3 dil) ----
@@ -123,11 +123,11 @@ function dilTetbiqEt(kok) {
   kok = kok || document;
   const var_ = dilVar;
   kok.querySelectorAll('[data-i18n]').forEach(el => {
-    const k = el.getAttribute('data-i18n'); if (var_(k)) el.textContent = dilSozlugu[k];
+    const k = el.getAttribute('data-i18n'); if (var_(k)) el.textContent = valyutaMetne(dilSozlugu[k]);
   });
   [['data-i18n-placeholder', 'placeholder'], ['data-i18n-title', 'title'], ['data-i18n-aria', 'aria-label']].forEach(([a, hedef]) => {
     kok.querySelectorAll('[' + a + ']').forEach(el => {
-      const k = el.getAttribute(a); if (var_(k)) el.setAttribute(hedef, dilSozlugu[k]);
+      const k = el.getAttribute(a); if (var_(k)) el.setAttribute(hedef, valyutaMetne(dilSozlugu[k]));
     });
   });
 }
@@ -262,7 +262,7 @@ function dilSec(kod) {
 // ---- Giriş / qeydiyyat ekranında sürətli dil seçimi (AZ · EN · RU) ----
 // Dil dəyişəndə səhifə yenidən yüklənir; yazılmış e-poçt/ad və açıq qeydiyyat forması itməsin deyə
 // (şifrələr istisna) sessionStorage-də saxlanılıb geri qaytarılır.
-const GIRIS_DILLERI = [['en', 'ENG', 'English'], ['ru', 'RUS', 'Русский'], ['az', 'AZE', 'Azərbaycan dili']];
+const GIRIS_DILLERI = [['en', 'ENG', 'English'], ['ru', 'RUS', 'Русский'], ['az', 'AZE', 'Azərbaycan dili'], ['tr', 'TUR', 'Türkçe']];
 function girisDilSeciciCiz() {
   document.querySelectorAll('[data-dil-secici]').forEach(kok => {
     kok.innerHTML = GIRIS_DILLERI.map(([kod, qisa, ad]) =>

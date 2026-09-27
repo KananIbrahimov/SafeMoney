@@ -30,6 +30,15 @@ function meblegOxu(v, menfiOlar) {
   const qayda = menfiOlar ? /^-?\d+(\.\d+)?$/ : /^\d+(\.\d+)?$/;
   return qayda.test(s) ? pulYuvarla(parseFloat(s)) : NaN;
 }
+// ==================== Valyuta ====================
+// İstifadəçi ilk girişdə (və ya Parametrlərdə) əsas valyutanı seçir. Məbləğlər çevrilmir — yalnız işarə dəyişir.
+const VALYUTALAR = ['AZN', 'RUB', 'USD', 'TRY'];
+let valyuta = 'AZN';
+function VK() { return valyuta; }
+// Tərcümə mətnlərindəki "AZN" seçilmiş valyuta ilə əvəzlənir
+function valyutaMetne(s) { return (valyuta && valyuta !== 'AZN' && typeof s === 'string') ? s.replace(/AZN/g, valyuta) : s; }
+function valyutaNormal(v) { return VALYUTALAR.indexOf(v) !== -1 ? v : 'AZN'; }
+
 // ==================== İkonlar (xətti SVG, rəngi mətndən götürür) ====================
 // Emoji əvəzinə vahid üslublu nazik xətli ikonlar: hər cihazda eyni görünür, temaya uyğun rənglənir.
 const IKON_YOLLARI = {

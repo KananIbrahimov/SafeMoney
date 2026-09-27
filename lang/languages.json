@@ -1,5 +1,6 @@
 [
   {"kod": "az", "ad": "Azərbaycanca", "bayraq": "🇦🇿"},
   {"kod": "en", "ad": "English", "bayraq": "🇬🇧"},
-  {"kod": "ru", "ad": "Русский", "bayraq": "🇷🇺"}
+  {"kod": "ru", "ad": "Русский", "bayraq": "🇷🇺"},
+  {"kod": "tr", "ad": "Türkçe", "bayraq": "🇹🇷"}
 ]

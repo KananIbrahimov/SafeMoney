@@ -289,6 +289,23 @@
 </div>
 
 <!-- Generic confirm modal -->
+<!-- İlk giriş sihirbazı (js/kurulum.js): valyuta → əsas hesab → kateqoriyalar → gündəlik limit -->
+<div class="lock-screen kurulum-ekrani" id="kurulumEkrani">
+  <div class="lock-box kurulum-box">
+    <div class="kurulum-bas">
+      <span class="kurulum-say" id="kurulumSay"></span>
+      <button type="button" class="link-btn kurulum-kec" onclick="kurulumKec()" data-i18n="kurulum.kec">Keç</button>
+    </div>
+    <div class="kurulum-noqteler" id="kurulumNoqteler"></div>
+    <div id="kurulumAddim"></div>
+    <div class="error-text" id="kurulumXeta"></div>
+    <div class="kurulum-duymeler">
+      <button type="button" class="btn btn-ghost" id="kurulumGeriBtn" onclick="kurulumGeri()" data-i18n="kurulum.geri">Geri</button>
+      <button type="button" class="btn btn-primary" id="kurulumIreliBtn" onclick="kurulumIreli()">Növbəti</button>
+    </div>
+  </div>
+</div>
+
 <!-- Hesabın silinməsi (App Store tələbi): şifrə ilə təsdiq, buluddakı sənəd + Firebase istifadəçisi silinir -->
 <div id="hesabSilModal" class="modal">
   <div class="modal-content">
@@ -356,6 +373,12 @@
       <button class="ayarlar-kutu ayarlar-setir-ic" style="justify-content:flex-start; flex:1; min-width:0;" onclick="hesabIdareAc()"><span class="ayarlar-ikon"><i data-ikon="hesablar"></i></span><span class="ayarlar-metin" data-i18n="hesablar.basliq">Hesablar</span></button>
     </div>
     <button class="ayarlar-kutu ayarlar-setir-ic" id="dilAyarBtn" style="justify-content:flex-start; margin-bottom:8px;" onclick="dilPaneliniAc()"><span class="ayarlar-ikon"><i data-ikon="dil"></i></span><span class="ayarlar-metin" data-i18n="ayarlar.dil">Dil</span></button>
+    <div class="ayarlar-kutu" style="margin-bottom:8px;">
+      <div class="ayarlar-setir-ic">
+        <span style="display:flex; align-items:center; gap:10px;"><span class="ayarlar-ikon"><i data-ikon="nagd"></i></span><span class="ayarlar-metin" data-i18n="valyuta.basliq">Valyuta</span></span>
+        <select id="valyutaSecim" class="valyuta-secim" onchange="valyutaDeyis(this.value)" aria-label="Valyuta" data-i18n-aria="valyuta.basliq"><option>AZN</option><option>RUB</option><option>USD</option><option>TRY</option></select>
+      </div>
+    </div>
     <button class="ayarlar-kutu ayarlar-setir-ic" style="justify-content:flex-start; margin-bottom:8px;" onclick="ayarlarSonEmeliyyatlarAc()"><span class="ayarlar-ikon"><i data-ikon="tarixce"></i></span><span class="ayarlar-metin" data-i18n="ayarlar.sonEmeliyyatlar">Son əməliyyatlar</span></button>
 
 
@@ -687,5 +710,6 @@
 <script src="js/hesablar.js"></script>
 <script src="js/app.js"></script>
 <script src="js/tur.js"></script>
+<script src="js/kurulum.js"></script>
 </body>
 </html>

@@ -222,7 +222,7 @@ function hesabKartHtml(h, idareRejimi) {
   const tikla = idareRejimi ? ` onclick="hesabFormAc('${escapeHtml(h.id)}', 'idare')" role="button" tabindex="0"` : '';
   return `<div class="hesab-kart${idareRejimi ? ' tiklanir' : ''}"${tikla}>
     <div class="hk-bas"><span class="hesab-ikon">${ikon(h.tip)}</span><div class="hk-ad"><b>${escapeHtml(hesabGorunenAd(h))}</b><small>${escapeHtml(hesabAltYazi(h))}${h.ana ? ' · ' + escapeHtml(tr('hesab.anaQisa', 'Əsas')) : ''}</small></div>${sag}</div>
-    <div class="hk-bal" style="color:${renk};">${h.tip === 'kredit' && bal < 0 ? `<span class="hk-bal-lbl">${escapeHtml(tr('hesab.borcEtiket', 'Borc'))}</span>` : ''}${bal.toFixed(2)} AZN</div>${elave}
+    <div class="hk-bal" style="color:${renk};">${h.tip === 'kredit' && bal < 0 ? `<span class="hk-bal-lbl">${escapeHtml(tr('hesab.borcEtiket', 'Borc'))}</span>` : ''}${bal.toFixed(2)} ${VK()}</div>${elave}
   </div>`;
 }
 
@@ -291,7 +291,7 @@ function hesabEmeliyyatlariCiz() {
       ? tr('medaxil.basliq', 'Mədaxil') + ' → ' + hesabGorunenAd(hesabTap(t.hedefId))
       : hesabGorunenAd(hesabTap(t.menbeId)) + ' → ' + hesabGorunenAd(hesabTap(t.hedefId));
     html += `<div class="list-item"><div><span class="cat">${escapeHtml(basliq)}</span><span class="time">${escapeHtml(tarixSaatYaz(tt))}${escapeHtml(etiket)}</span></div>
-      <div class="right"><span class="amt${t.medaxil ? ' medaxil-amt' : ''}">${t.medaxil ? '+' : ''}${t.tutar.toFixed(2)} AZN</span><button class="sira-btn sil" onclick="transferSilOnayla(${index})" aria-label="${escapeHtml(tr('transfer.legvBaslik', 'Köçürməni ləğv et'))}">${ikon('sil', 17)}</button></div></div>`;
+      <div class="right"><span class="amt${t.medaxil ? ' medaxil-amt' : ''}">${t.medaxil ? '+' : ''}${t.tutar.toFixed(2)} ${VK()}</span><button class="sira-btn sil" onclick="transferSilOnayla(${index})" aria-label="${escapeHtml(tr('transfer.legvBaslik', 'Köçürməni ləğv et'))}">${ikon('sil', 17)}</button></div></div>`;
   });
   kutu.innerHTML = html || `<p class="empty-note" style="padding:8px 0;">${escapeHtml(tr('hesab.buAyEmeliyyatYox', 'Bu ay əməliyyat yoxdur.'))}</p>`;
   const net = document.getElementById('hesabAyNetice');
@@ -378,7 +378,7 @@ function medaxilSilOnayla(t) {
 // ---- Köçürmə ----
 function hesabSecimleri(selId, siyahi, secili) {
   const sel = document.getElementById(selId);
-  sel.innerHTML = siyahi.map(h => `<option value="${escapeHtml(h.id)}"${h.id === secili ? ' selected' : ''}>${escapeHtml(hesabGorunenAd(h))} — ${escapeHtml(hesabBalansi(h).toFixed(2))} AZN</option>`).join('');
+  sel.innerHTML = siyahi.map(h => `<option value="${escapeHtml(h.id)}"${h.id === secili ? ' selected' : ''}>${escapeHtml(hesabGorunenAd(h))} — ${escapeHtml(hesabBalansi(h).toFixed(2))} ${VK()}</option>`).join('');
 }
 function transferModalAc() {
   const menbeler = hesablar.filter(h => h.tip !== 'krediXett');
@@ -638,7 +638,7 @@ function hesabatHesablarCiz() {
     const girdi = hesabTransferleri.filter(t => t.hedefId === h.id && buAydadir(t.tamTarix)).reduce((a, t) => a + t.tutar, 0);
     const cixdi = hesabTransferleri.filter(t => t.menbeId === h.id && buAydadir(t.tamTarix)).reduce((a, t) => a + t.tutar, 0);
     const bal = hesabBalansi(h);
-    return `<div class="hesabat-hesab"><div class="hh-bas"><span class="hesab-ikon">${ikon(h.tip, 18)}</span><b>${escapeHtml(hesabGorunenAd(h))}</b><span class="hh-bal" style="color:${bal < 0 ? 'var(--danger)' : 'var(--ink)'}">${bal.toFixed(2)} AZN</span></div>
+    return `<div class="hesabat-hesab"><div class="hh-bas"><span class="hesab-ikon">${ikon(h.tip, 18)}</span><b>${escapeHtml(hesabGorunenAd(h))}</b><span class="hh-bal" style="color:${bal < 0 ? 'var(--danger)' : 'var(--ink)'}">${bal.toFixed(2)} ${VK()}</span></div>
       <div class="hh-set"><span>${escapeHtml(tr('hesab.hsXerc', 'Xərclər'))}<b>${pulYuvarla(xerc).toFixed(2)}</b></span><span>${escapeHtml(tr('hesab.hsGiris', 'Daxil olan'))}<b>+${pulYuvarla(girdi).toFixed(2)}</b></span><span>${escapeHtml(tr('hesab.hsCixis', 'Çıxan'))}<b>−${pulYuvarla(cixdi).toFixed(2)}</b></span></div></div>`;
   }).join('');
 }

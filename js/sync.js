@@ -149,7 +149,7 @@ function driveBackupVerisi() {
   // schema 2: hesablar massivi. Köhnə sahələr (anaHesap, nagdBakiye, krediBorcu ...) güzgü kimi də yazılır —
   // hələ yenilənməmiş cihaz datanı boş görüb onu silməsin.
   kategoriIdleriniTemin(kategoriler);
-  return Object.assign({ schema: 2, kategoriler, giderler, hesablar, hesabTransferleri, gunlukLimit, profil: istifadeciProfili, backupTarixi: sonDeyisiklikVaxti || new Date().toISOString() }, hesablarGuzgusu());
+  return Object.assign({ schema: 2, kategoriler, giderler, hesablar, hesabTransferleri, gunlukLimit, valyuta, profil: istifadeciProfili, backupTarixi: sonDeyisiklikVaxti || new Date().toISOString() }, hesablarGuzgusu());
 }
 
 function driveYeniBackupAdi() {
@@ -192,6 +192,7 @@ function driveVerisiniTetbiqEt(parsed) {
   qeydIdleriniTemin(giderler, xercAcari);
   qeydIdleriniTemin(hesabTransferleri, kocurmeAcari);
   gunlukLimit = (typeof parsed.gunlukLimit === 'number') ? parsed.gunlukLimit : null;
+  valyuta = valyutaNormal(parsed.valyuta);
   istifadeciProfili = parsed.profil || { ad: '', soyad: '' };
   sonDeyisiklikVaxti = parsed.backupTarixi || new Date().toISOString();
   // QƏSDƏN localStorage-a YAZILMIR — yeganə mənbə Firestore-dur.
@@ -913,7 +914,13 @@ async function hesabiSilTesdiq() {
     if (firebaseUnsubscribe) { firebaseUnsubscribe(); firebaseUnsubscribe = null; }
     clearTimeout(firebaseYazTimer); clearTimeout(yazmaTekrarTimer);
     veriMenbeGuvenli = false; dayandirildi = true;
-    await firestoreDb.collection('syncs').doc(uid).delete();
+    const silRef = firestoreDb.collection('syncs').doc(uid);
+    const silMeta = await silRef.get();
+    if (silMeta.exists && silMeta.data() && silMeta.data().parcali) {
+      const pq = await silRef.collection('parcalar').get();
+      await Promise.all(pq.docs.map(d => d.ref.delete()));
+    }
+    await silRef.delete();
     senedSilindi = true;
     await user.delete();
   } catch (e) {
@@ -1057,7 +1064,12 @@ let yazmaTekrarTimer = null;
 let oflaynGonderilir = false; // göndərilməmiş oflayn dəyişikliklər var idi — göndəriləndə xəbər ver
 // Firestore bir sənədi ən çox 1 MiB saxlayır. Bütün məlumat bir sənəddədir — limitə yaxınlaşanda xəbərdarlıq edilir,
 // aşanda yazma cəhd edilmir (əvvəl hər 5 saniyədən bir sonsuz təkrar edirdi).
-const SENED_HEDDI = 1048576;
+// Parçalı saxlama: data kiçikdirsə (≤ 900 KB) əvvəlki kimi əsas sənəddə ("data" sahəsi) saxlanılır — köhnə
+// versiyalarla tam uyğun. Böyüyəndə JSON mətni syncs/{uid}/parcalar/{0..n} sənədlərinə bölünür, əsas sənəddə
+// isə yalnız { parcali: true, parcaSayi, rev } qalır. Hamısı eyni transaction-da yazılır (ya hamısı, ya heç biri).
+const TEK_SENED_HEDDI = 900000;       // bundan böyük data parçalanır
+const PARCA_UZUNLUQ = 240000;         // simvol; ən pis halda (4 bayt/simvol) ~960 KB < 1 MiB
+const SENED_HEDDI = 9 * 1024 * 1024;  // cəmi limit (Firestore transaction sorğusu ≤ 10 MiB)
 let hecmXeberdarligiGosterilib = false;
 // Kalıcı xəta (həcm, icazə, pozulmuş data): avtomatik təkrar dayandırılır; növbəti dəyişiklikdə yenidən sınanır.
 let yazmaKaliciXeta = null;
@@ -1109,25 +1121,52 @@ function buludVerisiTetbiqSonrasi() {
   driveSonSyncQeydEt();
 }
 
+function parcaRef(ref, i) { return ref.collection('parcalar').doc(String(i)); }
+// Buluddakı sənədin datasını qaytarır: adi sənəddə "data", parçalıda — parçalar birləşdirilir.
+// Parçalar əsas sənədlə eyni "rev"də deyilsə (başqa cihaz tam bu an yazır) bir az gözləyib yenidən oxunur.
+async function buludDatasiniOxu(ref, meta) {
+  if (!meta) return null;
+  if (meta.data) return meta.data;
+  if (!meta.parcali) return null;
+  for (let cehd = 0; cehd < 4; cehd++) {
+    const q = await ref.collection('parcalar').get();
+    const say = Number(meta.parcaSayi) || 0, rev = Number(meta.rev) || 0;
+    const p = q.docs.map(d => ({ i: Number(d.id), x: d.data() }))
+      .filter(d => d.i < say && Number(d.x.rev) === rev).sort((a, b) => a.i - b.i);
+    if (say > 0 && p.length === say) return JSON.parse(p.map(d => d.x.metn).join(''));
+    await new Promise(r => setTimeout(r, 700));
+    const yeni = await ref.get();
+    meta = yeni.exists ? yeni.data() : null;
+    if (!meta) return null;
+    if (meta.data) return meta.data;
+  }
+  const x = new Error('parçalar uyğun gəlmir'); x.code = 'parca'; throw x;
+}
+
 function firebaseDinlemeyeBasla() {
   if (!firebaseHazir || !senkronKey || !firestoreDb) return;
   if (firebaseUnsubscribe) { firebaseUnsubscribe(); firebaseUnsubscribe = null; }
-  firebaseUnsubscribe = firestoreDb.collection('syncs').doc(senkronKey).onSnapshot((snap) => {
+  const ref = firestoreDb.collection('syncs').doc(senkronKey);
+  firebaseUnsubscribe = ref.onSnapshot(async (snap) => {
     if (!snap.exists) return;
     if (snap.metadata.hasPendingWrites) return; // öz yazdığımızın əks-sədasıdır, gözlə
     const remote = snap.data();
-    if (!remote || !remote.data) return;
+    if (!remote || !(remote.data || remote.parcali)) return;
     const remoteRev = Number(remote.rev) || 0;
-    const ilkBaglanti = !veriMenbeGuvenli;
     // Bulud vəziyyəti hələ təsdiqlənməyibsə (yavaş bağlantı) — nömrədən asılı olmayaraq qəbul edirik.
-    if (!ilkBaglanti && remoteRev <= bazaRev) return; // öz yazımızın əks-sədası və ya köhnə məlumat
     // Yazılmamış yerli dəyişiklik / gedən yazma varsa toxunmuruq: yazma anındakı transaction çakışmanı özü aşkarlayır.
-    if (yazmaGedir || yerliDeyisiklikVar()) return;
-    driveVerisiniTetbiqEt(remote.data);
+    const qebulOlunar = () => (!veriMenbeGuvenli || remoteRev > bazaRev) && !yazmaGedir && !yerliDeyisiklikVar();
+    if (!qebulOlunar()) return;
+    let data = remote.data;
+    if (!data) {
+      try { data = await buludDatasiniOxu(ref, remote); } catch (e) { console.warn('Parçalar oxunmadı:', e); return; }
+      if (!data || !qebulOlunar()) return; // oxuyarkən vəziyyət dəyişib
+    }
+    driveVerisiniTetbiqEt(data);
     bazaRev = remoteRev;
     yazilmisSurum = yerliSurum;
     veriMenbeGuvenli = true;
-    bazaTeyinEt(remote.data, remoteRev);
+    bazaTeyinEt(data, remoteRev);
     buludVerisiTetbiqSonrasi();
   }, (err) => {
     console.warn('Firestore dinləmə xətası:', err);
@@ -1150,7 +1189,7 @@ async function firebaseYazEt() {
   let konflikt = null, yeniRev = bazaRev, yazilanSurum = yerliSurum, yazilanData = null;
   try {
     const hecm = dataHecmi(driveBackupVerisi());
-    if (hecm > SENED_HEDDI - 24576) { const x = new Error('document too large: ' + hecm); x.code = 'hecm'; throw x; } // metadata üçün ehtiyat
+    if (hecm > SENED_HEDDI) { const x = new Error('document too large: ' + hecm); x.code = 'hecm'; throw x; }
     if (hecm > SENED_HEDDI * 0.8 && !hecmXeberdarligiGosterilib) {
       hecmXeberdarligiGosterilib = true;
       toastGoster(tr('sinx.hecmXeberdarliq', 'Məlumatların həcmi bulud limitinin {faiz}%-nə çatıb. Ehtiyat nüsxə götürüb köhnə əməliyyatları silmək tövsiyə olunur.', { faiz: Math.round(hecm / SENED_HEDDI * 100) }));
@@ -1161,24 +1200,34 @@ async function firebaseYazEt() {
       const snap = await tx.get(ref);
       const bulud = snap.exists ? snap.data() : null;
       const budRev = bulud ? (Number(bulud.rev) || 0) : 0;
-      if (bulud && bulud.data && budRev !== bazaRev) { konflikt = bulud; return; } // başqa cihaz arada yazıb
+      if (bulud && (bulud.data || bulud.parcali) && budRev !== bazaRev) { konflikt = bulud; return; } // başqa cihaz arada yazıb
       yazilanSurum = yerliSurum;
       yeniRev = budRev + 1;
       yazilanData = driveBackupVerisi();
-      tx.set(ref, {
-        data: yazilanData,
-        cihazId,
-        rev: yeniRev,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
+      const kohneParcaSayi = (bulud && bulud.parcali) ? (Number(bulud.parcaSayi) || 0) : 0;
+      const meta = { cihazId, rev: yeniRev, updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
+      let yeniParcaSayi = 0;
+      if (dataHecmi(yazilanData) <= TEK_SENED_HEDDI) {
+        tx.set(ref, Object.assign({ data: yazilanData }, meta));
+      } else {
+        const metn = JSON.stringify(yazilanData);
+        for (let i = 0; i * PARCA_UZUNLUQ < metn.length; i++) {
+          tx.set(parcaRef(ref, i), { rev: yeniRev, metn: metn.slice(i * PARCA_UZUNLUQ, (i + 1) * PARCA_UZUNLUQ) });
+          yeniParcaSayi++;
+        }
+        tx.set(ref, Object.assign({ parcali: true, parcaSayi: yeniParcaSayi }, meta));
+      }
+      for (let i = yeniParcaSayi; i < kohneParcaSayi; i++) tx.delete(parcaRef(ref, i)); // artıq lazım olmayan parçalar
     });
     if (konflikt) {
       // Başqa cihaz arada yazıb. Əvvəl onun versiyası yüklənir və bizim dəyişikliklər atılırdı —
       // indi hər iki tərəfin dəyişiklikləri birləşdirilir (oflayn.js → dataBirlesdir) və yenidən yazılır.
-      const birlesmis = dataBirlesdir(bazaData, driveBackupVerisi(), konflikt.data);
+      const konfliktData = await buludDatasiniOxu(ref, konflikt);
+      if (!konfliktData) { const x = new Error('bulud datası oxunmadı'); x.code = 'unavailable'; throw x; }
+      const birlesmis = dataBirlesdir(bazaData, driveBackupVerisi(), konfliktData);
       driveVerisiniTetbiqEt(birlesmis);
       bazaRev = Number(konflikt.rev) || 0;
-      bazaData = jsonKopya(konflikt.data);
+      bazaData = jsonKopya(konfliktData);
       yerliSurum++; // birləşmiş vəziyyət göndərilməlidir
       veriMenbeGuvenli = true;
       oflaynDeyisiklikSaxla();

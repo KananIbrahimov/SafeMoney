@@ -503,3 +503,33 @@ body.demo-aktiv .page-inner { padding-top: calc(56px + env(safe-area-inset-top, 
 .drive-etrafli > summary .ic { transition: transform .15s; }
 .drive-etrafli[open] > summary .ic { transform: rotate(180deg); }
 .drive-etrafli-ic { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+
+/* Parametrlər: valyuta seçimi */
+.valyuta-secim { flex: none; font: inherit; font-size: 14px; font-weight: 600; color: var(--ink); background: var(--panel); border: 1px solid var(--input-border); border-radius: 8px; padding: 7px 10px; }
+
+/* İlk giriş sihirbazı */
+.kurulum-ekrani { z-index: 190; align-items: flex-start; overflow-y: auto; }
+.kurulum-box { max-width: 380px; margin: calc(12px + env(safe-area-inset-top, 0px)) auto 24px; text-align: left; }
+.kurulum-box h2 { margin: 18px 0 6px; font-size: 20px; }
+.kurulum-box .hint { margin-bottom: 16px; }
+.kurulum-box input { width: 100%; box-sizing: border-box; }
+.kurulum-bas { display: flex; align-items: center; justify-content: space-between; }
+.kurulum-say { font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: .04em; }
+.kurulum-kec { padding: 4px 0; font-size: 13px; }
+.kurulum-noqteler { display: flex; gap: 6px; margin-top: 8px; }
+.kurulum-noqteler span { flex: 1; height: 4px; border-radius: 4px; background: var(--line); }
+.kurulum-noqteler span.aktiv { background: var(--brand-ink); }
+.kurulum-secimler { display: grid; gap: 8px; }
+.kurulum-secim { display: flex; align-items: center; gap: 14px; width: 100%; padding: 12px 14px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--panel); color: var(--ink); font-family: inherit; text-align: left; cursor: pointer; }
+.kurulum-secim.aktiv { border-color: var(--brand-ink); background: var(--panel-alt); box-shadow: inset 0 0 0 1px var(--brand-ink); }
+.kurulum-secim .ks-isare { width: 36px; height: 36px; flex: none; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; background: var(--panel-alt); border: 1px solid var(--line); }
+.kurulum-secim .ks-metn { display: flex; flex-direction: column; gap: 1px; }
+.kurulum-secim .ks-metn b { font-size: 15px; }
+.kurulum-secim .ks-metn small { font-size: 12px; color: var(--muted); }
+.kurulum-kat-qrup { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 4px 14px; margin-bottom: 10px; }
+.kurulum-alt { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; padding: 10px 0 2px; }
+.kurulum-yeni { display: flex; gap: 8px; align-items: flex-start; }
+.kurulum-yeni input { flex: 1; min-width: 0; }
+.kurulum-yeni .btn { flex: none; display: flex; align-items: center; gap: 6px; min-height: 42px; }
+.kurulum-duymeler { display: flex; gap: 10px; margin-top: 18px; }
+.kurulum-duymeler .btn { flex: 1; min-height: 46px; }

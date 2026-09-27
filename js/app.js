@@ -132,7 +132,7 @@ function gunlukLimitGuncelle(bugunkuToplam) {
   }
 
   const xercEl = document.getElementById('gunlukLimitXerc');
-  if (xercEl) xercEl.innerText = bugunkuToplam.toFixed(2) + ' AZN';
+  if (xercEl) xercEl.innerText = bugunkuToplam.toFixed(2) + ' ' + VK();
 
   const barEl = document.getElementById('gunlukLimitBar');
   if (barEl) {
@@ -170,7 +170,7 @@ function xercSetirHtml(g, index, redakteOlar) {
     ? `<button class="sira-btn" onclick="islemFormModalAc(${index})" title="${escapeHtml(tr('umumi.duzelt', 'Dəyiş'))}" aria-label="${escapeHtml(tr('umumi.duzelt', 'Dəyiş'))}">${ikon('qelem', 17)}</button><button class="sira-btn sil" onclick="giderSilOnayla(${index})" title="${escapeHtml(tr('islemForm.sil', 'Sil'))}" aria-label="${escapeHtml(tr('islemForm.sil', 'Sil'))}">${ikon('sil', 17)}</button>`
     : '';
   return `<li class="list-item${redakteOlar ? '' : ' yalniz-baxis'}"><div><span class="cat">${escapeHtml(g.kategori)}${g.sebeb ? ' — ' + escapeHtml(g.sebeb) : ''}</span><span class="time">${escapeHtml(tarixMetni)}</span></div>
-        <div class="right"><span class="amt">${g.tutar.toFixed(2)} AZN</span>${duymeler}</div></li>`;
+        <div class="right"><span class="amt">${g.tutar.toFixed(2)} ${VK()}</span>${duymeler}</div></li>`;
 }
 
 function ekraniGuncelle() {
@@ -208,7 +208,7 @@ function ekraniGuncelle() {
   });
 
   const toplamTutarEl = document.getElementById('toplamTutar');
-  if (toplamTutarEl) toplamTutarEl.innerText = toplam.toFixed(2) + ' AZN';
+  if (toplamTutarEl) toplamTutarEl.innerText = toplam.toFixed(2) + ' ' + VK();
   const donemAltEl = document.getElementById('donemAlt');
   if (donemAltEl) donemAltEl.innerText = tr('ana.emeliyyatSayi', '{say} əməliyyat', { say: filtrelenmis.length });
 
@@ -228,7 +228,7 @@ function ekraniGuncelle() {
         if (progressEl) progressEl.appendChild(parca);
         const row = document.createElement('div');
         row.className = 'breakdown-row';
-        row.innerHTML = `<span><span class="dot" style="background:${escapeHtml(kat.renk)}"></span>${escapeHtml(kat.ikon)} ${escapeHtml(kat.ad)}</span><span>${tutar.toFixed(2)} AZN · ${yuzde.toFixed(0)}%</span>`;
+        row.innerHTML = `<span><span class="dot" style="background:${escapeHtml(kat.renk)}"></span>${escapeHtml(kat.ikon)} ${escapeHtml(kat.ad)}</span><span>${tutar.toFixed(2)} ${VK()} · ${yuzde.toFixed(0)}%</span>`;
         if (breakdownEl) breakdownEl.appendChild(row);
         if (tutar > topKategoriTutar) { topKategoriTutar = tutar; topKategoriAd = kat.ad; }
       }
@@ -243,7 +243,7 @@ function ekraniGuncelle() {
       if (progressEl) progressEl.appendChild(parcaD);
       const rowD = document.createElement('div');
       rowD.className = 'breakdown-row';
-      rowD.innerHTML = `<span><span class="dot" style="background:var(--faint)"></span>${tr('ana.diger', 'Digər')}</span><span>${digerTutar.toFixed(2)} AZN · ${yuzdeD.toFixed(0)}%</span>`;
+      rowD.innerHTML = `<span><span class="dot" style="background:var(--faint)"></span>${tr('ana.diger', 'Digər')}</span><span>${digerTutar.toFixed(2)} ${VK()} · ${yuzdeD.toFixed(0)}%</span>`;
       if (breakdownEl) breakdownEl.appendChild(rowD);
     }
   } else {
@@ -254,7 +254,7 @@ function ekraniGuncelle() {
   const insightOrtEl = document.getElementById('insightOrtalama');
   // "Bu ay gündə orta": baxılan ayın gündəlik xərcləri (aylıq sabit xərclər və kredit ödənişləri xaric),
   // ayın 1-dən baxılan günə qədər olan günlərin sayına bölünür. (Əvvəl bu sahə sadəcə günün cəmini təkrarlayırdı.)
-  if (insightOrtEl) insightOrtEl.innerText = ayGundeOrta(goruntulenenTarix).toFixed(2) + ' AZN';
+  if (insightOrtEl) insightOrtEl.innerText = ayGundeOrta(goruntulenenTarix).toFixed(2) + ' ' + VK();
   const insightTopEl = document.getElementById('insightTopKategori');
   if (insightTopEl) insightTopEl.innerText = topKategoriAd ? topKategoriAd : '—';
 
@@ -275,7 +275,7 @@ function ekraniGuncelle() {
       btn.className = 'cat-btn' + (duzenlemeRejimi ? ' duzenleme-jiggle' : '');
       btn.dataset.origIndex = index;
       btn.style.setProperty('--kat', kat.renk); // premium: rəng yalnız sol zolaq/nöqtə kimi, düymə özü neytraldır
-      const altYazi = sabitTutarVar(kat) ? kat.sabitTutar.toFixed(2) + ' AZN' : tr('ana.tutarSorusulur', 'Məbləğ soruşulacaq');
+      const altYazi = sabitTutarVar(kat) ? kat.sabitTutar.toFixed(2) + ' ' + VK() : tr('ana.tutarSorusulur', 'Məbləğ soruşulacaq');
       btn.innerHTML = `<span class="name">${escapeHtml(kat.ikon)} ${escapeHtml(kat.ad)}</span><span class="sub">${escapeHtml(altYazi)}</span>`;
       if (duzenlemeRejimi) {
         btn.style.animationDelay = (Math.random() * -0.3).toFixed(2) + 's'; // hamısı eyni anda "yellənməsin" deyə
@@ -963,7 +963,7 @@ function dairaviCiz(canvasId, mevcudChart, parcalar, legendId, vahid, emptyMesaj
   const legendEl = document.getElementById(legendId);
   if (!canvasEl || !legendEl) return null;
   const dolu = parcalar.filter(p => p.tutar > 0);
-  const pulVahididirmi = (vahid || '').indexOf('AZN') !== -1;
+  const pulVahididirmi = (vahid || '').trim() === VK();
   const deyerYaz = (v) => pulVahididirmi ? v.toFixed(2) : Math.round(v).toString();
   legendEl.innerHTML = '';
   if (dolu.length === 0) {
@@ -1027,13 +1027,13 @@ function dashboardDairaviDiaqramlariCiz() {
   dashVeziyyetChart = dairaviCiz('dashVeziyyetCanvas', dashVeziyyetChart, [
     { ad: tr('dash.varliq', 'Aktivlər (müsbət balanslı hesablar)'), tutar: c.varliq, renk: cssVar('--chart-1') || '#d4d8de' },
     { ad: tr('dash.borcCemi', 'Öhdəliklər (mənfi balanslı hesablar)'), tutar: c.borc, renk: cssVar('--danger') || '#d63a3a' }
-  ], 'dashVeziyyetLegend', ' AZN', tr('dash.hesabYoxdur', 'Hesabatda göstərilən hesab yoxdur.'));
+  ], 'dashVeziyyetLegend', ' ' + VK(), tr('dash.hesabYoxdur', 'Hesabatda göstərilən hesab yoxdur.'));
 
   // 2. Ümumi borc: mənfidə olan hər hesab ayrıca
   document.getElementById('dashUmumiBorcMerkez').innerText = c.borc.toFixed(2);
   dashUmumiBorcChart = dairaviCiz('dashUmumiBorcCanvas', dashUmumiBorcChart,
     c.borclar.map((b, i) => ({ ad: b.ad, tutar: b.tutar, renk: reng[i % reng.length] })),
-    'dashUmumiBorcLegend', ' AZN', tr('dash.borcYoxdur', 'Borc yoxdur.'));
+    'dashUmumiBorcLegend', ' ' + VK(), tr('dash.borcYoxdur', 'Borc yoxdur.'));
 
   // 3–4. Hər kredit kartı və hər kredit xətti üçün ayrıca qrafik (yalnız tiki aktiv olanlar)
   dashElaveChartlar.forEach(ch => { try { ch.destroy(); } catch (e) {} });
@@ -1058,7 +1058,7 @@ function dashboardDairaviDiaqramlariCiz() {
     dashElaveChartlar.push(dairaviCiz('dashEx' + n + 'Canvas', null, limitVar ? [
       { ad: tr('dash.istifadeOlunan', 'İstifadə olunub'), tutar: k.istifade, renk: cssVar('--danger') || '#d63a3a' },
       { ad: tr('dash.istifadeEdileBilen', 'İstifadə edilə bilər'), tutar: Math.max(0, pulYuvarla(k.limit - k.istifade)), renk: cssVar('--chart-1') || '#d4d8de' }
-    ] : [{ ad: tr('dash.borcCemi', 'Öhdəliklər (mənfi balanslı hesablar)'), tutar: k.istifade, renk: cssVar('--danger') || '#d63a3a' }], 'dashEx' + n + 'Legend', ' AZN', tr('dash.borcYoxdur', 'Borc yoxdur.')));
+    ] : [{ ad: tr('dash.borcCemi', 'Öhdəliklər (mənfi balanslı hesablar)'), tutar: k.istifade, renk: cssVar('--danger') || '#d63a3a' }], 'dashEx' + n + 'Legend', ' ' + VK(), tr('dash.borcYoxdur', 'Borc yoxdur.')));
   });
   const xq = document.getElementById('dashXettlerQrup');
   xq.innerHTML = '';
@@ -1070,7 +1070,7 @@ function dashboardDairaviDiaqramlariCiz() {
       { ad: tr('dash.qalib', 'Qalıb'), tutar: x.say - x.odenmis, renk: cssVar('--input-border') || '#d9c9cd' }
     ], 'dashEx' + n + 'Legend', ' ' + tr('dash.taksitVahid', 'taksit'), tr('dash.krediXettYoxdur', 'Kredit xətti hələ əlavə edilməyib.')));
     altYaz('dashEx' + n + 'Alt', [
-      [tr('dash.qalanBorc', 'Qalan borc'), x.qalan.toFixed(2) + ' AZN'],
+      [tr('dash.qalanBorc', 'Qalan borc'), x.qalan.toFixed(2) + ' ' + VK()],
       [tr('dash.bitis', 'Bitmə tarixi'), typeof tarixFormat === 'function' ? tarixFormat(x.bitis) : (x.bitis || '—')]
     ]);
   });
@@ -1086,9 +1086,18 @@ function ayarlarPaneliniAc() {
   // Google skriptini əvvəlcədən yüklə: "Qoşul"/"Göndər" basılanda pəncərə dərhal açılsın (iPhone gecikəni bloklayır)
   if (!demoRejim && typeof driveGisSkriptiniYukle === 'function') driveGisSkriptiniYukle().then(driveTokenClientHazirla).catch(() => {});
   firebasePanelGuncelle();
+  const vSel = document.getElementById('valyutaSecim'); if (vSel) vSel.value = valyuta;
   const versEl = document.getElementById('tetbiqVersiyaGoster');
   if (versEl) versEl.innerText = APP_VERSION;
   modalAc('ayarlarModal');
+}
+// Valyutanı dəyiş: məbləğlər çevrilmir, bütün ekranlarda yalnız işarə dəyişir
+function valyutaDeyis(v) {
+  valyuta = valyutaNormal(v);
+  veriKaydet();
+  dilTetbiqEt();
+  ekraniGuncelle();
+  toastGoster(tr('valyuta.deyisdi', 'Valyuta: {v}. Məbləğlər çevrilmir — yalnız işarə dəyişir.', { v: valyuta }));
 }
 function ayarlarPaneliniKapat() {
   modalKapat('ayarlarModal');
@@ -1186,7 +1195,7 @@ function aylikDonutCiz(cfg) {
       cutout: '64%',
       plugins: {
         legend: { display: false }, // rəng izahı aşağıdakı siyahıdadır
-        tooltip: { callbacks: { label: (ctx) => ` ${ctx.label}: ${ctx.parsed.toFixed(2)} AZN` } }
+        tooltip: { callbacks: { label: (ctx) => ` ${ctx.label}: ${ctx.parsed.toFixed(2)} ${VK()}` } }
       }
     }
   });
@@ -1203,7 +1212,7 @@ function aylikSiyahiDoldur(elId, siraliKat, cemi) {
     const cemYuzde = cemi > 0 ? (k.tutar / cemi) * 100 : 0;
     const row = document.createElement('div');
     row.className = 'hesabat-row';
-    row.innerHTML = `<div class="hesabat-row-top"><span>${escapeHtml(k.ikon)} ${escapeHtml(k.ad)}</span><span>${k.tutar.toFixed(2)} AZN · ${cemYuzde.toFixed(0)}%</span></div>
+    row.innerHTML = `<div class="hesabat-row-top"><span>${escapeHtml(k.ikon)} ${escapeHtml(k.ad)}</span><span>${k.tutar.toFixed(2)} ${VK()} · ${cemYuzde.toFixed(0)}%</span></div>
       <div class="hesabat-bar-bg"><div class="hesabat-bar-fill" style="width:${barYuzde}%; background:${escapeHtml(k.renk)};"></div></div>`;
     listEl.appendChild(row);
   });
@@ -1252,7 +1261,7 @@ function aylikTrendChartGoster() {
       responsive: true,
       plugins: {
         legend: { display: false },
-        tooltip: { callbacks: { label: (ctx) => `${ctx.parsed.y.toFixed(2)} AZN` } }
+        tooltip: { callbacks: { label: (ctx) => `${ctx.parsed.y.toFixed(2)} ${VK()}` } }
       },
       scales: {
         x: { ticks: { color: muted, font: { size: 10 } }, grid: { color: lineRengi } },
@@ -1267,7 +1276,7 @@ function aylikHesabatPaneliniKapat() { modalKapat('aylikHesabatModal'); navAktif
 
 function aylikHesabatGoster() {
   const { buAyToplam, kecenAyToplam, buAyCemi } = aylikHesabatVerisi();
-  document.getElementById('aylikHesabatCemi').innerText = buAyCemi.toFixed(2) + ' AZN';
+  document.getElementById('aylikHesabatCemi').innerText = buAyCemi.toFixed(2) + ' ' + VK();
 
   // Kateqoriyaları günlük (tiksiz) və aylıq sabit (tikli) qruplara böl
   const butunKat = kategoriler

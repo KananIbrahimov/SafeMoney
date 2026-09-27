@@ -1,5 +1,5 @@
 /* Safe Money — vəziyyət, yükləmə, yadda saxlama */
-const APP_VERSION = '3.46'; // hər yeni göndərilən html versiyasında əl ilə +1 artırılır
+const APP_VERSION = '3.47'; // hər yeni göndərilən html versiyasında əl ilə +1 artırılır
 let goruntulenenTarix = new Date(); goruntulenenTarix.setHours(0, 0, 0, 0);
 let kategoriler = [];
 let giderler = [];
@@ -82,6 +82,7 @@ function yerliVeriniYukle() {
   hesabTransferleri = [];
   hesablar = [];
   gunlukLimit = null;
+  valyuta = 'AZN';
   sonDeyisiklikVaxti = null;
 }
 
@@ -106,9 +107,13 @@ async function veriYukle() {
   try {
     const hazir = await vaxtAsimiIle(firebaseBaslat(), 15000);
     if (hazir && firestoreDb && senkronKey && navigator.onLine !== false) {
-      const snap = await vaxtAsimiIle(firestoreDb.collection('syncs').doc(senkronKey).get(), 10000);
-      if (snap && snap.exists && snap.data() && snap.data().data) {
-        const bulud = snap.data().data, rev = Number(snap.data().rev) || 0;
+      const ref = firestoreDb.collection('syncs').doc(senkronKey);
+      const snap = await vaxtAsimiIle(ref.get(), 10000);
+      // Parçalı sənəd (böyük data): parçalar oxuna bilməsə bulud "təsdiqlənməmiş" sayılır — heç nə yazılmır
+      const meta = (snap && snap.exists) ? snap.data() : null;
+      const bulud = (meta && (meta.data || meta.parcali)) ? await vaxtAsimiIle(buludDatasiniOxu(ref, meta), 20000) : null;
+      if (bulud) {
+        const rev = Number(meta.rev) || 0;
         if (telefonda && telefonda.yerli) {
           // Əvvəlki açılışda göndərilə bilməmiş dəyişikliklər: buluddakı son vəziyyətlə birləşdirilib göndərilir
           driveVerisiniTetbiqEt(telefonda.bazaRev === rev ? telefonda.yerli : dataBirlesdir(telefonda.baza, telefonda.yerli, bulud));
@@ -122,7 +127,7 @@ async function veriYukle() {
       } else if (snap && !snap.exists) {
         senedTesdiqlenmisBosdur = true;
         bazaRev = 0;
-      } else if (snap && snap.exists) {
+      } else if (snap && snap.exists && !(meta && meta.parcali)) {
         // Sənəd var, amma içində "data" yoxdur (yarımçıq/pozulmuş yazı). Əvvəl bu halda tətbiq heç vaxt
         // yadda saxlaya bilmirdi. Telefonda göndərilməmiş nüsxə varsa o, yoxdursa defolt vəziyyət yazılır.
         senedTesdiqlenmisBosdur = true;
@@ -187,6 +192,8 @@ async function veriYukle() {
   let ayarlaraQayit = false;
   try { ayarlaraQayit = sessionStorage.getItem('geri_ayarlar') === '1'; sessionStorage.removeItem('geri_ayarlar'); } catch (e) {}
   if (ayarlaraQayit && typeof sekmeSec === 'function') sekmeSec('ayarlar');
+  // Yeni istifadəçi: ilk giriş sihirbazı (valyuta, əsas hesab, kateqoriyalar, limit)
+  if (typeof kurulumLazimdir === 'function' && kurulumLazimdir()) kurulumBaslat();
 }
 
 async function veriKaydet() {

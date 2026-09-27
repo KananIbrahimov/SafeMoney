@@ -1,7 +1,7 @@
 /* Safe Money — Məxfilik siyasəti / İstifadə şərtləri: dil, tema, geri düyməsi.
    Dil və tema tətbiqdən ?dil=az&tema=dark ilə gəlir; yoxdursa SafeMoney-in öz seçimi, sonra ingilis dili. */
 (function () {
-  const DILLER = ['az', 'en', 'ru'];
+  const DILLER = ['az', 'en', 'ru', 'tr'];
   const q = new URLSearchParams(location.search);
   const oxu = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
   let dil = q.get('dil') || location.hash.replace('#', '') || oxu('sm:dil') || 'en';
