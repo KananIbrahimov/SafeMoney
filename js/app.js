@@ -1004,8 +1004,8 @@ function dashboardDairaviDiaqramlariCiz() {
   xEl.innerText = (c.xalis > 0 ? '+' : '') + c.xalis.toFixed(2);
   xEl.classList.toggle('menfi', c.xalis < 0);
   dashVeziyyetChart = dairaviCiz('dashVeziyyetCanvas', dashVeziyyetChart, [
-    { ad: tr('dash.varliq', 'Varlıq (müsbət hesablar)'), tutar: c.varliq, renk: cssVar('--chart-1') || '#d4d8de' },
-    { ad: tr('dash.borcCemi', 'Borc (mənfi hesablar)'), tutar: c.borc, renk: cssVar('--danger') || '#d63a3a' }
+    { ad: tr('dash.varliq', 'Aktivlər (müsbət balanslı hesablar)'), tutar: c.varliq, renk: cssVar('--chart-1') || '#d4d8de' },
+    { ad: tr('dash.borcCemi', 'Öhdəliklər (mənfi balanslı hesablar)'), tutar: c.borc, renk: cssVar('--danger') || '#d63a3a' }
   ], 'dashVeziyyetLegend', ' AZN', tr('dash.hesabYoxdur', 'Hesabatda göstərilən hesab yoxdur.'));
 
   // 2. Ümumi borc: mənfidə olan hər hesab ayrıca
@@ -1037,7 +1037,7 @@ function dashboardDairaviDiaqramlariCiz() {
     dashElaveChartlar.push(dairaviCiz('dashEx' + n + 'Canvas', null, limitVar ? [
       { ad: tr('dash.istifadeOlunan', 'İstifadə olunub'), tutar: k.istifade, renk: cssVar('--danger') || '#d63a3a' },
       { ad: tr('dash.istifadeEdileBilen', 'İstifadə edilə bilər'), tutar: Math.max(0, pulYuvarla(k.limit - k.istifade)), renk: cssVar('--chart-1') || '#d4d8de' }
-    ] : [{ ad: tr('dash.borcCemi', 'Borc (mənfi hesablar)'), tutar: k.istifade, renk: cssVar('--danger') || '#d63a3a' }], 'dashEx' + n + 'Legend', ' AZN', tr('dash.borcYoxdur', 'Borc yoxdur.')));
+    ] : [{ ad: tr('dash.borcCemi', 'Öhdəliklər (mənfi balanslı hesablar)'), tutar: k.istifade, renk: cssVar('--danger') || '#d63a3a' }], 'dashEx' + n + 'Legend', ' AZN', tr('dash.borcYoxdur', 'Borc yoxdur.')));
   });
   const xq = document.getElementById('dashXettlerQrup');
   xq.innerHTML = '';

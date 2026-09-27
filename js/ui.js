@@ -39,7 +39,7 @@ const DIL_KOD_REGEX = /^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})?$/;
 let dilKodu = (function () {
   let k = null;
   try { k = localStorage.getItem('dil'); } catch (e) {}
-  return (k && DIL_KOD_REGEX.test(k)) ? k : 'az';
+  return (k && DIL_KOD_REGEX.test(k)) ? k : 'en'; // ilk dəfə açan üçün defolt: ingilis dili
 })();
 let dilSozlugu = {};
 let dilHazirdir = false;
@@ -273,7 +273,7 @@ function dilSec(kod) {
 // ---- Giriş / qeydiyyat ekranında sürətli dil seçimi (AZ · EN · RU) ----
 // Dil dəyişəndə səhifə yenidən yüklənir; yazılmış e-poçt/ad və açıq qeydiyyat forması itməsin deyə
 // (şifrələr istisna) sessionStorage-də saxlanılıb geri qaytarılır.
-const GIRIS_DILLERI = [['az', 'AZ', 'Azərbaycan dili'], ['en', 'EN', 'English'], ['ru', 'RU', 'Русский']];
+const GIRIS_DILLERI = [['en', 'ENG', 'English'], ['ru', 'RUS', 'Русский'], ['az', 'AZE', 'Azərbaycan dili']];
 function girisDilSeciciCiz() {
   document.querySelectorAll('[data-dil-secici]').forEach(kok => {
     kok.innerHTML = GIRIS_DILLERI.map(([kod, qisa, ad]) =>

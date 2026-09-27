@@ -1,14 +1,14 @@
 /* Safe Money — qonaq rejimində tanışlıq turu: hər funksiya qısa kartla, müvafiq hissə işıqlandırılır.
    Toxunduqda növbəti addıma keçir. */
 const TUR_ADDIMLARI = [
-  { sehife: 'ana', hedef: () => [...document.querySelectorAll('#butonlarKonteyneri .cat-btn')].slice(0, 4), acar: 'tur.1', bas: 'Xərc əlavə et', metn: 'Kateqoriyaya toxun — xərc dərhal yazılır. Basılı saxla — başqa məbləğ yaz.' },
-  { sehife: 'ana', hedef: () => { const t = document.getElementById('toplamTutar'); return t ? (t.closest('.card, .summary-card, section, .ozet-kart') || t.parentElement) : null; }, acar: 'tur.2', bas: 'Bu günün xərcləri', metn: 'Günün cəmi, kateqoriyalara bölgü və gündəlik limit.' },
-  { sehife: 'hesablar', hedef: () => document.getElementById('hesablarKartlari'), acar: 'tur.3', bas: 'Hesablar', metn: 'Kartların və nağd pulun. ⭐ olan əsas hesabdır — xərclər ondan çıxılır.' },
-  { sehife: 'hesablar', hedef: () => document.querySelector('.hesab-emeliyyat-btnlar'), acar: 'tur.4', bas: 'Mədaxil və köçürmə', metn: 'Maaşı əlavə et, hesablar arasında köçür, krediti ödə.' },
-  { sehife: 'dashboard', hedef: () => document.getElementById('dashKart1'), acar: 'tur.5', bas: 'Maliyyə vəziyyəti', metn: 'Varlıq, borc və xalis vəziyyət. Hər kredit üçün ayrıca qrafik.' },
-  { sehife: 'aylikHesabat', hedef: () => { const x = document.getElementById('aylikGunlukSarici'); return x ? (x.closest('.pie-card') || x) : null; }, acar: 'tur.6', bas: 'Aylıq hesabat', metn: 'Bu ay pul hara gedir: gündəlik və sabit xərclər.' },
-  { sehife: 'ayarlar', hedef: () => document.querySelector('#ayarlarModal .ayarlar-qrup'), acar: 'tur.7', bas: 'Ayarlar', metn: 'Kateqoriyalar, hesablar, tarixçə və axtarış, Drive ehtiyat nüsxəsi, Face ID.' },
-  { sehife: 'ana', hedef: null, acar: 'tur.8', bas: 'Hazırsan?', metn: 'Öz hesabını yarat — məlumatların yalnız səndə olsun.', son: true }
+  { sehife: 'ana', hedef: () => [...document.querySelectorAll('#butonlarKonteyneri .cat-btn')].slice(0, 4), acar: 'tur.1', bas: 'Xərclərin qeydiyyatı', metn: 'Kateqoriyaya bir toxunuşla xərc qeydə alınır. Fərqli məbləğ üçün kateqoriya basılı saxlanılır.' },
+  { sehife: 'ana', hedef: () => { const t = document.getElementById('toplamTutar'); return t ? (t.closest('.card, .summary-card, section, .ozet-kart') || t.parentElement) : null; }, acar: 'tur.2', bas: 'Günlük xərclərin icmalı', metn: 'Günün ümumi xərci, kateqoriyalar üzrə bölgü və gündəlik limitin icrası.' },
+  { sehife: 'hesablar', hedef: () => document.getElementById('hesablarKartlari'), acar: 'tur.3', bas: 'Hesablar', metn: 'Bank kartları və nağd vəsait. Bütün xərclər ⭐ ilə işarələnmiş əsas hesabdan silinir.' },
+  { sehife: 'hesablar', hedef: () => document.querySelector('.hesab-emeliyyat-btnlar'), acar: 'tur.4', bas: 'Daxilolmalar və köçürmələr', metn: 'Daxilolmaların (məs. əmək haqqının) qeydiyyatı, hesablararası köçürmələr və kredit ödənişləri.' },
+  { sehife: 'dashboard', hedef: () => document.getElementById('dashKart1'), acar: 'tur.5', bas: 'Maliyyə vəziyyəti', metn: 'Aktivlər, öhdəliklər və xalis maliyyə mövqeyi. Hər kredit üzrə ayrıca qrafik.' },
+  { sehife: 'aylikHesabat', hedef: () => { const x = document.getElementById('aylikGunlukSarici'); return x ? (x.closest('.pie-card') || x) : null; }, acar: 'tur.6', bas: 'Aylıq hesabat', metn: 'Cari ayın xərc strukturu: gündəlik və sabit xərclər, büdcənin icrası.' },
+  { sehife: 'ayarlar', hedef: () => document.querySelector('#ayarlarModal .ayarlar-qrup'), acar: 'tur.7', bas: 'Ayarlar', metn: 'Kateqoriyalar, hesablar, əməliyyat tarixçəsi və axtarış, Google Drive-da ehtiyat nüsxə, tətbiq kilidi.' },
+  { sehife: 'ana', hedef: null, acar: 'tur.8', bas: 'Şəxsi hesab', metn: 'Şəxsi hesab yaradıldıqdan sonra bütün məlumatlar yalnız hesab sahibinə məxsus olur.', son: true }
 ];
 let turIndeks = -1;
 
@@ -41,8 +41,8 @@ function turNovbeti() {
   const kart = document.getElementById('turKart');
   const say = TUR_ADDIMLARI.length;
   const duymeler = a.son
-    ? `<button class="tur-btn tur-esas" onclick="turBitir(); qonaqdanCix();">${escapeHtml(tr('demo.qeydiyyat', 'Hesab yarat'))}</button><button class="tur-btn" onclick="turBitir()">${escapeHtml(tr('tur.davam', 'Baxmağa davam et'))}</button>`
-    : `<button class="tur-btn tur-kec" onclick="turBitir()">${escapeHtml(tr('tur.kec', 'Keç'))}</button><button class="tur-btn tur-esas" onclick="turNovbeti()">${escapeHtml(tr('tur.novbeti', 'Növbəti'))} ›</button>`;
+    ? `<button class="tur-btn tur-esas" onclick="turBitir(); qonaqdanCix();">${escapeHtml(tr('demo.qeydiyyat', 'Hesab yarat'))}</button><button class="tur-btn" onclick="turBitir()">${escapeHtml(tr('tur.davam', 'Nümunə rejimində qal'))}</button>`
+    : `<button class="tur-btn tur-kec" onclick="turBitir()">${escapeHtml(tr('tur.kec', 'Turu bitir'))}</button><button class="tur-btn tur-esas" onclick="turNovbeti()">${escapeHtml(tr('tur.novbeti', 'Növbəti'))} ›</button>`;
   kart.innerHTML = `<div class="tur-say">${turIndeks + 1} / ${say}</div><b>${escapeHtml(tr(a.acar + 'b', a.bas))}</b><p>${escapeHtml(tr(a.acar + 'm', a.metn))}</p><div class="tur-duymeler">${duymeler}</div>`;
   // Hədəfi görünən yerə gətir, sonra işığı və kartı yerləşdir
   const hedef = a.hedef ? a.hedef() : null;
