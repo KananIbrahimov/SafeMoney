@@ -27,7 +27,9 @@
 // ikonların/title-ın istifadəçilərdə qalmaması üçün versiya artırıldı.)
 // (v35: v33-də əlavə olunan Firebase/Chart.js keşi geri alındı — bəzi hallarda kitabxanalar yüklənmirdi və
 //  giriş işləmirdi. Xarici kitabxanaları yenə brauzer özü yükləyir.)
-const CACHE_ADI = 'safe-money-cache-v49';
+// KananTest ilə eyni domendə işlədiyi üçün keş adı fərqli prefikslə başlayır.
+const CACHE_PREFIKS = 'safemoney-app-cache-';
+const CACHE_ADI = CACHE_PREFIKS + 'v50';
 
 const KESLENECEK_FAYLLAR = [
   './index.html',
@@ -73,7 +75,7 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((adlar) =>
-      Promise.all(adlar.filter((ad) => ad !== CACHE_ADI).map((ad) => caches.delete(ad))) // köhnə CDN keşi də silinir
+      Promise.all(adlar.filter((ad) => ad.startsWith(CACHE_PREFIKS) && ad !== CACHE_ADI).map((ad) => caches.delete(ad))) // yalnız öz köhnə keşlərimiz; KananTest-in keşinə toxunmuruq
     )
   );
   self.clients.claim();
