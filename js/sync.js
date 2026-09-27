@@ -640,7 +640,32 @@ function gozleyenProfilSil(email) {
   try { localStorage.removeItem(gozleyenProfilAcari(email)); } catch (e) { /* sakit keç */ }
 }
 
+// "Hesab yarat": qeydiyyat başqa tətbiqdədirsə ora keçir, seçilmiş dil də ötürülür
+// (eyni domen — SafeMoney öz dilini "sm:dil" açarında saxlayır; orada seçim edilməyibsə bu dil götürülür).
+function qeydiyyataKec() {
+  if (QEYDIYYAT_UNVANI) {
+    try { if (!localStorage.getItem('sm:dil')) localStorage.setItem('sm:dil', dilKodu); } catch (e) {}
+    location.href = QEYDIYYAT_UNVANI + '?qeydiyyat=1';
+    return true;
+  }
+  return false;
+}
+// Qonaq rejimindən "Hesab yarat": birbaşa qeydiyyat formasına
+function hesabYarat() {
+  if (qeydiyyataKec()) return;
+  location.replace(location.origin + location.pathname + '?qeydiyyat=1');
+}
+// ?qeydiyyat=1 ilə açılıbsa və daxil olmuş istifadəçi yoxdursa — qeydiyyat forması dərhal açılır
+function qeydiyyatParametriniYoxla(acilsin) {
+  let var_ = false;
+  try { var_ = new URLSearchParams(location.search).get('qeydiyyat') === '1'; } catch (e) {}
+  if (!var_) return;
+  history.replaceState({}, '', location.pathname);
+  if (acilsin) qeydiyyatModalAc();
+}
+
 function qeydiyyatModalAc() {
+  if (qeydiyyataKec()) return;
   document.getElementById('qeydiyyatAd').value = '';
   document.getElementById('qeydiyyatSoyad').value = '';
   document.getElementById('qeydiyyatEmail').value = document.getElementById('emailGirisEmail').value.trim();
@@ -746,7 +771,7 @@ function demoBannerGoster() {
   const el = document.createElement('div');
   el.id = 'demoBanner';
   el.className = 'demo-banner';
-  el.innerHTML = `<span>${escapeHtml(tr('demo.banner', 'Nümunə rejimi — dəyişikliklər saxlanılmır'))}</span><button class="demo-tur" onclick="turBaslat()" aria-label="${escapeHtml(tr('tur.yeniden', 'Turu yenidən göstər'))}" title="${escapeHtml(tr('tur.yeniden', 'Turu yenidən göstər'))}">?</button><button onclick="qonaqdanCix()">${escapeHtml(tr('demo.qeydiyyat', 'Hesab yarat'))}</button>`;
+  el.innerHTML = `<span>${escapeHtml(tr('demo.banner', 'Nümunə rejimi — dəyişikliklər saxlanılmır'))}</span><button class="demo-tur" onclick="turBaslat()" aria-label="${escapeHtml(tr('tur.yeniden', 'Turu yenidən göstər'))}" title="${escapeHtml(tr('tur.yeniden', 'Turu yenidən göstər'))}">?</button><button onclick="hesabYarat()">${escapeHtml(tr('demo.qeydiyyat', 'Hesab yarat'))}</button>`;
   document.body.appendChild(el);
   document.body.classList.add('demo-aktiv');
 }
@@ -861,6 +886,7 @@ async function uygulamaGirisBaslat() {
       return;
     }
     if (istifadeci) {
+      qeydiyyatParametriniYoxla(false);
       cariGoogleIstifadeci = istifadeci;
       senkronKey = istifadeci.uid;
       document.getElementById('googleGirisEkrani').classList.remove('active');
@@ -878,6 +904,7 @@ async function uygulamaGirisBaslat() {
       veriMenbeGuvenli = false;
       istifadeciProfili = { ad: '', soyad: '' };
       document.getElementById('googleGirisEkrani').classList.add('active');
+      qeydiyyatParametriniYoxla(true);
     }
   });
 }
@@ -891,7 +918,7 @@ function firebasePanelGuncelle(mesaj, xetaMi) {
   if (demoRejim) {
     statusEl.innerText = tr('demo.banner', 'Nümunə rejimi — dəyişikliklər saxlanılmır');
     subEl.innerText = tr('demo.hesabIzah', 'Öz məlumatlarını saxlamaq üçün hesab yarat.');
-    btnsEl.innerHTML = `<button class="demo-tur" onclick="turBaslat()" aria-label="${escapeHtml(tr('tur.yeniden', 'Turu yenidən göstər'))}" title="${escapeHtml(tr('tur.yeniden', 'Turu yenidən göstər'))}">?</button><button onclick="qonaqdanCix()">${escapeHtml(tr('demo.qeydiyyat', 'Hesab yarat'))}</button>`;
+    btnsEl.innerHTML = `<button class="demo-tur" onclick="turBaslat()" aria-label="${escapeHtml(tr('tur.yeniden', 'Turu yenidən göstər'))}" title="${escapeHtml(tr('tur.yeniden', 'Turu yenidən göstər'))}">?</button><button onclick="hesabYarat()">${escapeHtml(tr('demo.qeydiyyat', 'Hesab yarat'))}</button>`;
     const xk = document.getElementById('ayarlarXosGeldinKutu'); if (xk) xk.style.display = 'none';
     return;
   }

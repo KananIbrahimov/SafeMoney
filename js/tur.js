@@ -51,7 +51,7 @@ function turNovbeti() {
   const kart = document.getElementById('turKart');
   const say = TUR_ADDIMLARI.length;
   const duymeler = a.son
-    ? `<button class="tur-btn tur-esas" onclick="turBitir(); qonaqdanCix();">${escapeHtml(tr('demo.qeydiyyat', 'Hesab yarat'))}</button><button class="tur-btn" onclick="turBitir()">${escapeHtml(tr('tur.davam', 'Nümunə rejimində qal'))}</button>`
+    ? `<button class="tur-btn tur-esas" onclick="turBitir(); hesabYarat();">${escapeHtml(tr('demo.qeydiyyat', 'Hesab yarat'))}</button><button class="tur-btn" onclick="turBitir()">${escapeHtml(tr('tur.davam', 'Nümunə rejimində qal'))}</button>`
     : `<button class="tur-btn tur-kec" onclick="turBitir()">${escapeHtml(tr('tur.kec', 'Turu bitir'))}</button><button class="tur-btn tur-esas" onclick="turNovbeti()">${escapeHtml(tr('tur.novbeti', 'Növbəti'))} ›</button>`;
   kart.innerHTML = `<div class="tur-say">${turIndeks + 1} / ${say}</div><b>${escapeHtml(tr(a.acar + 'b', a.bas))}</b><p>${escapeHtml(tr(a.acar + 'm', a.metn))}</p><div class="tur-duymeler">${duymeler}</div>`;
   // Hədəfi görünən yerə gətir, sonra işığı və kartı yerləşdir
