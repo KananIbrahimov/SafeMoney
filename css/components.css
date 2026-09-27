@@ -441,11 +441,6 @@ body.demo-aktiv .page-inner { padding-top: calc(56px + env(safe-area-inset-top, 
 .gd-ayrac { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 12px; margin: 2px 0; }
 .gd-ayrac::before, .gd-ayrac::after { content: ''; flex: 1; height: 1px; background: var(--line); }
 .giris-duymeler .qonaq-btn { width: 100%; margin: 0; color: var(--ink); font-weight: 600; }
-.magaza-sira { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.magaza-btn { gap: 8px; padding: 0 10px; }
-.magaza-btn .mg-metn { display: flex; flex-direction: column; line-height: 1.15; text-align: left; }
-.magaza-btn .mg-metn small { font-size: 10px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
-.magaza-btn .mg-metn b { font-size: 14px; font-weight: 600; }
 .qr-xeberdarliq { font-size: 12.5px; line-height: 1.45; color: var(--ink); background: color-mix(in srgb, #c9a24a 12%, var(--panel)); border: 1px solid color-mix(in srgb, #c9a24a 40%, var(--line)); border-radius: 12px; padding: 10px 12px; margin: 0 0 10px; text-align: left; }
 .qr-acar { width: 26px; height: 15px; border-radius: 999px; background: #34c759; position: relative; vertical-align: -2px; }
 .qr-acar::after { content: ''; position: absolute; right: 2px; top: 2px; width: 11px; height: 11px; border-radius: 50%; background: #fff; }
@@ -497,3 +492,14 @@ body.demo-aktiv .page-inner { padding-top: calc(56px + env(safe-area-inset-top, 
 .razilasma-setir { display: flex; align-items: flex-start; gap: 10px; margin: 14px 0 4px; text-align: left; font-size: 13px; line-height: 1.45; color: var(--ink); cursor: pointer; }
 .razilasma-setir input { flex: none; width: 20px; height: 20px; margin: 0; accent-color: var(--brand-ink); cursor: pointer; }
 .razilasma-setir a { color: var(--brand-ink); text-decoration: underline; text-underline-offset: 3px; }
+
+/* Yeni versiya bildirişi */
+.yenilik-cubuq { position: fixed; left: 50%; transform: translateX(-50%); top: calc(12px + env(safe-area-inset-top, 0px)); z-index: 100000; width: max-content; max-width: calc(100% - 32px); display: flex; align-items: center; gap: 12px; padding: 8px 8px 8px 16px; border-radius: 12px; background: var(--panel-alt); color: var(--ink); border: 1px solid var(--line); box-shadow: 0 8px 24px var(--shadow); font-size: 13px; font-weight: 600; }
+.yenilik-cubuq button { flex: none; min-height: 34px; padding: 0 14px; border-radius: 9px; border: none; background: var(--brand); color: var(--on-brand); font: inherit; font-weight: 700; cursor: pointer; }
+/* Google Drive: əsas düymələr görünür, qalanı "Ətraflı" altında */
+.drive-etrafli { flex-basis: 100%; margin-top: 2px; }
+.drive-etrafli > summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 0 2px; font-size: 12px; font-weight: 600; color: var(--muted); }
+.drive-etrafli > summary::-webkit-details-marker { display: none; }
+.drive-etrafli > summary .ic { transition: transform .15s; }
+.drive-etrafli[open] > summary .ic { transform: rotate(180deg); }
+.drive-etrafli-ic { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }

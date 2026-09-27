@@ -1077,27 +1077,6 @@ function dashboardDairaviDiaqramlariCiz() {
 }
 
 // ==== Ayarlar: Günlük limit + Kateqoriyalar + Son əməliyyatlar + İşıq rejimi ====
-// Keşi (cache) və service worker-i təmizləyib son versiyanı yenidən yükləyir —
-// istifadəçi hər dəfə ana ekrandan silib-yenidən əlavə etməsin deyə.
-async function tetbiqiYenile() {
-  try {
-    if ('caches' in window) {
-      const adlar = await caches.keys();
-      await Promise.all(adlar.filter((ad) => ad.startsWith('safemoney-app-cache-')).map((ad) => caches.delete(ad))); // yalnız öz keşimiz
-    }
-    if ('serviceWorker' in navigator) {
-      const qeydler = await navigator.serviceWorker.getRegistrations();
-      await Promise.all(qeydler.filter((r) => location.href.startsWith(r.scope)).map((r) => r.unregister())); // yalnız bu tətbiqin SW-i
-    }
-  } catch (e) {
-    console.warn('Keş təmizləmə xətası:', e);
-  }
-  // location.reload(true) müasir brauzerlərdə artıq HTTP keşini bypass etmir.
-  // Bunun əvəzinə unikal sorğu parametrli TAM YENİ URL-ə keçirik — brauzer
-  // bunu fərqli resurs sayıb məcburi şəkildə şəbəkədən yükləyir.
-  const bazaUrl = location.origin + location.pathname;
-  location.replace(bazaUrl + '?yenile=' + Date.now());
-}
 
 function ayarlarPaneliniAc() {
   document.getElementById('gunlukLimitInput').value = (typeof gunlukLimit === 'number') ? gunlukLimit : '';
@@ -1528,9 +1507,6 @@ function qurasdirKec() {
 }
 // Giriş ekranındakı "Ana ekrana əlavə et" düyməsi: Android-də birbaşa quraşdırır, iPhone-da təlimatı açır
 // (Apple heç bir saytın özünü avtomatik əlavə etməsinə icazə vermir).
-function magazaTezlikle(ad) {
-  alertAc(tr('magaza.mesaj', '{ad} versiyası tezliklə! Hələlik "Ana ekrana əlavə et" ilə tətbiq kimi istifadə edə bilərsən.', { ad }), tr('magaza.tezlikle', 'Tezliklə'));
-}
 function anaEkranaElaveEt() {
   if (qurasdirHadise) { qurasdirBas(); return; }
   try { sessionStorage.removeItem('qurasdir_kec'); } catch (e) {}
@@ -1554,10 +1530,37 @@ function anaEkranaElaveEt() {
 
 // ==== PWA: Service Worker qeydiyyatı ====
 // Yalnız http(s):// üzərində işləyir; file:// ilə açsan səssizcə keçilir.
+// Yeni versiya: hər buraxılışda sw.js dəyişir. Tətbiq açılanda, ön plana qayıdanda və hər 30 dəqiqədən bir
+// yoxlanılır. Yeni versiya aktiv olanda: tətbiq arxa plandadırsa — qayıdanda özü yenilənir (heç nə yazılmırdı);
+// istifadəçi ekrandadırsa — yazdığı pozulmasın deyə yuxarıda "Yenilə" düyməli bildiriş çıxır.
 if ('serviceWorker' in navigator && (location.protocol === 'http:' || location.protocol === 'https:')) {
+  let swQeyd = null;
+  const evvelkiIdareci = !!navigator.serviceWorker.controller; // ilk quraşdırmada bildiriş lazım deyil
+  let yenilikGozleyir = false;
+  const yoxla = () => { if (swQeyd) swQeyd.update().catch(() => {}); };
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch((e) => console.warn('SW qeydiyyatı alınmadı:', e));
+    navigator.serviceWorker.register('sw.js').then((r) => { swQeyd = r; }).catch((e) => console.warn('SW qeydiyyatı alınmadı:', e));
   });
+  setInterval(yoxla, 30 * 60 * 1000);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') return;
+    if (yenilikGozleyir) { location.reload(); return; }
+    yoxla();
+  });
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!evvelkiIdareci) return;
+    if (document.visibilityState === 'hidden') { yenilikGozleyir = true; return; }
+    yenilikCubuguGoster();
+  });
+}
+function yenilikCubuguGoster() {
+  if (document.getElementById('yenilikCubuq')) return;
+  const el = document.createElement('div');
+  el.id = 'yenilikCubuq'; el.className = 'yenilik-cubuq'; el.setAttribute('role', 'status');
+  const m = document.createElement('span'); m.innerText = tr('yenilik.hazir', 'Yeni versiya hazırdır');
+  const b = document.createElement('button'); b.type = 'button'; b.innerText = tr('yenilik.yenile', 'Yenilə');
+  b.addEventListener('click', () => location.reload());
+  el.appendChild(m); el.appendChild(b); document.body.appendChild(el);
 }
 
 // "Yenilə" düyməsindən sonra URL-də qalan ?yenile=... parametrini təmizlə.

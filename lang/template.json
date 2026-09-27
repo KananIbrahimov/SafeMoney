@@ -58,7 +58,6 @@
     "ayarlar.sonEmeliyyatlar": "Son əməliyyatlar",
     "ayarlar.versiya": "Versiya",
     "ayarlar.xosGeldin": "Xoş gəldin",
-    "ayarlar.yenile": "Tətbiqi yenilə",
     "ayarlar.hesablaBaglisan": "Hesaba daxil olmusan.",
     "aylik.ayliqSabitXercler": "Aylıq sabit xərclər",
     "aylik.buAyHaraPul": "Aylıq hesabat",
@@ -383,8 +382,6 @@
     "sonEm.axtarPlaceholder": "Axtar: məbləğ, kateqoriya, qeyd",
     "sonEm.axtar": "Axtar",
     "giris.veya": "və ya",
-    "magaza.tezlikle": "Tezliklə",
-    "magaza.mesaj": "{ad} versiyası tezliklə! Hələlik \"Ana ekrana əlavə et\" ilə tətbiq kimi istifadə edə bilərsən.",
     "qurasdir.ios1n": "Menyuya toxun",
     "qurasdir.ios2n": "\"Paylaş\" / \"Share\"",
     "qurasdir.ios3n": "\"Daha Fazla\" / \"More\"",
@@ -490,7 +487,7 @@
     "sinx.icazeYox": "Bulud dəyişikliyi qəbul etmədi. Hesabdan çıxıb yenidən daxil ol. Dəyişikliklər telefonda saxlanılıb.",
     "ana.xercYazildi": "{kat}: {tutar} AZN qeydə alındı.",
     "umumi.geriAl": "Geri al",
-    "sinx.xetaKalici": "Dəyişiklik buluda göndərilmədi ({xeta}). Dəyişikliklər telefonda saxlanılıb — tətbiqi yenilə və yenidən cəhd et.",
+    "sinx.xetaKalici": "Dəyişiklik buluda göndərilmədi ({xeta}). Dəyişikliklər telefonda saxlanılıb — tətbiqi bağlayıb yenidən aç və yenidən cəhd et.",
     "hesab.kartMovcud": "Kartda mövcud vəsait (AZN)",
     "hesab.kartBorc": "Borc: {borc} AZN",
     "hesab.kartArtiqOdenis": "Artıq ödəniş: +{mebleg} AZN",
@@ -511,6 +508,9 @@
     "qeyd.razilasma": "{mexfilik} və {sertler} ilə tanış oldum və razıyam.",
     "qeyd.razilasmaMexfilik": "Məxfilik siyasəti",
     "qeyd.razilasmaSertler": "İstifadə şərtləri",
-    "qeyd.razilasmaXeta": "Qeydiyyat üçün Məxfilik siyasəti və İstifadə şərtləri ilə razılaşmalısan."
+    "qeyd.razilasmaXeta": "Qeydiyyat üçün Məxfilik siyasəti və İstifadə şərtləri ilə razılaşmalısan.",
+    "drive.etrafli": "Ətraflı",
+    "yenilik.hazir": "Yeni versiya hazırdır",
+    "yenilik.yenile": "Yenilə"
   }
 }

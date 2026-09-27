@@ -57,7 +57,6 @@
     "ayarlar.sonEmeliyyatlar": "Recent transactions",
     "ayarlar.versiya": "Version",
     "ayarlar.xosGeldin": "Welcome",
-    "ayarlar.yenile": "Update app",
     "ayarlar.hesablaBaglisan": "You're signed in.",
     "aylik.ayliqSabitXercler": "Monthly fixed expenses",
     "aylik.buAyHaraPul": "Monthly report",
@@ -382,8 +381,6 @@
     "sonEm.axtarPlaceholder": "Search: amount, category, note",
     "sonEm.axtar": "Search",
     "giris.veya": "or",
-    "magaza.tezlikle": "Coming soon",
-    "magaza.mesaj": "The {ad} version is coming soon! For now, use \"Add to Home Screen\" to use it like an app.",
     "qurasdir.ios1n": "Tap the menu",
     "qurasdir.ios2n": "\"Share\"",
     "qurasdir.ios3n": "\"More\"",
@@ -489,7 +486,7 @@
     "sinx.icazeYox": "The cloud didn't accept the change. Sign out and sign in again. Your changes are saved on this phone.",
     "ana.xercYazildi": "{kat}: {tutar} AZN recorded.",
     "umumi.geriAl": "Undo",
-    "sinx.xetaKalici": "The change wasn't sent to the cloud ({xeta}). Your changes are saved on this phone — update the app and try again.",
+    "sinx.xetaKalici": "The change wasn't sent to the cloud ({xeta}). Your changes are saved on this phone — close and reopen the app, then try again.",
     "hesab.kartMovcud": "Available on the card (AZN)",
     "hesab.kartBorc": "Debt: {borc} AZN",
     "hesab.kartArtiqOdenis": "Overpayment: +{mebleg} AZN",
@@ -510,6 +507,9 @@
     "qeyd.razilasma": "I have read and agree to the {mexfilik} and {sertler}.",
     "qeyd.razilasmaMexfilik": "Privacy Policy",
     "qeyd.razilasmaSertler": "Terms of Use",
-    "qeyd.razilasmaXeta": "To sign up, you need to agree to the Privacy Policy and Terms of Use."
+    "qeyd.razilasmaXeta": "To sign up, you need to agree to the Privacy Policy and Terms of Use.",
+    "drive.etrafli": "More options",
+    "yenilik.hazir": "A new version is ready",
+    "yenilik.yenile": "Update"
   }
 }

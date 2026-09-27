@@ -57,7 +57,6 @@
     "ayarlar.sonEmeliyyatlar": "Последние операции",
     "ayarlar.versiya": "Версия",
     "ayarlar.xosGeldin": "Добро пожаловать",
-    "ayarlar.yenile": "Обновить приложение",
     "ayarlar.hesablaBaglisan": "Вы вошли в аккаунт.",
     "aylik.ayliqSabitXercler": "Ежемесячные расходы",
     "aylik.buAyHaraPul": "Отчёт за месяц",
@@ -382,8 +381,6 @@
     "sonEm.axtarPlaceholder": "Поиск: сумма, категория, заметка",
     "sonEm.axtar": "Поиск",
     "giris.veya": "или",
-    "magaza.tezlikle": "Скоро",
-    "magaza.mesaj": "Версия для {ad} скоро! Пока добавьте приложение на экран «Домой» и пользуйтесь им как приложением.",
     "qurasdir.ios1n": "Нажмите меню",
     "qurasdir.ios2n": "«Поделиться» / \"Share\"",
     "qurasdir.ios3n": "«Ещё» / \"More\"",
@@ -489,7 +486,7 @@
     "sinx.icazeYox": "Облако не приняло изменение. Выйдите из аккаунта и войдите снова. Изменения сохранены на телефоне.",
     "ana.xercYazildi": "{kat}: {tutar} AZN записано.",
     "umumi.geriAl": "Отменить",
-    "sinx.xetaKalici": "Изменение не отправлено в облако ({xeta}). Изменения сохранены на телефоне — обновите приложение и попробуйте снова.",
+    "sinx.xetaKalici": "Изменение не отправлено в облако ({xeta}). Изменения сохранены на телефоне — закройте и снова откройте приложение, затем попробуйте ещё раз.",
     "hesab.kartMovcud": "Доступно на карте (AZN)",
     "hesab.kartBorc": "Задолженность: {borc} AZN",
     "hesab.kartArtiqOdenis": "Переплата: +{mebleg} AZN",
@@ -510,6 +507,9 @@
     "qeyd.razilasma": "Я ознакомлен(а) и согласен(на) с {mexfilik} и {sertler}.",
     "qeyd.razilasmaMexfilik": "Политикой конфиденциальности",
     "qeyd.razilasmaSertler": "Условиями использования",
-    "qeyd.razilasmaXeta": "Для регистрации необходимо принять Политику конфиденциальности и Условия использования."
+    "qeyd.razilasmaXeta": "Для регистрации необходимо принять Политику конфиденциальности и Условия использования.",
+    "drive.etrafli": "Дополнительно",
+    "yenilik.hazir": "Доступна новая версия",
+    "yenilik.yenile": "Обновить"
   }
 }

@@ -113,7 +113,8 @@ function driveMenyuGuncelle(mesaj, xetaMi) {
     statusEl.className = 'drive-status' + (xetaMi ? ' err' : '');
     statusEl.innerText = xetaMi ? mesaj : tr('drive.bagliDeyil', 'Google Drive-a qoşulmayıb');
     subEl.innerText = tr('ayarlar.driveBaglanaBilersen', 'Qoşulduqdan sonra ehtiyat nüsxələr Google Drive-da saxlanılacaq.');
-    btnsEl.innerHTML = `<button onclick="driveBaglan()">${tr('ayarlar.baglan', 'Qoşul')}</button>` + faylDuymeleriHtml();
+    btnsEl.innerHTML = `<button onclick="driveBaglan()">${escapeHtml(tr('ayarlar.baglan', 'Qoşul'))}</button><button onclick="faylaYukle()">${escapeHtml(tr('fayl.saxla', 'Faylda saxla'))}</button>` +
+      driveEtrafliHtml(`<button onclick="fayldanBerpaAc()">${escapeHtml(tr('berpa.fayl', 'Fayldan bərpa et'))}</button>`);
     return;
   }
   if (driveSyncGedirmi) {
@@ -127,16 +128,21 @@ function driveMenyuGuncelle(mesaj, xetaMi) {
     statusEl.innerText = tr('ayarlar.driveBagli', 'Drive-a qoşulub');
   }
   subEl.innerText = driveSonSync ? tr('drive.sonEmeliyyat', 'Son əməliyyat: {vaxt}', { vaxt: driveSonSync }) : tr('drive.helelik', 'Hələ heç nə göndərilməyib və ya yüklənməyib.');
-  btnsEl.innerHTML = `<button onclick="driveManualGonder()">${tr('ayarlar.driveGonder', 'Drive-a göndər')}</button><button onclick="driveManualCek()">${tr('ayarlar.driveCek', 'Drive-dan yüklə')}</button><button onclick="driveBaglantiKes()">${tr('ayarlar.baglantiniKes', 'Bağlantını kəs')}</button>` + driveSaatHtml() + faylDuymeleriHtml();
+  btnsEl.innerHTML = `<button onclick="driveManualGonder()">${escapeHtml(tr('ayarlar.driveGonder', 'Drive-a göndər'))}</button><button onclick="faylaYukle()">${escapeHtml(tr('fayl.saxla', 'Faylda saxla'))}</button>` +
+    driveEtrafliHtml(`<button onclick="driveManualCek()">${escapeHtml(tr('ayarlar.driveCek', 'Drive-dan yüklə'))}</button><button onclick="fayldanBerpaAc()">${escapeHtml(tr('berpa.fayl', 'Fayldan bərpa et'))}</button>` +
+      driveSaatHtml() + `<div class="drive-btns-ayrac"></div><button onclick="driveBaglantiKes()">${escapeHtml(tr('ayarlar.baglantiniKes', 'Bağlantını kəs'))}</button>`);
+}
+// "Ətraflı": nadir lazım olanlar (bərpa, avtomatik vaxt, bağlantını kəs) bağlı qrupda. Açıq/bağlı vəziyyəti
+// menyu yenidən çəkiləndə (məs. "İcra olunur…") itmir.
+let driveEtrafliAcik = false;
+function driveEtrafliHtml(ic) {
+  return `<details class="drive-etrafli"${driveEtrafliAcik ? ' open' : ''} ontoggle="driveEtrafliAcik = this.open"><summary>${escapeHtml(tr('drive.etrafli', 'Ətraflı'))} ${ikon('asagi', 14)}</summary><div class="drive-etrafli-ic">${ic}</div></details>`;
 }
 function driveSaatHtml() {
   const v = driveBackupSaati();
-  return `<div class="drive-btns-ayrac"></div><label class="drive-saat"><span><b>${escapeHtml(tr('drive.saatBasliq', 'Avtomatik ehtiyat nüsxə vaxtı'))}</b><small>${escapeHtml(v ? tr('drive.saatIzah', 'Hər gün bu saatda. Tətbiq bağlıdırsa — növbəti açılışda.') : tr('drive.saatBos', 'Seçilməyib — 24 saatdan bir.'))}</small></span>` +
+  return `<label class="drive-saat"><span><b>${escapeHtml(tr('drive.saatBasliq', 'Avtomatik ehtiyat nüsxə vaxtı'))}</b><small>${escapeHtml(v ? tr('drive.saatIzah', 'Hər gün bu saatda. Tətbiq bağlıdırsa — növbəti açılışda.') : tr('drive.saatBos', 'Seçilməyib — 24 saatdan bir.'))}</small></span>` +
     `<input type="time" id="driveSaatInput" value="${escapeHtml(v)}" onchange="driveBackupSaatiSaxla(this.value)"></label>` +
     (v ? `<button class="drive-saat-sil" onclick="driveBackupSaatiSaxla('')">${escapeHtml(tr('drive.saatSifirla', 'Vaxtı sıfırla'))}</button>` : '');
-}
-function faylDuymeleriHtml() {
-  return `<div class="drive-btns-ayrac"></div><button onclick="faylaYukle()">${escapeHtml(tr('fayl.saxla', 'Faylda saxla'))}</button><button onclick="fayldanBerpaAc()">${escapeHtml(tr('berpa.fayl', 'Fayldan bərpa et'))}</button>`;
 }
 
 function driveBackupVerisi() {
@@ -1067,7 +1073,7 @@ function yazmaXetaMetni(e) {
   const mesaj = String((e && e.message) || '');
   if (kod === 'hecm' || /exceeds the maximum|maximum allowed size|too large/i.test(mesaj)) return tr('sinx.hecmHeddi', 'Məlumatların həcmi bulud limitinə çatıb — dəyişikliklər telefonda saxlanılır, lakin buluda göndərilmir. Ehtiyat nüsxə götür və köhnə əməliyyatları sil.');
   if (kod === 'permission-denied' || kod === 'unauthenticated') return tr('sinx.icazeYox', 'Bulud dəyişikliyi qəbul etmədi. Hesabdan çıxıb yenidən daxil ol. Dəyişikliklər telefonda saxlanılıb.');
-  return tr('sinx.xetaKalici', 'Dəyişiklik buluda göndərilmədi ({xeta}). Dəyişikliklər telefonda saxlanılıb — tətbiqi yenilə və yenidən cəhd et.', { xeta: kod || mesaj || '?' });
+  return tr('sinx.xetaKalici', 'Dəyişiklik buluda göndərilmədi ({xeta}). Dəyişikliklər telefonda saxlanılıb — tətbiqi bağlayıb yenidən aç və yenidən cəhd et.', { xeta: kod || mesaj || '?' });
 }
 
 function yerliDeyisiklikVar() { return yerliSurum !== yazilmisSurum; }
