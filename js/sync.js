@@ -667,7 +667,7 @@ function qeydiyyatGonder() {
     firebase.auth().createUserWithEmailAndPassword(email, sifre1).then((deyisim) => {
       const istifadeci = deyisim.user;
       gozleyenProfilYaz(email, { ad, soyad });
-      return istifadeci.updateProfile({ displayName: ad + ' ' + soyad }).catch(() => {}).then(() => istifadeci.sendEmailVerification()).then(() => {
+      return istifadeci.updateProfile({ displayName: ad + ' ' + soyad }).catch(() => {}).then(() => { try { firebase.auth().languageCode = dilKodu; } catch (e) { /* sakit keç */ } return istifadeci.sendEmailVerification(emailLinkAyarlari()); }).then(() => {
         tesdiqGozleyenIstifadeci = istifadeci;
         modalKapat('qeydiyyatModal');
         const girisXetaEl = document.getElementById('googleGirisXeta');
@@ -686,6 +686,13 @@ function qeydiyyatGonder() {
   });
 }
 
+// Təsdiq və şifrə sıfırlama məktublarındakı linkə keçəndən sonra Firebase səhifəsində çıxan
+// Continue düyməsi istifadəçini yenidən tətbiqə (bu səhifəyə) qaytarır.
+// Domen Firebase Authentication > Settings > Authorized domains siyahısında olmalıdır.
+function emailLinkAyarlari() {
+  return { url: location.origin + location.pathname };
+}
+
 // Şifrəni unutdum: giriş ekranındakı e-poçta Firebase sıfırlama linki göndərir.
 // Təhlükəsizlik: hesabın olub-olmadığını açıqlamamaq üçün "hesab tapılmadı" halında da eyni uğur mətni göstərilir.
 function sifreSifirla() {
@@ -697,7 +704,7 @@ function sifreSifirla() {
   firebaseBaslat().then((hazir) => {
     if (!hazir) { xetaEl.innerText = tr('giris.baglantiAlinmadi', 'Bağlantı alınmadı. İnterneti yoxla və yenidən cəhd et.'); return; }
     try { firebase.auth().languageCode = dilKodu; } catch (e) { /* sakit keç */ }
-    firebase.auth().sendPasswordResetEmail(email).then(() => {
+    firebase.auth().sendPasswordResetEmail(email, emailLinkAyarlari()).then(() => {
       xetaEl.classList.add('ugur');
       xetaEl.innerText = tr('giris.sifirlamaGonderildi', 'Şifrəni yeniləmək üçün link {email} ünvanına göndərildi. Poçtunu ("Spam" qovluğunu da) yoxla.', { email });
     }).catch((e) => {
@@ -804,7 +811,7 @@ function demoDatasiniQur() {
 function tesdiqEmailiYenidenGonder() {
   const xetaEl = document.getElementById('googleGirisXeta');
   if (!tesdiqGozleyenIstifadeci) { xetaEl.innerText = tr('giris.evvelceDaxilOlVeyaHesabYarat', 'Əvvəlcə "Daxil ol" və ya "Hesab yarat" düyməsini sına.'); return; }
-  tesdiqGozleyenIstifadeci.sendEmailVerification().then(() => {
+  tesdiqGozleyenIstifadeci.sendEmailVerification(emailLinkAyarlari()).then(() => {
     xetaEl.innerText = tr('giris.tesdiqEpoctuYenidenGonderildi', 'Təsdiq məktubu yenidən göndərildi.');
   }).catch((e) => {
     xetaEl.innerText = tr('giris.gonderilmedi', 'Göndərmək alınmadı: {xeta}. Bir az sonra yenidən cəhd et.', { xeta: firebaseXetaMetni(e) });
