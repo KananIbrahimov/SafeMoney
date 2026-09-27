@@ -1,5 +1,5 @@
 /* Safe Money — vəziyyət, yükləmə, yadda saxlama */
-const APP_VERSION = '3.34'; // hər yeni göndərilən html versiyasında əl ilə +1 artırılır
+const APP_VERSION = '3.35'; // hər yeni göndərilən html versiyasında əl ilə +1 artırılır
 let goruntulenenTarix = new Date(); goruntulenenTarix.setHours(0, 0, 0, 0);
 let kategoriler = [];
 let giderler = [];

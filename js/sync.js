@@ -128,7 +128,13 @@ function driveMenyuGuncelle(mesaj, xetaMi) {
     statusEl.innerText = tr('ayarlar.driveBagli', 'Drive-a qoşulub');
   }
   subEl.innerText = driveSonSync ? tr('drive.sonEmeliyyat', 'Son əməliyyat: {vaxt}', { vaxt: driveSonSync }) : tr('drive.helelik', 'Hələ heç nə göndərilməyib və ya yüklənməyib.');
-  btnsEl.innerHTML = `<button onclick="driveManualGonder()">${tr('ayarlar.driveGonder', 'Drive-a göndər')}</button><button onclick="driveManualCek()">${tr('ayarlar.driveCek', 'Drive-dan yüklə')}</button><button onclick="driveBaglantiKes()">${tr('ayarlar.baglantiniKes', 'Bağlantını kəs')}</button>` + faylDuymeleriHtml();
+  btnsEl.innerHTML = `<button onclick="driveManualGonder()">${tr('ayarlar.driveGonder', 'Drive-a göndər')}</button><button onclick="driveManualCek()">${tr('ayarlar.driveCek', 'Drive-dan yüklə')}</button><button onclick="driveBaglantiKes()">${tr('ayarlar.baglantiniKes', 'Bağlantını kəs')}</button>` + driveSaatHtml() + faylDuymeleriHtml();
+}
+function driveSaatHtml() {
+  const v = driveBackupSaati();
+  return `<div class="drive-btns-ayrac"></div><label class="drive-saat"><span><b>${escapeHtml(tr('drive.saatBasliq', 'Avtomatik ehtiyat nüsxə vaxtı'))}</b><small>${escapeHtml(v ? tr('drive.saatIzah', 'Hər gün bu saatda. Tətbiq bağlıdırsa — növbəti açılışda.') : tr('drive.saatBos', 'Seçilməyib — 24 saatdan bir.'))}</small></span>` +
+    `<input type="time" id="driveSaatInput" value="${escapeHtml(v)}" onchange="driveBackupSaatiSaxla(this.value)"></label>` +
+    (v ? `<button class="drive-saat-sil" onclick="driveBackupSaatiSaxla('')">${escapeHtml(tr('drive.saatSifirla', 'Vaxtı sıfırla'))}</button>` : '');
 }
 function faylDuymeleriHtml() {
   return `<div class="drive-btns-ayrac"></div><button onclick="faylaYukle()">${escapeHtml(tr('fayl.saxla', 'Faylda saxla'))}</button><button onclick="fayldanBerpaAc()">${escapeHtml(tr('berpa.fayl', 'Fayldan bərpa et'))}</button>`;
@@ -323,7 +329,7 @@ function driveTokenSil() {
 // Hesabdan çıxanda: bu cihazda Drive-a aid hər şey silinir — növbəti istifadəçi əvvəlkinin Drive-ına
 // nə yaza, nə də oradan oxuya bilməsin.
 function driveCihazMelumatiniSil() {
-  ['drive_token', 'drive_bagli', 'drive_email', 'drive_son_sync', 'drive_son_backup_ms'].forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
+  ['drive_token', 'drive_bagli', 'drive_email', 'drive_son_sync', 'drive_son_backup_ms', 'drive_backup_saat', 'drive_xatirlatma_plan'].forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
   driveBagli = false; driveAccessToken = null; driveTokenBitisZamani = 0; driveSonSync = null;
 }
 (function driveTokenBerpa() {
@@ -347,13 +353,45 @@ const DRIVE_BACKUP_ARALIQ = 24 * 60 * 60 * 1000;
 function driveBackupVaxtiQeydEt() {
   try { localStorage.setItem('drive_son_backup_ms', String(Date.now())); } catch (e) {}
 }
+// İstifadəçinin seçdiyi gündəlik vaxt ("21:00"). Seçilməyibsə — son backup-dan 24 saat keçəndə.
+function driveBackupSaati() {
+  const v = localStorage.getItem('drive_backup_saat') || '';
+  return /^([01]\d|2[0-3]):[0-5]\d$/.test(v) ? v : '';
+}
+// Seçilmiş vaxtın ən son baş verdiyi an (bu gün həmin saat keçibsə — bu gün, keçməyibsə — dünən)
+function driveSonPlanAni() {
+  const saat = driveBackupSaati(); if (!saat) return 0;
+  const [h, m] = saat.split(':').map(Number);
+  const d = new Date(); d.setHours(h, m, 0, 0);
+  if (d.getTime() > Date.now()) d.setDate(d.getDate() - 1);
+  return d.getTime();
+}
 function driveBackupVaxtiGelib() {
   const son = Number(localStorage.getItem('drive_son_backup_ms') || 0);
+  if (driveBackupSaati()) return !son || son < driveSonPlanAni();
   return !son || Date.now() - son >= DRIVE_BACKUP_ARALIQ;
 }
+function driveBackupSaatiSaxla(v) {
+  try {
+    if (v) localStorage.setItem('drive_backup_saat', v); else localStorage.removeItem('drive_backup_saat');
+    localStorage.removeItem('drive_xatirlatma_plan');
+  } catch (e) {}
+  driveMenyuGuncelle();
+  toastGoster(v ? tr('drive.saatSaxlandi', 'Avtomatik ehtiyat nüsxə hər gün saat {saat}-da göndəriləcək.', { saat: v }) : tr('drive.saatSilindi', 'Avtomatik ehtiyat nüsxə 24 saatdan bir göndəriləcək.'));
+}
+// Tətbiq açıq qalanda: hər dəqiqə yoxla — seçilmiş vaxt gəlibsə göndər (token varsa sakit, yoxdursa xatırlatma)
+function driveVaxtYoxla() {
+  if (demoRejim || !veriYuklendi || !veriMenbeGuvenli || !driveBagli || driveSyncGedirmi || !driveBackupVaxtiGelib()) return;
+  if (driveAccessToken && Date.now() < driveTokenBitisZamani) { driveArxaPlanGonder(true); return; }
+  const plan = String(driveSonPlanAni() || 'gun');
+  if (localStorage.getItem('drive_xatirlatma_plan') === plan) return; // bu vaxt üçün xatırlatma artıq bağlanıb
+  driveXatirlatmaGoster();
+}
+setInterval(driveVaxtYoxla, 60000);
 function driveXatirlatmaGizle() {
   const el = document.getElementById('driveXatirlatma');
   if (el) el.remove();
+  try { localStorage.setItem('drive_xatirlatma_plan', String(driveSonPlanAni() || 'gun')); } catch (e) {}
 }
 function driveXatirlatmaGoster() {
   if (document.getElementById('driveXatirlatma')) return;
@@ -361,7 +399,7 @@ function driveXatirlatmaGoster() {
   el.id = 'driveXatirlatma';
   el.className = 'drive-xatirlatma';
   el.setAttribute('role', 'status');
-  el.innerHTML = `<span class="dx-ikon">${ikon('bulud', 18)}</span><span class="dx-metn">${escapeHtml(tr('drive.xatirlatma', 'Son ehtiyat nüsxədən 24 saatdan çox keçib.'))}</span>` +
+  el.innerHTML = `<span class="dx-ikon">${ikon('bulud', 18)}</span><span class="dx-metn">${escapeHtml(driveBackupSaati() ? tr('drive.xatirlatmaSaat', 'Ehtiyat nüsxə vaxtıdır ({saat}).', { saat: driveBackupSaati() }) : tr('drive.xatirlatma', 'Son ehtiyat nüsxədən 24 saatdan çox keçib.'))}</span>` +
     `<button class="dx-btn" onclick="driveXatirlatmaBas()">${escapeHtml(tr('drive.indiGonder', 'İndi göndər'))}</button>` +
     `<button class="dx-bagla" onclick="driveXatirlatmaGizle()" aria-label="${escapeHtml(tr('umumi.bagla', 'Bağla'))}">${ikon('sil', 16)}</button>`;
   document.body.appendChild(el);
