@@ -112,7 +112,7 @@ function driveMenyuGuncelle(mesaj, xetaMi) {
   if (!driveBagli) {
     statusEl.className = 'drive-status' + (xetaMi ? ' err' : '');
     statusEl.innerText = xetaMi ? mesaj : tr('drive.bagliDeyil', 'Google Drive-a qoşulmayıb');
-    subEl.innerText = tr('ayarlar.driveBaglanaBilersen', 'Qoşulandan sonra məlumatlarını "Göndər" və "Yüklə" düymələri ilə özün idarə edəcəksən.');
+    subEl.innerText = tr('ayarlar.driveBaglanaBilersen', 'Qoşulduqdan sonra ehtiyat nüsxələr Google Drive-da saxlanılacaq.');
     btnsEl.innerHTML = `<button onclick="driveBaglan()">${tr('ayarlar.baglan', 'Qoşul')}</button>` + faylDuymeleriHtml();
     return;
   }
