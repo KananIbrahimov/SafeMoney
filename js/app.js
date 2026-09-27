@@ -1508,6 +1508,7 @@ function qurasdirmaYoxla() {
   if (tetbiqRejimindedir() || kecib || !(ios || android)) return;
   document.getElementById('qurasdirIos').style.display = ios ? '' : 'none';
   document.getElementById('qurasdirKohneIos').style.display = ios ? '' : 'none';
+  document.getElementById('qurasdirWhatsapp').style.display = ios ? '' : 'none';
   document.getElementById('qurasdirAndroid').style.display = android ? '' : 'none';
   const btn = document.getElementById('qurasdirBtn');
   if (btn && !qurasdirHadise) btn.style.display = 'none'; // Chrome təklif verməyibsə — menyu addımları
@@ -1540,15 +1541,11 @@ function anaEkranaElaveEt() {
   const ios = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   document.getElementById('qurasdirIos').style.display = ios ? '' : 'none';
   document.getElementById('qurasdirKohneIos').style.display = ios ? '' : 'none';
+  document.getElementById('qurasdirWhatsapp').style.display = ios ? '' : 'none';
   document.getElementById('qurasdirAndroid').style.display = ios ? 'none' : '';
   const btn = document.getElementById('qurasdirBtn'); if (btn) btn.style.display = 'none';
   const addim = document.getElementById('qurasdirAndroidAddim'); if (addim) addim.style.display = '';
   document.getElementById('qurasdirEkrani').classList.add('active');
-  // SINAQ: iPhone-da Paylaş pəncərəsini birbaşa aç (1–2-ci addımlar atlanır). "Ana ekrana əlavə et" orada
-  // görünməsə, arxada açılmış təlimat ekranı qalır.
-  if (ios && navigator.share) {
-    navigator.share({ title: 'Safe Money', url: new URL('./', location.href).href }).catch(() => {});
-  }
 }
 (function () {
   const ua = navigator.userAgent || '';
