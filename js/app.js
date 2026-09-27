@@ -1553,7 +1553,7 @@ function anaEkranaElaveEt() {
   const btn = document.getElementById('anaEkranBtn');
   if (btn && mobil && !tetbiqRejimindedir()) btn.style.display = 'flex';
 })();
-qurasdirmaYoxla();
+// Link açılanda təlimat avtomatik göstərilmir — yalnız girişdəki "Ana ekrana əlavə et" düyməsi ilə açılır.
 
 // ==== PWA: Service Worker qeydiyyatı ====
 // Yalnız http(s):// üzərində işləyir; file:// ilə açsan səssizcə keçilir.
