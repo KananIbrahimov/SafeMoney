@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => ikonlariYerlesdir());
 // 1) Google Cloud Console-da OAuth Client ID yarat (Web application tipi) və aşağıya yapışdır.
 // 2) Bu faylı http(s):// üzərindən aç (file:// işləmir) — o ünvanı Client ID-nin
 //    "Authorized JavaScript origins" siyahısına əlavə etməlisən.
-const GOOGLE_DRIVE_CLIENT_ID = '444366545812-nhf3dk5dc68hi0ok6e6v0npvvu0t8veq.apps.googleusercontent.com';
+const GOOGLE_DRIVE_CLIENT_ID = '865101295183-8fe3gmkc0keka7rf36k0opn6j3sj9a3u.apps.googleusercontent.com';
 const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
 const DRIVE_FILE_PREFIX = 'gider-takibi-backup';
 
