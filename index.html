@@ -205,7 +205,7 @@
       <span class="nav-icon"><i data-ikon="hesablar" data-olcu="22"></i></span><span data-i18n="nav.hesablar">Hesablar</span>
     </button>
     <button class="nav-item" id="navAyarlar" onclick="sekmeSec('ayarlar')">
-      <span class="nav-icon"><i data-ikon="ayarlar" data-olcu="22"></i></span><span data-i18n="nav.ayarlar">Ayarlar</span>
+      <span class="nav-icon"><i data-ikon="ayarlar" data-olcu="22"></i></span><span data-i18n="nav.ayarlar">Parametrlər</span>
     </button>
   </div>
 </nav>
@@ -319,7 +319,7 @@
   <div class="page-inner">
     <div class="field-row between" style="border-bottom:1px solid var(--line); padding-bottom:12px; margin-bottom:4px;">
       <button onclick="ayarlarPaneliniKapat()" class="geri-btn" aria-label="Geri"><i data-ikon="geri" data-olcu="22"></i></button>
-      <h2 style="margin:0; flex:1;" data-i18n="ayarlar.basliq">Ayarlar</h2>
+      <h2 style="margin:0; flex:1;" data-i18n="ayarlar.basliq">Parametrlər</h2>
     </div>
 
     <div id="ayarlarXosGeldinKutu" style="margin:2px 2px 16px; display:none;">
@@ -345,36 +345,29 @@
     <button class="ayarlar-kutu ayarlar-setir-ic" id="dilAyarBtn" style="justify-content:flex-start; margin-bottom:8px;" onclick="dilPaneliniAc()"><span class="ayarlar-ikon"><i data-ikon="dil"></i></span><span class="ayarlar-metin" data-i18n="ayarlar.dil">Dil</span></button>
     <button class="ayarlar-kutu ayarlar-setir-ic" style="justify-content:flex-start; margin-bottom:8px;" onclick="ayarlarSonEmeliyyatlarAc()"><span class="ayarlar-ikon"><i data-ikon="tarixce"></i></span><span class="ayarlar-metin" data-i18n="ayarlar.sonEmeliyyatlar">Son əməliyyatlar</span></button>
 
-    <!-- İstək 2: sıra — Yenilə → Sistem (tema, kilid, Google Drive) → Hesab (həmişə görünür, ən altda) -->
+    <!-- Sıra: Yenilə → İşıqlı rejim → Tətbiq kilidi → Google Drive → Hesab (ən altda) -->
     <button class="ayarlar-kutu ayarlar-setir-ic" style="justify-content:flex-start; margin-bottom:8px;" onclick="tetbiqiYenile()"><span class="ayarlar-ikon"><i data-ikon="yenile"></i></span><span class="ayarlar-metin" data-i18n="ayarlar.yenile">Tətbiqi yenilə</span></button>
 
-    <div class="ayarlar-qrup" id="sistemQrup">
-      <button class="ayarlar-kutu ayarlar-setir-ic ayarlar-qrup-bas" id="sistemBaslikBtn" onclick="sistemBolmesiToggle()" aria-expanded="false" aria-controls="sistemBolmesi">
-        <span style="display:flex; align-items:center;"><span class="ayarlar-ikon"><i data-ikon="sistem"></i></span><span class="ayarlar-metin" data-i18n="ayarlar.sistem">Sistem</span></span>
-        <span id="sistemBaslikOx" class="qrup-ox"><i data-ikon="asagi" data-olcu="18"></i></span>
-      </button>
-      <div id="sistemBolmesi" class="ayarlar-qrup-ic" style="display:none;">
-        <div class="ayarlar-setir-ic qrup-setir">
-          <span id="temaLabel" style="display:flex; align-items:center;"></span>
-          <button class="theme-switch" id="temaSwitch" onclick="temaDeyis()" aria-label="Temanı dəyiş" data-i18n-aria="ayarlar.temaDeyisAria"></button>
-        </div>
-        <div class="qrup-setir">
-          <div class="ayarlar-setir-ic">
-            <span id="kilidAyarLabel" style="display:flex; align-items:center;"></span>
-            <button class="toggle-switch" id="kilidAyarSwitch" onclick="kilidToggle()" aria-label="Tətbiq kilidini aç/söndür" data-i18n-aria="ayarlar.kilidToggleAria"></button>
-          </div>
-          <div class="error-text" id="kilidAyarError"></div>
-        </div>
-        <div class="qrup-setir">
-          <div class="ayarlar-setir-ic" style="justify-content:flex-start;"><span class="ayarlar-ikon"><i data-ikon="bulud"></i></span><span class="ayarlar-metin" data-i18n="ayarlar.googleDriveBaslik">Google Drive ehtiyat nüsxəsi</span></div>
-          <div class="drive-box" id="driveBox">
-            <div data-i18n="ayarlar.googleDriveABagli" class="drive-status" id="driveStatus">Google Drive-a qoşulmayıb</div>
-            <div data-i18n="ayarlar.baglansanGonderVeCek" class="drive-sub" id="driveSub">Qoşulandan sonra məlumatlarını "Göndər" və "Yüklə" düymələri ilə özün idarə edəcəksən.</div>
-            <div class="drive-sub" id="driveDebug" style="display:none;"></div>
-            <div class="drive-btns" id="driveBtns">
-              <button data-i18n="ayarlar.baglan" onclick="driveBaglan()">Qoşul</button>
-            </div>
-          </div>
+    <!-- İşıqlı rejim, tətbiq kilidi və Google Drive — ayrıca, həmişə görünən sətirlər ("Sistem" qrupu ləğv edildi) -->
+    <div class="ayarlar-kutu ayarlar-setir-ic" style="margin-bottom:8px;">
+      <span id="temaLabel" style="display:flex; align-items:center;"></span>
+      <button class="theme-switch" id="temaSwitch" onclick="temaDeyis()" aria-label="İşıqlı rejim" data-i18n-aria="ayarlar.isiqliRejim"></button>
+    </div>
+    <div class="ayarlar-kutu" style="margin-bottom:8px;">
+      <div class="ayarlar-setir-ic">
+        <span id="kilidAyarLabel" style="display:flex; align-items:center;"></span>
+        <button class="toggle-switch" id="kilidAyarSwitch" onclick="kilidToggle()" aria-label="Tətbiq kilidini aç/söndür" data-i18n-aria="ayarlar.kilidToggleAria"></button>
+      </div>
+      <div class="error-text" id="kilidAyarError"></div>
+    </div>
+    <div class="ayarlar-kutu" style="margin-bottom:8px;">
+      <div class="ayarlar-setir-ic" style="justify-content:flex-start;"><span class="ayarlar-ikon"><i data-ikon="bulud"></i></span><span class="ayarlar-metin" data-i18n="ayarlar.googleDriveBaslik">Google Drive ehtiyat nüsxəsi</span></div>
+      <div class="drive-box" id="driveBox">
+        <div data-i18n="ayarlar.googleDriveABagli" class="drive-status" id="driveStatus">Google Drive-a qoşulmayıb</div>
+        <div data-i18n="ayarlar.baglansanGonderVeCek" class="drive-sub" id="driveSub">Qoşulandan sonra məlumatlarını "Göndər" və "Yüklə" düymələri ilə özün idarə edəcəksən.</div>
+        <div class="drive-sub" id="driveDebug" style="display:none;"></div>
+        <div class="drive-btns" id="driveBtns">
+          <button data-i18n="ayarlar.baglan" onclick="driveBaglan()">Qoşul</button>
         </div>
       </div>
     </div>

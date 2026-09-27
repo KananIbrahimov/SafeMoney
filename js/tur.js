@@ -1,14 +1,24 @@
 /* Safe Money — qonaq rejimində tanışlıq turu: hər funksiya qısa kartla, müvafiq hissə işıqlandırılır.
    Toxunduqda növbəti addıma keçir. */
 const TUR_ADDIMLARI = [
-  { sehife: 'ana', hedef: () => [...document.querySelectorAll('#butonlarKonteyneri .cat-btn')].slice(0, 4), acar: 'tur.1', bas: 'Xərclərin qeydiyyatı', metn: 'Kateqoriyaya bir toxunuşla xərc qeydə alınır. Fərqli məbləğ üçün kateqoriya basılı saxlanılır.' },
-  { sehife: 'ana', hedef: () => { const t = document.getElementById('toplamTutar'); return t ? (t.closest('.card, .summary-card, section, .ozet-kart') || t.parentElement) : null; }, acar: 'tur.2', bas: 'Günlük xərclərin icmalı', metn: 'Günün ümumi xərci, kateqoriyalar üzrə bölgü və gündəlik limitin icrası.' },
-  { sehife: 'hesablar', hedef: () => document.getElementById('hesablarKartlari'), acar: 'tur.3', bas: 'Hesablar', metn: 'Bank kartları və nağd vəsait. Bütün xərclər ⭐ ilə işarələnmiş əsas hesabdan silinir.' },
-  { sehife: 'hesablar', hedef: () => document.querySelector('.hesab-emeliyyat-btnlar'), acar: 'tur.4', bas: 'Daxilolmalar və köçürmələr', metn: 'Daxilolmaların (məs. əmək haqqının) qeydiyyatı, hesablararası köçürmələr və kredit ödənişləri.' },
-  { sehife: 'dashboard', hedef: () => document.getElementById('dashKart1'), acar: 'tur.5', bas: 'Maliyyə vəziyyəti', metn: 'Aktivlər, öhdəliklər və xalis maliyyə mövqeyi. Hər kredit üzrə ayrıca qrafik.' },
-  { sehife: 'aylikHesabat', hedef: () => { const x = document.getElementById('aylikGunlukSarici'); return x ? (x.closest('.pie-card') || x) : null; }, acar: 'tur.6', bas: 'Aylıq hesabat', metn: 'Cari ayın xərc strukturu: gündəlik və sabit xərclər, büdcənin icrası.' },
-  { sehife: 'ayarlar', hedef: () => document.querySelector('#ayarlarModal .ayarlar-qrup'), acar: 'tur.7', bas: 'Ayarlar', metn: 'Kateqoriyalar, hesablar, əməliyyat tarixçəsi və axtarış, Google Drive-da ehtiyat nüsxə, tətbiq kilidi.' },
-  { sehife: 'ana', hedef: null, acar: 'tur.8', bas: 'Şəxsi hesab', metn: 'Şəxsi hesab yaradıldıqdan sonra bütün məlumatlar yalnız hesab sahibinə məxsus olur.', son: true }
+  { sehife: 'ana', hedef: () => { const t = document.getElementById('toplamTutar'); return t ? (t.closest('.card, .summary-card, section') || t.parentElement) : null; }, acar: 'tur.s1', bas: 'Bugünkü xərclər', metn: 'Günün gündəlik və aylıq sabit xərclərinin cəmi, kateqoriyalar üzrə bölgü ilə.' },
+  { sehife: 'ana', hedef: () => document.getElementById('gunlukLimitKart'), acar: 'tur.s2', bas: 'Gündəlik limit', metn: 'Limitin icrası burada göstərilir. Məbləğ Ayarlar bölməsində təyin edilir.' },
+  { sehife: 'ana', hedef: () => [...document.querySelectorAll('#butonlarKonteyneri .cat-btn')].slice(0, 4), acar: 'tur.s3', bas: 'Xərcin qeydə alınması', metn: 'Kateqoriyaya toxunduqda xərc qeydə alınır. Sabit məbləğ təyin edilibsə, məbləğ soruşulmur.' },
+  { sehife: 'ana', hedef: () => [...document.querySelectorAll('#butonlarKonteyneri .cat-btn')].slice(0, 2), acar: 'tur.s4', bas: 'Fərqli məbləğ', metn: 'Kateqoriya basılı saxlanıldıqda sabit məbləğ əvəzinə birdəfəlik fərqli məbləğ daxil edilir.' },
+  { sehife: 'ana', hedef: () => document.getElementById('duzenlemeBtn'), acar: 'tur.s5', bas: 'Kateqoriyaların redaktəsi', metn: 'Kateqoriya əlavə etmək, adını, ikonunu, rəngini və sabit məbləğini dəyişmək, gündəlik və ya aylıq sabit xərc kimi təyin etmək.' },
+  { sehife: 'hesablar', hedef: () => [...document.querySelectorAll('#hesablarKartlari .hesab-kart')].slice(0, 2), acar: 'tur.s6', bas: 'Hesab növləri', metn: 'Beş hesab növü: nağd pul, debet kartı, depozit, kredit kartı və kredit xətti. Xərclər ⭐ ilə işarələnmiş əsas hesabdan silinir.' },
+  { sehife: 'hesablar', hedef: () => document.getElementById('medaxilBtn'), acar: 'tur.s7', bas: 'Mədaxil', metn: 'Daxilolmanın (məs. əmək haqqının) seçilmiş hesaba qeydə alınması; istəyə görə açıqlama ilə.' },
+  { sehife: 'hesablar', hedef: () => document.getElementById('transferBtn'), acar: 'tur.s8', bas: 'Köçürmə', metn: 'Göndərən və alan hesab seçilir, məbləğ daxil edilir. Hər iki hesabın balansı avtomatik yenilənir.' },
+  { sehife: 'hesablar', hedef: () => document.getElementById('krediOdeBtn'), acar: 'tur.s9', bas: 'Kredit ödənişi', metn: 'Növbəti taksit seçilmiş hesabdan ödənilir; ödənilmiş taksitlərin sayı və qalan borc avtomatik yenilənir.' },
+  { sehife: 'dashboard', hedef: () => document.getElementById('dashKart1'), acar: 'tur.s10', bas: 'Xalis maliyyə vəziyyəti', metn: 'Aktivlər (müsbət balanslar) ilə öhdəliklərin (mənfi balanslar) fərqi.' },
+  { sehife: 'dashboard', hedef: () => document.getElementById('dashKart2'), acar: 'tur.s11', bas: 'Ümumi borc', metn: 'Mənfi balanslı bütün hesabların borcu, hər hesab üzrə ayrıca.' },
+  { sehife: 'dashboard', hedef: () => document.querySelector('#dashKartlarQrup .pie-card'), acar: 'tur.s12', bas: 'Kredit kartı limiti', metn: 'Hər kredit kartı üzrə limit, istifadə olunmuş və istifadə edilə bilən məbləğ.' },
+  { sehife: 'dashboard', hedef: () => document.querySelector('#dashXettlerQrup .pie-card'), acar: 'tur.s13', bas: 'Kredit xətti', metn: 'Aylıq taksit məbləği, ödənilmiş və qalan taksitlər, qalan borc və bitmə tarixi.' },
+  { sehife: 'aylikHesabat', hedef: () => document.querySelector('#aylikHesabatModal .hesabat-cemi-card'), acar: 'tur.s14', bas: 'Cari ayın xərcləri', metn: 'Ay ərzində gündəlik və aylıq sabit xərclərin ümumi cəmi.' },
+  { sehife: 'aylikHesabat', hedef: () => document.getElementById('aylikGunlukSarici'), acar: 'tur.s15', bas: 'Gündəlik xərclər qrafiki', metn: 'Kateqoriyalar üzrə faiz və məbləğ; mərkəzdə aylıq büdcənin icrası.' },
+  { sehife: 'aylikHesabat', hedef: () => document.getElementById('aylikSabitSarici'), acar: 'tur.s16', bas: 'Aylıq sabit xərclər qrafiki', metn: 'Kommunal, internet, kirayə kimi sabit xərclərin kateqoriyalar üzrə bölgüsü.' },
+  { sehife: 'ayarlar', hedef: () => document.querySelector('#ayarlarModal .ayarlar-qrup'), acar: 'tur.s17', bas: 'Ayarlar', metn: 'Gündəlik limit, kateqoriyalar, hesabların idarəsi, əməliyyat tarixçəsi və axtarış, Google Drive-da ehtiyat nüsxə, tətbiq kilidi.' },
+  { sehife: 'ana', hedef: null, acar: 'tur.s18', bas: 'Şəxsi hesab', metn: 'Şəxsi hesab yaradıldıqdan sonra bütün məlumatlar yalnız hesab sahibinə məxsus olur.', son: true }
 ];
 let turIndeks = -1;
 

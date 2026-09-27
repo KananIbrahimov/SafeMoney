@@ -1117,17 +1117,6 @@ function ayarlarSonEmeliyyatlarAc() {
 }
 // "System" bölməsi: Google Drive + Firebase + Yedək faylı bir başlığın altında,
 // açılıb-bağlanan (collapsible) qrup kimi.
-function sistemBolmesiToggle() {
-  const kutu = document.getElementById('sistemBolmesi');
-  const ox = document.getElementById('sistemBaslikOx');
-  const acilir = kutu.style.display === 'none';
-  kutu.style.display = acilir ? 'block' : 'none';
-  ox.style.transform = acilir ? 'rotate(180deg)' : 'rotate(0deg)';
-  const bas = document.getElementById('sistemBaslikBtn');
-  if (bas) bas.setAttribute('aria-expanded', acilir ? 'true' : 'false');
-  const qrup = document.getElementById('sistemQrup');
-  if (qrup) qrup.classList.toggle('acik', acilir);
-}
 
 // ==== Aylıq xülasə: "Bu ay hara pul gedir?" ====
 function aylikHesabatVerisi() {
@@ -1321,7 +1310,7 @@ function aylikHesabatGoster() {
   if (gunlukCaptionEl) {
     gunlukCaptionEl.innerText = limitVar
       ? tr('aylik.butceIzah', '{gun} gün × {limit} AZN = {cem} AZN aylıq büdcə', { gun: aydakiGunSayi, limit: qisaRaqem(gunlukLimit), cem: qisaRaqem(ayButcesi) })
-      : tr('aylik.butceYoxIzah', 'Ayarlarda gündəlik limit təyin et — aylıq büdcə burada görünəcək.');
+      : tr('aylik.butceYoxIzah', 'Parametrlərdə gündəlik limit təyin et — aylıq büdcə burada görünəcək.');
   }
   aylikSiyahiDoldur('aylikGunlukListesi', gunlukKat, gunlukCemi);
 
@@ -1332,7 +1321,7 @@ function aylikHesabatGoster() {
     canvasId: 'aylikSabitCanvas', bosMesajId: 'aylikSabitBosMesaj', merkezId: 'aylikSabitMerkez',
     dilimler: sabitKat, qalan: 0, merkezHtml: sabitMerkez,
     bosYazi: hecBiriAylikDeyil
-      ? tr('aylik.sabitKatYoxdur', 'Heç bir kateqoriya aylıq sabit kimi seçilməyib. Ayarlar → Kateqoriyalar bölməsində işarəsini aktiv et.')
+      ? tr('aylik.sabitKatYoxdur', 'Heç bir kateqoriya aylıq sabit kimi seçilməyib. Parametrlər → Kateqoriyalar bölməsində işarəsini aktiv et.')
       : tr('aylik.sabitXercYoxdur', 'Bu ay aylıq sabit xərc yoxdur.'),
     evvelki: aylikSabitChart
   });

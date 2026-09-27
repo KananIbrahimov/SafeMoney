@@ -6,9 +6,10 @@ function temaTetbiqEt(tema) {
   const metaTema = document.querySelector('meta[name="theme-color"]');
   if (metaTema) metaTema.setAttribute('content', tema === 'dark' ? '#0b0c0e' : '#f3f4f6');
   const lbl = document.getElementById('temaLabel');
-  // Açar (switch) "qaranlıq rejim aktivdir" vəziyyətini göstərir — yazı da həmişə eyni: "🌙 Qaranlıq rejim".
-  // (Əvvəl açar aktiv olanda yanında "İşıqlı rejim" yazılırdı və bu, çaşdırırdı.)
-  if (lbl) lbl.innerHTML = '<span class="ayarlar-ikon">' + (typeof ikon === 'function' ? ikon('ay') : '') + '</span><span class="ayarlar-metin">' + escapeHtml(tr('ayarlar.qaranliqRejim', 'Qaranlıq rejim')) + '</span>';
+  // Açar "İşıqlı rejim aktivdir" vəziyyətini göstərir (yazı həmişə eyni, açar aktivdirsə — işıqlı tema).
+  if (lbl) lbl.innerHTML = '<span class="ayarlar-ikon">' + (typeof ikon === 'function' ? ikon('gunes') : '') + '</span><span class="ayarlar-metin">' + escapeHtml(tr('ayarlar.isiqliRejim', 'İşıqlı rejim')) + '</span>';
+  const sw = document.getElementById('temaSwitch');
+  if (sw) sw.setAttribute('aria-pressed', tema === 'dark' ? 'false' : 'true');
 }
 function temaDeyis() {
   // DÜZƏLİŞ: seçim saxlanmayıbsa defolt 'dark'-dır (temaIlkYukleme ilə eyni) — əvvəl null 'light' sayılırdı
