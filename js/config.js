@@ -23,6 +23,13 @@ function pulYuvarla(x) {
   const n = Number(x);
   return isFinite(n) ? Math.round(n * 100) / 100 : 0;
 }
+// Formdan məbləğ oxuyur: yalnız düzgün rəqəm qəbul olunur ("12abc" → NaN; əvvəl parseFloat bunu 12 sayırdı).
+// Vergül də onluq ayırıcı sayılır. menfiOlar=true → "-50" kimi mənfi dəyərə icazə var (balans sahələri).
+function meblegOxu(v, menfiOlar) {
+  const s = String(v == null ? '' : v).replace(/\s/g, '').replace(',', '.');
+  const qayda = menfiOlar ? /^-?\d+(\.\d+)?$/ : /^\d+(\.\d+)?$/;
+  return qayda.test(s) ? pulYuvarla(parseFloat(s)) : NaN;
+}
 // ==================== İkonlar (xətti SVG, rəngi mətndən götürür) ====================
 // Emoji əvəzinə vahid üslublu nazik xətli ikonlar: hər cihazda eyni görünür, temaya uyğun rənglənir.
 const IKON_YOLLARI = {

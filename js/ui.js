@@ -27,13 +27,8 @@ function temaDeyis() {
 })();
 // ==================== /Tema ====================
 
-// ==================== Dil (i18n) — FAZ 1: yalnız altyapı ====================
-// Bu blok hələ heç bir mövcud mətni əvəz ETMİR — ekranlar tamamilə əvvəlki kimi görünəcək.
-// Məqsəd: t(key) funksiyasını və dil faylı yükləmə məntiqini qurub sınaqdan keçirmək.
-// Sonrakı fazalarda: mövcud sabit mətnlər tədricən t('...') çağırışları ilə əvəzlənəcək.
-//
-// Yeni dil necə əlavə olunacaq (gələcək fazalarda): lang/ qovluğuna eyni formatda
-// (_meta + strings) yeni bir JSON fayl atmaq kifayət edəcək, məs. lang/en.json.
+// ==================== Dil (i18n) ====================
+// Yeni dil: lang/ qovluğuna eyni formatda (_meta + strings) JSON fayl əlavə et və kodu lang/index.json-a yaz.
 // Dil kodu yalnız təhlükəsiz formatda ola bilər (fayl adı kimi istifadə olunur: lang/<kod>.json).
 // Diqqət: bu sabit dilKodu-dan ƏVVƏL elan olunmalıdır (const → təyinatdan əvvəl istifadə edilə bilmir).
 const DIL_KOD_REGEX = /^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})?$/;
@@ -60,7 +55,7 @@ async function dilFayliYukle(kod) {
 
 // İstənilən dili yükləyir; alınmasa avtomatik olaraq az.json-a (defolt) düşür.
 // az.json da yüklənə bilməsə (məs. file:// ilə açılıbsa), lüğət boş qalır və
-// t() sadəcə açarın özünü qaytarır — tətbiq heç vaxt sınmır.
+// tr() öz defolt mətnini qaytarır — tətbiq heç vaxt sınmır.
 async function dilYukle(kod) {
   dilHazirdir = false;
   try {
@@ -88,18 +83,12 @@ async function dilYukle(kod) {
   return dilSozlugu;
 }
 
-// Açar tapılmazsa açarın özü qaytarılır (hələ heç bir HTML/JS mətni bunu çağırmır —
-// sonrakı fazalarda mövcud sabit mətnlər tədricən t('...') ilə əvəzlənəcək).
 // Boş / yalnız boşluqdan ibarət dəyər "tərcümə edilməyib" sayılır (boş şablon faylı ekranı silməsin).
 function dilVar(k) {
   return Object.prototype.hasOwnProperty.call(dilSozlugu, k) &&
     typeof dilSozlugu[k] === 'string' && dilSozlugu[k].trim() !== '';
 }
-function t(key) {
-  return dilVar(key) ? dilSozlugu[key] : key;
-}
 
-// Mühərrikin işlədiyini yoxlamaq üçün səssiz sınaq — yalnız konsolda görünür, ekranda YOX.
 // tr(açar, defolt): JS-dən qurulan mətnlər üçün. Açar tapılmazsa (və ya lüğət hələ yüklənməyibsə)
 // verilən Azərbaycanca defolt qaytarılır — ekranda heç vaxt xam açar görünmür.
 // try/catch: bu funksiya lüğət dəyişəni elan olunmazdan əvvəl də (tema ilkin yüklənməsi) çağırıla bilər.
@@ -144,7 +133,6 @@ function dilTetbiqEt(kok) {
 }
 
 const dilHazirPromise = dilYukle(dilKodu).then(() => {
-  console.log('[i18n] Motor hazırdır. dilKodu=' + dilKodu + ' | test açarı →', t('_i18n_test'));
   document.documentElement.lang = dilKodu;
   dilTetbiqEt();
   // JS ilə qurulan etiketləri yenidən çək (tema / kilid)

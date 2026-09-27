@@ -1,5 +1,5 @@
 /* Safe Money — vəziyyət, yükləmə, yadda saxlama */
-const APP_VERSION = '3.35'; // hər yeni göndərilən html versiyasında əl ilə +1 artırılır
+const APP_VERSION = '3.37'; // hər yeni göndərilən html versiyasında əl ilə +1 artırılır
 let goruntulenenTarix = new Date(); goruntulenenTarix.setHours(0, 0, 0, 0);
 let kategoriler = [];
 let giderler = [];
@@ -13,10 +13,10 @@ let veriYuklendi = false;
 // Qonaq (nümunə) rejimi: data yalnız yaddaşdadır, buluda heç nə yazılmır.
 let demoRejim = false;
 // TƏHLÜKƏSİZLİK QIFILI: true YALNIZ bulud vəziyyəti QƏTİ şəkildə təsdiqlənəndə olur —
-// ya həqiqi data uğurla oxunub, ya da sənədin HƏQİQƏTƏN boş (yeni key) olduğu təsdiqlənib,
-// ya da ümumiyyətlə heç bir Sync Key yoxdur (təklikdə iş rejimi). Bağlantı xətası/vaxt
-// aşımı zamanı FALSE olaraq qalır ki, ekranda görünən (yalançı) boş vəziyyət səhvən
-// Firestore-a yazılıb əsl buludda olan datanı silməsin. veriKaydet() bu bayrağı yoxlayır.
+// ya həqiqi data uğurla oxunub (və ya telefondakı oflayn nüsxə açılıb), ya da istifadəçinin
+// sənədinin HƏQİQƏTƏN boş (yeni hesab) olduğu təsdiqlənib. Bağlantı xətası/vaxt aşımı zamanı
+// FALSE qalır ki, ekranda görünən (yalançı) boş vəziyyət Firestore-a yazılıb əsl datanı silməsin.
+// veriKaydet() bu bayrağı yoxlayır.
 let veriMenbeGuvenli = false;
 let aylikGunlukChart = null; // Chart.js: aylıq hesabat — günlük xərclər dairəsi
 let aylikSabitChart = null; // Chart.js: aylıq hesabat — aylıq sabit xərclər dairəsi
@@ -74,10 +74,7 @@ function krediBorcuKohnaBackupdanCixar(eskiAylikXerclar) {
   };
 }
 
-// Firebase-dən oxuna bilmədikdə (key yoxdursa, ya da bağlantı alınmadısa) tətbiq
-// ARTIQ heç bir yerli keşə müraciət ETMİR — sadəcə boş/defolt vəziyyətlə açılır.
-// Bu, "yalnız Firebase-dən qidalanma" tələbinin dəqiq icrasıdır: köhnə, sinxron
-// olmamış yerli məlumat heç vaxt ekrana çıxıb çaşdırmayacaq.
+// Yaddaşdakı vəziyyəti boş/defolt hala gətirir (yeni hesab, çıxış, qonaq rejiminin başlanğıcı).
 function yerliVeriniYukle() {
   // Yeni hesab üçün defolt kateqoriyalar istifadəçinin seçdiyi dildə yaradılır (mövcud hesablara toxunulmur).
   kategoriler = defoltKategoriler();
@@ -98,13 +95,9 @@ function vaxtAsimiIle(promise, ms) {
 }
 
 // ==== Məlumat mənbəyi: Firebase (Firestore) ====
-// TƏHLÜKƏSİZLİK QAYDASI: tətbiq HEÇ VAXT özbaşına yeni Sync Key yaratmır və
-// Firestore-a yazmır. Yalnız bu CİHAZDA daha əvvəl əl ilə yaradılmış/daxil
-// edilmiş bir Sync Key varsa (localStorage-da saxlanılıb) həmin key ilə
-// Firebase-dən oxumağa çalışır. Yəni linki başqası açsa, ona heç bir key
-// verilmir və sənin datana avtomatik toxunulmur — sadəcə boş/yerli vəziyyət
-// görünür. Sync yalnız "Yeni Sync Key yarat" və ya "Var olan Key-i gir"
-// düymələrinə əl ilə basdıqda başlayır.
+// Daxil olmuş istifadəçinin syncs/{uid} sənədi oxunur. İnternet yoxdursa telefonda saxlanan
+// son nüsxə (oflayn.js) açılır. Buluda boş vəziyyət yalnız sənədin həqiqətən boş olduğu
+// təsdiqlənəndə yazılır.
 async function veriYukle() {
   let firebaseDenGeldi = false;
   let senedTesdiqlenmisBosdur = false; // Firebase-ə çatdıq VƏ sənəd HƏQİQƏTƏN boşdur
@@ -128,6 +121,13 @@ async function veriYukle() {
         firebaseDenGeldi = true;
       } else if (snap && !snap.exists) {
         senedTesdiqlenmisBosdur = true;
+        bazaRev = 0;
+      } else if (snap && snap.exists) {
+        // Sənəd var, amma içində "data" yoxdur (yarımçıq/pozulmuş yazı). Əvvəl bu halda tətbiq heç vaxt
+        // yadda saxlaya bilmirdi. Telefonda göndərilməmiş nüsxə varsa o, yoxdursa defolt vəziyyət yazılır.
+        senedTesdiqlenmisBosdur = true;
+        if (telefonda && telefonda.yerli) { driveVerisiniTetbiqEt(telefonda.yerli); firebaseDenGeldi = true; gozleyenGonderilmeli = true; bazaData = null; }
+        bazaRev = Number(snap.data() && snap.data().rev) || 0;
       }
     }
   } catch (e) {
@@ -151,9 +151,9 @@ async function veriYukle() {
     // çatıb sənədin HƏQİQƏTƏN boş (yeni key) olduğunu təsdiqləmiş olaq. Əks halda
     // (bağlantı xətası/vaxt aşımı) heç nə yazmırıq — real buludda olan datanı
     // təsadüfən boşla əvəz etməmək üçün.
-    if (senedTesdiqlenmisBosdur) { bazaRev = 0; veriMenbeGuvenli = true; firebaseYazEt(); }
+    if (senedTesdiqlenmisBosdur) { veriMenbeGuvenli = true; firebaseYazEt(); }
     else if (senkronKey) { firebasePanelGuncelle(tr('sinx.qosulmadi', 'Buluda qoşulmaq alınmadı — yenidən cəhd et.'), true); veriMenbeGuvenli = false; }
-    else { veriMenbeGuvenli = true; } // Sync Key ümumiyyətlə yoxdur — təklikdə rejim qəsdən icazəlidir
+    else { veriMenbeGuvenli = true; } // daxil olmuş istifadəçi yoxdur — yazılacaq bulud da yoxdur
   } else {
     veriMenbeGuvenli = true;
   }

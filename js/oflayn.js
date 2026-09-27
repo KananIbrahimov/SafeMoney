@@ -39,10 +39,54 @@ function oflaynSil(uid) {
   try { localStorage.removeItem('sm_yerli_' + (uid || senkronKey)); } catch (e) {}
 }
 
-// ---- Qeydlərin açarı (id yoxdursa məzmundan) ----
-function xercAcari(g) { return g.id || ['g', g.tamTarix || g.tarix || '', g.tutar, g.kategori, g.hesabId || ''].join('|'); }
-function kocurmeAcari(t) { return t.id || ['t', t.tamTarix || t.tarix || '', t.tutar, t.menbeId || '', t.hedefId || '', t.medaxil ? 1 : 0].join('|'); }
+// ---- Qeydlərin açarı (id yoxdursa məzmundan hesablanan sabit id) ----
+function metnHeshi(s) {
+  let h = 5381; s = String(s || '');
+  for (let i = 0; i < s.length; i++) h = (Math.imul(h, 33) ^ s.charCodeAt(i)) >>> 0;
+  return h.toString(36);
+}
+function xercAcari(g) { return g.id || 'g_' + metnHeshi(['g', g.tamTarix || g.tarix || '', g.tutar, g.kategori, g.hesabId || ''].join('|')); }
+function kocurmeAcari(t) { return t.id || 't_' + metnHeshi(['t', t.tamTarix || t.tarix || '', t.tutar, t.menbeId || '', t.hedefId || '', t.medaxil ? 1 : 0].join('|')); }
+// Köhnə (id-siz) qeydlərə id verilir — id məzmundan hesablandığı üçün hər cihazda eyni olur. Əvvəl açar
+// məzmundan qurulurdu: köhnə xərcin kateqoriyası/məbləği dəyişəndə birləşmə onu yeni qeyd sayıb ikiləşdirirdi.
+function qeydIdleriniTemin(list, acarFn) {
+  if (!Array.isArray(list)) return list;
+  const gorulen = new Set();
+  list.forEach(x => {
+    if (!x || typeof x !== 'object') return;
+    if (!x.id) { const a = acarFn(x); x.id = gorulen.has(a) ? qeydIdUret(a.slice(0, 1)) : a; }
+    gorulen.add(x.id);
+  });
+  return list;
+}
 function qeydIdUret(p) { return p + '_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7); }
+// Açar sırasından asılı olmayan müqayisə. Firestore sahələri öz sırası ilə qaytarır — adi JSON.stringify
+// eyni məzmunu "fərqli" sayırdı və birləşmədə yerli versiya səbəbsiz qalib gəlirdi.
+function kanonik(x) {
+  if (Array.isArray(x)) return '[' + x.map(kanonik).join(',') + ']';
+  if (x && typeof x === 'object') return '{' + Object.keys(x).filter(k => x[k] !== undefined).sort().map(k => JSON.stringify(k) + ':' + kanonik(x[k])).join(',') + '}';
+  return JSON.stringify(x === undefined ? null : x);
+}
+function eyniDir(a, b) { return kanonik(a) === kanonik(b); }
+
+// ---- Kateqoriya id-ləri ----
+// Xərclər kateqoriyaya adı ilə bağlıdır. Ad dəyişəndə iki cihazın birləşməsində köhnə adlı xərclər "Digər"ə
+// düşməsin deyə hər kateqoriyanın dəyişməyən id-si var. Id-si olmayan (köhnə) kateqoriyaya id adından
+// hesablanır — beləcə hər cihaz eyni id-ni alır.
+function katIdHesabla(ad) { return 'k_' + metnHeshi(ad); }
+function kategoriIdleriniTemin(list) {
+  if (!Array.isArray(list)) return list;
+  const gorulen = new Set();
+  list.forEach(k => {
+    if (!k || typeof k !== 'object') return;
+    if (typeof k.id !== 'string' || !k.id || gorulen.has(k.id)) {
+      const h = katIdHesabla(k.ad);
+      k.id = gorulen.has(h) ? qeydIdUret('k') : h;
+    }
+    gorulen.add(k.id);
+  });
+  return list;
+}
 
 // Siyahı birləşdirmə: yerli əlavələr, silinmələr və dəyişikliklər buludun üzərinə
 function siyahiBirlesdir(baza, yerli, bulud, acar) {
@@ -57,7 +101,7 @@ function siyahiBirlesdir(baza, yerli, bulud, acar) {
     if (silinen.has(k) || var_.has(k)) return;
     const y = yMap.get(k), b = bMap.get(k);
     // yerli tərəfdə dəyişibsə (id eyni, məzmun fərqli) — yerli versiya
-    netice.push(y && b && JSON.stringify(y) !== JSON.stringify(b) ? y : x);
+    netice.push(y && b && !eyniDir(y, b) ? y : x);
     var_.add(k);
   });
   yerli.forEach(x => { const k = acar(x); if (!bMap.has(k) && !var_.has(k)) { netice.push(x); var_.add(k); } });
@@ -79,7 +123,7 @@ function hesablarBirlesdir(baza, yerli, bulud) {
     const h = Object.assign({}, c);
     Object.keys(y).forEach(f => {
       if (['balans', 'odenmisTaksitSayi', 'elaveOdenis', 'ana'].indexOf(f) !== -1) return;
-      if (JSON.stringify(y[f]) !== JSON.stringify(b[f])) h[f] = y[f];
+      if (!eyniDir(y[f], b[f])) h[f] = y[f];
     });
     h.balans = pulYuvarla(eded(c.balans) + eded(y.balans) - eded(b.balans));
     if (h.tip === 'krediXett') {
@@ -101,14 +145,25 @@ function hesablarBirlesdir(baza, yerli, bulud) {
 function dataBirlesdir(baza, yerli, bulud) {
   if (!bulud) return yerli;
   if (!baza) return bulud; // ortaq nöqtə məlum deyil — təhlükəsiz seçim: bulud
-  const sec = f => JSON.stringify(yerli[f]) !== JSON.stringify(baza[f]) ? yerli[f] : bulud[f];
+  [baza, yerli, bulud].forEach(t => kategoriIdleriniTemin(t.kategoriler));
+  const sec = f => !eyniDir(yerli[f], baza[f]) ? yerli[f] : bulud[f];
+  const katlar = sec('kategoriler');
+  // Ad dəyişiklikləri: hansı tərəfdə olursa olsun, həmin id-li kateqoriyanın son adına köçürülür
+  const sonAd = new Map((Array.isArray(katlar) ? katlar : []).map(k => [k.id, k.ad]));
+  const sonAdlar = new Set(sonAd.values());
+  const adXerite = {};
+  [baza, yerli, bulud].forEach(t => (Array.isArray(t.kategoriler) ? t.kategoriler : []).forEach(k => {
+    const yeni = k && sonAd.get(k.id);
+    if (yeni && yeni !== k.ad && !sonAdlar.has(k.ad)) adXerite[k.ad] = yeni;
+  }));
+  const adKocur = g => (g && adXerite[g.kategori]) ? Object.assign({}, g, { kategori: adXerite[g.kategori] }) : g;
   const netice = Object.assign({}, bulud, {
     schema: 2,
-    kategoriler: sec('kategoriler'),
+    kategoriler: katlar,
     gunlukLimit: sec('gunlukLimit'),
     profil: sec('profil'),
     hesablar: hesablarBirlesdir(baza.hesablar, yerli.hesablar, bulud.hesablar),
-    giderler: siyahiBirlesdir(baza.giderler, yerli.giderler, bulud.giderler, xercAcari)
+    giderler: siyahiBirlesdir(baza.giderler, yerli.giderler, bulud.giderler, xercAcari).map(adKocur)
       .sort((a, b) => new Date(b.tamTarix || 0) - new Date(a.tamTarix || 0)),
     hesabTransferleri: siyahiBirlesdir(baza.hesabTransferleri, yerli.hesabTransferleri, bulud.hesabTransferleri, kocurmeAcari)
       .sort((a, b) => new Date(b.tamTarix || 0) - new Date(a.tamTarix || 0)),

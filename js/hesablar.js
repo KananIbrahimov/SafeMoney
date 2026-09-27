@@ -222,7 +222,7 @@ function hesabKartHtml(h, idareRejimi) {
   const tikla = idareRejimi ? ` onclick="hesabFormAc('${escapeHtml(h.id)}', 'idare')" role="button" tabindex="0"` : '';
   return `<div class="hesab-kart${idareRejimi ? ' tiklanir' : ''}"${tikla}>
     <div class="hk-bas"><span class="hesab-ikon">${ikon(h.tip)}</span><div class="hk-ad"><b>${escapeHtml(hesabGorunenAd(h))}</b><small>${escapeHtml(hesabAltYazi(h))}${h.ana ? ' · ' + escapeHtml(tr('hesab.anaQisa', 'Əsas')) : ''}</small></div>${sag}</div>
-    <div class="hk-bal" style="color:${renk};">${bal.toFixed(2)} AZN</div>${elave}
+    <div class="hk-bal" style="color:${renk};">${h.tip === 'kredit' && bal < 0 ? `<span class="hk-bal-lbl">${escapeHtml(tr('hesab.borcEtiket', 'Borc'))}</span>` : ''}${bal.toFixed(2)} AZN</div>${elave}
   </div>`;
 }
 
@@ -344,7 +344,7 @@ function medaxilModalAc() {
 function medaxilOnayla() {
   const errEl = document.getElementById('medaxilError');
   const h = hesabTap(document.getElementById('medaxilHesab').value);
-  const tutar = pulYuvarla(parseFloat((document.getElementById('medaxilMebleg').value || '').replace(',', '.')));
+  const tutar = meblegOxu(document.getElementById('medaxilMebleg').value);
   const aciqlama = (document.getElementById('medaxilAciqlama').value || '').trim().slice(0, 80);
   if (!h || h.tip === 'krediXett') { errEl.innerText = tr('transfer.hesabElaveEdilmeyib', 'Seçdiyin hesab tapılmadı.'); return; }
   if (!(tutar > 0)) { errEl.innerText = tr('umumi.duzgunMebleg', 'Düzgün məbləğ yaz.'); return; }
@@ -396,7 +396,7 @@ function transferOnayla() {
   const errEl = document.getElementById('transferError');
   const m = hesabTap(document.getElementById('transferMenbe').value);
   const h = hesabTap(document.getElementById('transferHedef').value);
-  const tutar = pulYuvarla(parseFloat((document.getElementById('transferMebleg').value || '').replace(',', '.')));
+  const tutar = meblegOxu(document.getElementById('transferMebleg').value);
   if (!m || !h) { errEl.innerText = tr('transfer.hesabElaveEdilmeyib', 'Seçdiyin hesab tapılmadı.'); return; }
   if (m.id === h.id) { errEl.innerText = tr('transfer.eyniHesab', 'Göndərən və alan hesab eyni ola bilməz.'); return; }
   if (!(tutar > 0)) { errEl.innerText = tr('umumi.duzgunMebleg', 'Düzgün məbləğ yaz.'); return; }
@@ -484,8 +484,10 @@ function hesabFormAc(id, qayit) {
   v('hfAd', h ? h.ad : '');
   v('hfBank', h ? h.bank : '');
   v('hfKart', h ? h.kartSon4 : '');
-  v('hfBalans', h ? (h.tip === 'kredit' ? pulYuvarla(-h.balans) : h.balans) : ''); // kredit kartı: borc müsbət göstərilir, artıq ödəniş mənfi
+  v('hfBalans', h && h.tip !== 'kredit' ? h.balans : '');
   v('hfLimit', h && typeof h.limit === 'number' ? h.limit : '');
+  // Kredit kartı: formda kartda mövcud vəsait göstərilir (limit + balans; balans = −borc)
+  v('hfMuvcud', h && h.tip === 'kredit' && typeof h.limit === 'number' ? pulYuvarla(h.limit + h.balans) : '');
   v('hfAylik', h && h.tip === 'krediXett' ? h.aylikMebleg : '');
   v('hfSay', h && h.tip === 'krediXett' ? h.taksitSayi : '');
   v('hfOdenmis', h && h.tip === 'krediXett' ? h.odenmisTaksitSayi : '');
@@ -498,8 +500,6 @@ function hesabFormAc(id, qayit) {
   // Mövcud hesabın növünü dəyişmək olmaz (balans mənası dəyişir) — yalnız yeni hesabda seçilir
   document.getElementById('hfNovSecim').style.display = h ? 'none' : '';
   hesabFormNovSec(hesabFormTip, true);
-  hesabKartSonSahe = 'borc';
-  hesabFormKartHesabla('limit');
   if (hesabFormQayit === 'idare') modalKapat('hesabIdareModal'); else modalKapat('hesablarModal');
   modalAc('hesabFormModal');
 }
@@ -515,37 +515,33 @@ function hesabFormNovSec(tip, ilk) {
   const xett = tip === 'krediXett';
   goster('hfBankSatir', tip !== 'nagd');
   goster('hfKartSatir', tip === 'debit' || tip === 'kredit');
-  goster('hfBalansSatir', !xett);
+  goster('hfBalansSatir', !xett && tip !== 'kredit'); // kredit kartında balans limit və mövcud vəsaitdən hesablanır
   goster('hfLimitSatir', tip === 'kredit');
   goster('hfMuvcudSatir', tip === 'kredit');
   goster('hfMenfiSatir', tip === 'nagd' || tip === 'debit' || tip === 'depozit');
   goster('hfAnaSatir', !xett);
   goster('hfXettBlok', xett);
   const lbl = document.getElementById('hfBalansLbl');
-  if (lbl) lbl.innerText = tip === 'kredit' ? tr('hesab.cariBorc', 'Cari borc (AZN)') : tr('hesab.balans', 'Balans (AZN)');
+  if (lbl) lbl.innerText = tr('hesab.balans', 'Balans (AZN)');
   // yeni hesabda növə görə defolt mənfi balans icazəsi (depozit: bəli)
   if (!ilk && !hesabFormId) document.getElementById('hfMenfi').checked = tip === 'depozit';
   const adEl = document.getElementById('hfAd'); if (adEl) adEl.placeholder = hesabNovAdi(tip);
   hesabFormXettHesabla();
-  hesabFormKartHesabla('limit');
+  hesabFormKartHesabla();
 }
-// Kredit kartı: limit + borc + istifadə edilə bilən bir-birini tamamlayır (limit 2000: 600 yazsan borc 1400 olur və əksinə)
-let hesabKartSonSahe = 'borc';
-function hesabFormKartHesabla(menbe) {
+// Kredit kartı: istifadəçi limiti və kartda mövcud vəsaiti yazır, borc avtomatik hesablanır:
+// borc = mövcud − limit (məs. 52.85 − 2000 = −1947.15). Mövcud limitdən çoxdursa — artıq ödəniş.
+function hesabFormKartHesabla() {
   if (hesabFormTip !== 'kredit') return;
-  const oxu = id => { const v = (document.getElementById(id).value || '').replace(',', '.').trim(); return v === '' ? null : parseFloat(v); };
-  if (menbe === 'borc' || menbe === 'muvcud') hesabKartSonSahe = menbe;
-  const lim = oxu('hfLimit');
-  const muvEl = document.getElementById('hfMuvcud'), borcEl = document.getElementById('hfBalans');
-  muvEl.disabled = !(lim !== null && lim >= 0);
-  if (lim === null || isNaN(lim) || lim < 0) { if (hesabKartSonSahe === 'borc') muvEl.value = ''; return; }
-  if (hesabKartSonSahe === 'muvcud') {
-    const muv = oxu('hfMuvcud');
-    borcEl.value = (muv === null || isNaN(muv)) ? '' : String(pulYuvarla(lim - muv));
-  } else {
-    const borc = oxu('hfBalans');
-    muvEl.value = String(pulYuvarla(lim - ((borc === null || isNaN(borc)) ? 0 : borc)));
-  }
+  const el = document.getElementById('hfKartBorc');
+  if (!el) return;
+  const lim = meblegOxu(document.getElementById('hfLimit').value);
+  const muv = meblegOxu(document.getElementById('hfMuvcud').value, true);
+  el.className = 'hf-borc';
+  if (isNaN(lim) || isNaN(muv)) { el.innerText = ''; return; }
+  const bal = pulYuvarla(muv - lim);
+  if (bal < 0) { el.classList.add('menfi'); el.innerText = tr('hesab.kartBorc', 'Borc: {borc} AZN', { borc: bal.toFixed(2) }); }
+  else el.innerText = bal > 0 ? tr('hesab.kartArtiqOdenis', 'Artıq ödəniş: +{mebleg} AZN', { mebleg: bal.toFixed(2) }) : tr('hesab.kartBorc', 'Borc: {borc} AZN', { borc: '0.00' });
 }
 function hesabFormXettHesabla() {
   const el = document.getElementById('hfXettNetice');
@@ -567,7 +563,7 @@ function hesabFormSaxla() {
   const ad = document.getElementById('hfAd').value.trim();
   const bank = document.getElementById('hfBank').value.trim();
   const kart = document.getElementById('hfKart').value.trim();
-  const eded = (id) => pulYuvarla(parseFloat((document.getElementById(id).value || '').replace(',', '.')));
+  const eded = (id) => meblegOxu(document.getElementById(id).value, true); // yanlış yazı NaN olur (əvvəl səssizcə 0 sayılırdı)
   if (!ad) return err(tr('hesab.adLazim', 'Hesabın adını yaz.'));
   if (kart && !/^\d{4}$/.test(kart)) return err(tr('hesab.kartXeta', 'Kartın yalnız son 4 rəqəmini yaz.'));
   const h = hesabFormId ? hesabTap(hesabFormId) : hesabNormallasdir({ tip });
@@ -584,15 +580,17 @@ function hesabFormSaxla() {
     Object.assign(h, qeyd, { aylikMebleg: aylik, taksitSayi: say, odenmisTaksitSayi: odenmis, baslangic: bas, bitis: tarixAyEkle(bas, say - 1), ana: false });
   } else {
     const balVal = document.getElementById('hfBalans').value;
-    let bal = balVal.trim() === '' ? 0 : eded('hfBalans');
+    const bal = (tip === 'kredit' || balVal.trim() === '') ? 0 : eded('hfBalans');
     if (isNaN(bal)) return err(tr('umumi.duzgunReqem', 'Düzgün rəqəm yaz.'));
     const menfi = document.getElementById('hfMenfi').checked;
     if (tip === 'kredit') {
-      const limVal = document.getElementById('hfLimit').value;
-      const lim = limVal.trim() === '' ? null : eded('hfLimit');
-      if (lim !== null && (isNaN(lim) || lim < 0)) return err(tr('hesabDuzelt.limitReqemXeta', 'Limit düzgün rəqəm olmalıdır.'));
-      bal = pulYuvarla(-bal) || 0; // kredit kartı: borc mənfi saxlanılır; mənfi yazılıbsa — kartda artıq ödəniş (müsbət balans) var
-      Object.assign(h, qeyd, { balans: bal, limit: lim, menfiOlar: true });
+      const lim = meblegOxu(document.getElementById('hfLimit').value);
+      if (isNaN(lim) || lim <= 0) return err(tr('hesab.kartLimitLazim', 'Kredit limitini yaz.'));
+      const muvVal = document.getElementById('hfMuvcud').value.trim();
+      const muv = muvVal === '' ? lim : meblegOxu(muvVal, true); // boşdursa — borc yoxdur
+      if (isNaN(muv)) return err(tr('umumi.duzgunMebleg', 'Düzgün məbləğ yaz.'));
+      // borc mənfi balans kimi saxlanılır: mövcud − limit
+      Object.assign(h, qeyd, { balans: pulYuvarla(muv - lim), limit: lim, menfiOlar: true });
     } else {
       if (bal < 0 && !menfi) return err(tr('hesab.menfiIcazeYox', 'Mənfi balans üçün "Mənfi balansa icazə ver" tikini aktiv et.'));
       Object.assign(h, qeyd, { balans: bal, menfiOlar: menfi });

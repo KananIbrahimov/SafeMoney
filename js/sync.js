@@ -94,7 +94,6 @@ function driveBaglantiKes() {
     localStorage.setItem('drive_bagli', '0');
     driveTokenSil();
     driveMenyuGuncelle();
-    menuKapat();
   });
 }
 
@@ -143,6 +142,7 @@ function faylDuymeleriHtml() {
 function driveBackupVerisi() {
   // schema 2: hesablar massivi. Köhnə sahələr (anaHesap, nagdBakiye, krediBorcu ...) güzgü kimi də yazılır —
   // hələ yenilənməmiş cihaz datanı boş görüb onu silməsin.
+  kategoriIdleriniTemin(kategoriler);
   return Object.assign({ schema: 2, kategoriler, giderler, hesablar, hesabTransferleri, gunlukLimit, profil: istifadeciProfili, backupTarixi: sonDeyisiklikVaxti || new Date().toISOString() }, hesablarGuzgusu());
 }
 
@@ -176,12 +176,15 @@ function driveVerisiniTetbiqEt(parsed) {
     ikon: k.ikon || '💰'
   }));
   if (!kategoriler.length) kategoriler = defoltKategoriler();
+  kategoriIdleriniTemin(kategoriler);
   // Pozulmuş qeydlər (məbləği rəqəm olmayan) cəmləri NaN etməsin deyə süzülür.
   // Hesablar: yeni model (hesablar massivi) və ya köhnə sahələrdən köçürmə (hesablar.js)
   const hd = hesabDatasiniHazirla(parsed);
   hesablar = hd.hesablar;
   giderler = hd.giderler.filter(g => g && typeof g.tutar === 'number' && isFinite(g.tutar));
   hesabTransferleri = hd.transferler;
+  qeydIdleriniTemin(giderler, xercAcari);
+  qeydIdleriniTemin(hesabTransferleri, kocurmeAcari);
   gunlukLimit = (typeof parsed.gunlukLimit === 'number') ? parsed.gunlukLimit : null;
   istifadeciProfili = parsed.profil || { ad: '', soyad: '' };
   sonDeyisiklikVaxti = parsed.backupTarixi || new Date().toISOString();
@@ -514,8 +517,7 @@ function fayldanBerpaOxu(fayl) {
 // ==================== /Google Drive ====================
 
 // ==================== Firebase: hər istifadəçi öz hesabı ilə ====================
-// Sinxronizasiya artıq təsadüfi "Sync Key" ilə deyil, email/şifrə girişi ilədir.
-// Hər istifadəçinin Firestore sənədi onun öz uid-i ilə adlanır
+// Sinxronizasiya email/şifrə girişi ilədir. Hər istifadəçinin Firestore sənədi onun öz uid-i ilə adlanır
 // (syncs/{uid}) və Firestore Security Rules yalnız sahibinin ora yazmasına
 // icazə verir (request.auth.uid == syncId). apiKey/authDomain/projectId
 // "sirr" deyil — Firebase veb konfiqləri həmişə client-side görünür, əsl
@@ -536,7 +538,7 @@ let firestoreDb = null;
 let firebaseHazir = false;
 let firebaseUnsubscribe = null;
 let firebaseYazTimer = null;
-let senkronKey = null; // artıq Google uid-i olacaq, giriş edəndə təyin olunur
+let senkronKey = null; // daxil olmuş istifadəçinin uid-i (syncs/{uid})
 let cihazId = localStorage.getItem('device_id') || null;
 if (!cihazId) {
   cihazId = 'cihaz_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10);
@@ -553,6 +555,8 @@ function firebaseBaslat() {
     try {
       if (!firebase.apps || !firebase.apps.length) firebase.initializeApp(firebaseConfig);
       firestoreDb = firebase.firestore();
+      // "undefined" sahələr yazmanı həmişəlik uğursuz etməsin (Firestore onları qəbul etmir) — sadəcə buraxılsın
+      try { firestoreDb.settings({ ignoreUndefinedProperties: true, merge: true }); } catch (e) { console.warn('Firestore settings:', e); }
       firebaseHazir = true;
       resolve(true);
     } catch (e) {
@@ -935,6 +939,26 @@ let yazmaGedir = false;
 let yazmaTekrarGerek = false;
 let yazmaTekrarTimer = null;
 let oflaynGonderilir = false; // göndərilməmiş oflayn dəyişikliklər var idi — göndəriləndə xəbər ver
+// Firestore bir sənədi ən çox 1 MiB saxlayır. Bütün məlumat bir sənəddədir — limitə yaxınlaşanda xəbərdarlıq edilir,
+// aşanda yazma cəhd edilmir (əvvəl hər 5 saniyədən bir sonsuz təkrar edirdi).
+const SENED_HEDDI = 1048576;
+let hecmXeberdarligiGosterilib = false;
+// Kalıcı xəta (həcm, icazə, pozulmuş data): avtomatik təkrar dayandırılır; növbəti dəyişiklikdə yenidən sınanır.
+let yazmaKaliciXeta = null;
+function dataHecmi(obj) {
+  try { return new Blob([JSON.stringify(obj)]).size; } catch (e) { return 0; }
+}
+function yazmaXetasiKalicidir(e) {
+  const kod = e && e.code;
+  return kod === 'hecm' || kod === 'permission-denied' || kod === 'unauthenticated' || kod === 'invalid-argument';
+}
+function yazmaXetaMetni(e) {
+  const kod = e && e.code;
+  const mesaj = String((e && e.message) || '');
+  if (kod === 'hecm' || /exceeds the maximum|maximum allowed size|too large/i.test(mesaj)) return tr('sinx.hecmHeddi', 'Məlumatların həcmi bulud limitinə çatıb — dəyişikliklər telefonda saxlanılır, lakin buluda göndərilmir. Ehtiyat nüsxə götür və köhnə əməliyyatları sil.');
+  if (kod === 'permission-denied' || kod === 'unauthenticated') return tr('sinx.icazeYox', 'Bulud dəyişikliyi qəbul etmədi. Hesabdan çıxıb yenidən daxil ol. Dəyişikliklər telefonda saxlanılıb.');
+  return tr('sinx.xetaKalici', 'Dəyişiklik buluda göndərilmədi ({xeta}). Dəyişikliklər telefonda saxlanılıb — tətbiqi yenilə və yenidən cəhd et.', { xeta: kod || mesaj || '?' });
+}
 
 function yerliDeyisiklikVar() { return yerliSurum !== yazilmisSurum; }
 
@@ -1009,6 +1033,12 @@ async function firebaseYazEt() {
   yazmaTekrarGerek = false;
   let konflikt = null, yeniRev = bazaRev, yazilanSurum = yerliSurum, yazilanData = null;
   try {
+    const hecm = dataHecmi(driveBackupVerisi());
+    if (hecm > SENED_HEDDI - 24576) { const x = new Error('document too large: ' + hecm); x.code = 'hecm'; throw x; } // metadata üçün ehtiyat
+    if (hecm > SENED_HEDDI * 0.8 && !hecmXeberdarligiGosterilib) {
+      hecmXeberdarligiGosterilib = true;
+      toastGoster(tr('sinx.hecmXeberdarliq', 'Məlumatların həcmi bulud limitinin {faiz}%-nə çatıb. Ehtiyat nüsxə götürüb köhnə əməliyyatları silmək tövsiyə olunur.', { faiz: Math.round(hecm / SENED_HEDDI * 100) }));
+    }
     const ref = firestoreDb.collection('syncs').doc(senkronKey);
     await firestoreDb.runTransaction(async (tx) => {
       konflikt = null; // transaction təkrarlana bilər
@@ -1042,18 +1072,26 @@ async function firebaseYazEt() {
       bazaRev = yeniRev;
       yazilmisSurum = yazilanSurum;
       oflaynYazmaXetasi = false;
+      if (yazmaKaliciXeta) { yazmaKaliciXeta = null; firebasePanelGuncelle(); }
       oflaynYazildi(yazilanData, yeniRev);
       if (oflaynGonderilir && !yerliDeyisiklikVar()) { oflaynGonderilir = false; toastGoster(tr('oflayn.gonderildi', 'Oflayn dəyişikliklər buluda göndərildi.')); }
     }
   } catch (e) {
     console.warn('Firestore yazma xətası:', e);
-    firebasePanelGuncelle(tr('sinx.gonderilmediPanel', 'Göndərmək alınmadı — yenidən cəhd edilir.'), true);
     // Dəyişiklik artıq telefonda saxlanıb (oflayn.js) — itmir; internet gələndə özü göndəriləcək
     oflaynYazmaXetasi = true;
     oflaynGonderilir = true;
     oflaynGostericiYenile();
     yazmaGedir = false;
     clearTimeout(yazmaTekrarTimer);
+    if (yazmaXetasiKalicidir(e)) {
+      // Təkrar etmək nəticəni dəyişmir — dayan, istifadəçiyə bir dəfə aydın xəbər ver.
+      const metn = yazmaXetaMetni(e);
+      firebasePanelGuncelle(metn, true);
+      if (yazmaKaliciXeta !== metn) { yazmaKaliciXeta = metn; alertAc(metn); }
+      return;
+    }
+    firebasePanelGuncelle(tr('sinx.gonderilmediPanel', 'Göndərmək alınmadı — yenidən cəhd edilir.'), true);
     yazmaTekrarTimer = setTimeout(firebaseYazPlanla, navigator.onLine ? 5000 : 15000);
     return;
   }

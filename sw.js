@@ -1,7 +1,7 @@
 // Safe Money — Service Worker
-// Yalnız tətbiqin öz faylını (HTML/manifest/ikonlar) offline üçün keşləyir.
-// Google Drive / Chart.js / Firebase kimi xarici sorğulara toxunmur —
-// onlar həmişə şəbəkədən (internet varsa) çəkilir.
+// Tətbiqin öz fayllarını offline üçün keşləyir. Xarici kitabxanalardan yalnız Firebase və Chart.js-in
+// versiyalı faylları NETWORK-FIRST keşlənir (internet yoxkən tətbiq açılsın); digər xarici sorğulara
+// (Google Drive, Firestore, giriş) toxunulmur.
 
 // VACİB: Hər yeni versiya buraxdıqda bu adı artır (v3 → v4 → v5 ...).
 // Bu, köhnə keşin avtomatik təmizlənməsini təmin edir.
@@ -29,7 +29,19 @@
 //  giriş işləmirdi. Xarici kitabxanaları yenə brauzer özü yükləyir.)
 // KananTest ilə eyni domendə işlədiyi üçün keş adı fərqli prefikslə başlayır.
 const CACHE_PREFIKS = 'safemoney-app-cache-';
-const CACHE_ADI = CACHE_PREFIKS + 'v50';
+// (v51: Firebase/Chart.js NETWORK-FIRST keşi — yalnız tam (CORS, 200) cavab keşlənir, keşdən yalnız şəbəkə
+//  xətasında verilir. v33-dəki problem: keş-first + no-cors (opaque) cavablar idi — pozulmuş cavab keşdə
+//  qalıb girişi sındırırdı. İnternet olanda davranış brauzerin öz yükləməsi ilə eynidir.)
+const CACHE_ADI = CACHE_PREFIKS + 'v51';
+// Xarici kitabxanalar ayrıca keşdə saxlanılır (versiya nömrəli ünvanlar); "Tətbiqi yenilə" bunu silmir.
+// Ad KananTest-in keşindən fərqlidir (eyni domen).
+const CDN_KESH = 'safemoney-app-cdn-v1';
+const CDN_FAYLLAR = [
+  'https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js',
+  'https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js',
+  'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js',
+  'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js'
+];
 
 const KESLENECEK_FAYLLAR = [
   './index.html',
@@ -84,7 +96,25 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Yalnız öz origin-imizdəki GET sorğuları; xarici (Firebase, Chart.js, Google) sorğulara toxunmuruq.
+  // Firebase / Chart.js kitabxanaları: NETWORK-FIRST, CORS rejimində (cavabın tam olduğu yoxlanıla bilsin).
+  if (event.request.method === 'GET' && CDN_FAYLLAR.indexOf(event.request.url) !== -1) {
+    const u = event.request.url;
+    event.respondWith(
+      fetch(u, { mode: 'cors', credentials: 'omit' })
+        .then((cavab) => {
+          if (cavab && cavab.ok && cavab.type === 'cors') {
+            const kopya = cavab.clone();
+            caches.open(CDN_KESH).then((c) => c.put(u, kopya)).catch(() => {});
+            return cavab;
+          }
+          return fetch(event.request); // gözlənilməz cavab — brauzerin adi sorğusu
+        })
+        .catch(() => caches.open(CDN_KESH).then((c) => c.match(u)).then((k) => k || fetch(event.request)))
+    );
+    return;
+  }
+
+  // Qalan xarici sorğulara (Firestore, Google Drive, giriş) toxunmuruq; yalnız öz origin-imizdəki GET sorğuları.
   if (event.request.method !== 'GET' || url.origin !== self.location.origin) return;
 
   // HTML naviqasiya sorğuları üçün NETWORK-FIRST:

@@ -463,7 +463,7 @@
     </div>
     <h3 class="hesabat-bolme-basliq" id="aylikHesablarBaslik" data-i18n="hesablar.basliq">Hesablar</h3>
     <div id="aylikHesablar"></div>
-    <h3 data-i18n="aylik.kecenAyaGore" style="font-size:14px; margin:18px 0 10px; color:var(--ink);">Keçən ayla müqayisə</h3>
+    <h3 data-i18n="aylik.kecenAyaGore" style="font-size:14px; margin:18px 0 10px; color:var(--ink);">Keçən ayın eyni dövrü ilə müqayisə</h3>
     <div id="aylikHesabatTrend"></div>
     <div class="modal-footer">
       <button data-i18n="umumi.bagla" class="btn btn-primary" onclick="aylikHesabatPaneliniKapat()">Bağla</button>
@@ -569,9 +569,9 @@
       <input type="text" id="hfAd" class="filtr-inp" maxlength="40">
       <div id="hfBankSatir" class="hf-satir"><label class="filtr-lbl" for="hfBank" data-i18n="hesab.bank">Bankın adı</label><input type="text" id="hfBank" class="filtr-inp" maxlength="40" placeholder="Məs.: Kapital Bank" data-i18n-placeholder="hesab.bankPlaceholder"></div>
       <div id="hfKartSatir" class="hf-satir"><label class="filtr-lbl" for="hfKart" data-i18n="hesab.kart">Kartın son 4 rəqəmi</label><input type="text" id="hfKart" class="filtr-inp" inputmode="numeric" maxlength="4" placeholder="0000"></div>
-      <div id="hfLimitSatir" class="hf-satir"><label class="filtr-lbl" for="hfLimit" data-i18n="kreditKart.kreditLimitiAzn">Kredit limiti (AZN)</label><input type="number" step="0.01" min="0" id="hfLimit" class="filtr-inp" oninput="hesabFormKartHesabla('limit')" placeholder="Məs.: 2000" data-i18n-placeholder="kreditKart.mes2000Placeholder"></div>
-      <div id="hfBalansSatir" class="hf-satir"><label class="filtr-lbl" for="hfBalans" id="hfBalansLbl" data-i18n="hesab.balans">Balans (AZN)</label><input type="number" step="0.01" id="hfBalans" class="filtr-inp" placeholder="0.00" oninput="hesabFormKartHesabla('borc')"></div>
-      <div id="hfMuvcudSatir" class="hf-satir"><label class="filtr-lbl" for="hfMuvcud" data-i18n="hesab.istifadeEdileBilen">İstifadə edilə bilən (AZN)</label><input type="number" step="0.01" id="hfMuvcud" class="filtr-inp" placeholder="0.00" oninput="hesabFormKartHesabla('muvcud')"><small class="hf-ipucu" data-i18n="hesab.kartIpucu">Borcu və ya istifadə edilə bilən məbləği yaz — digəri limitdən özü hesablanır.</small></div>
+      <div id="hfLimitSatir" class="hf-satir"><label class="filtr-lbl" for="hfLimit" data-i18n="kreditKart.kreditLimitiAzn">Kredit limiti (AZN)</label><input type="text" inputmode="decimal" autocomplete="off" id="hfLimit" class="filtr-inp" oninput="hesabFormKartHesabla()" placeholder="Məs.: 2000" data-i18n-placeholder="kreditKart.mes2000Placeholder"></div>
+      <div id="hfBalansSatir" class="hf-satir"><label class="filtr-lbl" for="hfBalans" id="hfBalansLbl" data-i18n="hesab.balans">Balans (AZN)</label><input type="number" step="0.01" id="hfBalans" class="filtr-inp" placeholder="0.00"></div>
+      <div id="hfMuvcudSatir" class="hf-satir"><label class="filtr-lbl" for="hfMuvcud" data-i18n="hesab.kartMovcud">Kartda mövcud vəsait (AZN)</label><input type="text" inputmode="decimal" autocomplete="off" id="hfMuvcud" class="filtr-inp" placeholder="0.00" oninput="hesabFormKartHesabla()"><div class="hf-borc" id="hfKartBorc" aria-live="polite"></div><small class="hf-ipucu" data-i18n="hesab.kartIpucu">Limiti və kartda mövcud olan məbləği yaz — borc avtomatik hesablanır.</small></div>
       <div id="hfXettBlok" class="hf-satir">
         <label class="filtr-lbl" for="hfBaslangic" data-i18n="krediBorc.baslangicTarixi">Başlanğıc tarixi</label><input type="date" id="hfBaslangic" class="filtr-inp" oninput="hesabFormXettHesabla()">
         <div class="hf-iki">

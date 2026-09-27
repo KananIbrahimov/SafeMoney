@@ -9,7 +9,7 @@ function appIskeletiOlustur() {
     </div>
     <div class="date-nav">
       <button class="date-nav-arrow" id="tarixGeriBtn" onclick="tarixDeyis(-1)" aria-label="‹">${ikon('sol', 18)}</button>
-      <div class="date-nav-label" id="tarixEtiketi">Bugün · 05.09.2026</div>
+      <div class="date-nav-label" id="tarixEtiketi"></div>
       <button class="date-nav-arrow" id="tarixIrəliBtn" onclick="tarixDeyis(1)" aria-label="›">${ikon('sag', 18)}</button>
     </div>
     <div class="summary-card">
@@ -490,10 +490,35 @@ function kategoriyeTikla(index) {
   if (!kat) return;
   if (sabitTutarVar(kat) && !kategoriSebebSorulsun(kat)) {
     const xeta = giderEkle(kat.ad, kat.sabitTutar);
-    if (xeta) alertAc(xeta);
+    if (xeta) { alertAc(xeta); return; }
+    // Bir toxunuşla yazılır — təsadüfi toxunuşu dərhal geri almaq üçün "Geri al"
+    const yeni = giderler[0];
+    geriAlToastGoster(tr('ana.xercYazildi', '{kat}: {tutar} AZN qeydə alındı.', { kat: kat.ad, tutar: kat.sabitTutar.toFixed(2) }), () => {
+      const idx = giderler.indexOf(yeni);
+      if (idx === -1) return;
+      xercHesabaQaytar(yeni);
+      giderler.splice(idx, 1);
+      veriKaydet();
+      ekraniGuncelle();
+    });
   } else {
     amountModalAc(index);
   }
+}
+
+// Qısa bildiriş + "Geri al" düyməsi (6 saniyə). Yeni bildiriş köhnəsini əvəz edir.
+function geriAlToastGoster(mesaj, geriAlFn) {
+  const kohne = document.getElementById('geriAlToast'); if (kohne) kohne.remove();
+  const el = document.createElement('div');
+  el.id = 'geriAlToast';
+  el.className = 'geri-al-toast';
+  el.setAttribute('role', 'status');
+  const metn = document.createElement('span'); metn.innerText = mesaj;
+  const btn = document.createElement('button'); btn.type = 'button'; btn.innerText = tr('umumi.geriAl', 'Geri al');
+  btn.addEventListener('click', () => { el.remove(); geriAlFn(); });
+  el.appendChild(metn); el.appendChild(btn);
+  document.body.appendChild(el);
+  setTimeout(() => { if (el.isConnected) { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); } }, 6000);
 }
 
 function giderEkle(kategori, tutar, sebeb) {
@@ -571,7 +596,7 @@ function islemFormOnayla() {
   const errEl = document.getElementById('islemFormError');
   const kategori = document.getElementById('islemFormKategori').value;
   const tutarVal = document.getElementById('islemFormTutar').value;
-  const tutar = pulYuvarla(parseFloat((tutarVal || '').replace(',', '.'))); // NaN → 0 → aşağıda xəta verir
+  const tutar = meblegOxu(tutarVal);
   const sebeb = document.getElementById('islemFormSebeb').value.trim();
   const tarixVal = document.getElementById('islemFormTarix').value;
   const bugunStr = yerliTarixStr(new Date());
@@ -660,7 +685,7 @@ function amountModalOnayla() {
   }
   const sebebSorulsun = kategoriSebebSorulsun(kat);
   const val = document.getElementById('amountInput').value;
-  const tutar = pulYuvarla(parseFloat((val || '').replace(',', '.')));
+  const tutar = meblegOxu(val);
   if (isNaN(tutar) || tutar <= 0) {
     if (errEl) errEl.innerText = tr('mebleg.duzgunMeblegDaxilEt', 'Düzgün məbləğ daxil et.');
     return;
@@ -753,8 +778,9 @@ function catPanelSaxla() {
   const sabitVal = document.getElementById('catPanelSabit').value;
   let sabitTutar = null;
   if (sabitVal.trim() !== '') {
-    const p = parseFloat(sabitVal.replace(',', '.'));
-    if (!isNaN(p) && p > 0) sabitTutar = pulYuvarla(p);
+    const p = meblegOxu(sabitVal);
+    if (!(p > 0)) { document.getElementById('catPanelError').innerText = tr('umumi.duzgunMebleg', 'Düzgün məbləğ yaz.'); return; }
+    sabitTutar = p;
   }
   const aylik = document.getElementById('catPanelAylik').checked;
   const sebeb = document.getElementById('catPanelSebeb').checked;
@@ -890,22 +916,17 @@ window.kategoriIkonGuncelle = (i, val) => { if (val.trim() && kategoriler[i]) { 
 window.kategoriSabitTutarGuncelle = (i, val) => {
   if (!kategoriler[i]) return;
   if (val.trim() === '') kategoriler[i].sabitTutar = null;
-  else { const p = parseFloat(val.replace(',', '.')); kategoriler[i].sabitTutar = (!isNaN(p) && p > 0) ? pulYuvarla(p) : null; }
+  else { const p = meblegOxu(val); kategoriler[i].sabitTutar = p > 0 ? p : null; }
   veriKaydet();
 };
 window.kategoriRenkGuncelle = (i, renk) => { if (kategoriler[i]) { kategoriler[i].renk = renk; veriKaydet(); } modalListesiniDoldur(); };
 window.kategoriSebebToggle = (i, checked) => { if (kategoriler[i]) { kategoriler[i].sebebSoruş = checked; veriKaydet(); } };
 window.kategoriAylikToggle = (i, checked) => { if (kategoriler[i]) { kategoriler[i].aylik = !!checked; veriKaydet(); } };
 
-// QEYD: Sıralamayı dəyişmək (drag-to-reorder) Ayarlar → Kateqoriyalar siyahısından
-// qaldırılıb — indi Xərclər ekranındakı "✏️ Ekranı düzənlə" düyməsi ilə edilir.
-
 function modalAc(id) { const el = document.getElementById(id); if (el) el.classList.add('active'); }
 function modalKapat(id) { const el = document.getElementById(id); if (el) el.classList.remove('active'); }
 
 // ---- Alt naviqasiya (bottom tab bar) ----
-function menuKapat() {} // köhnə hamburger menyusundan qalan çağırışlar üçün zərərsiz boş funksiya
-
 function navAktifGuncelle(secilen) {
   const el1 = document.getElementById('navDashboard'); if (el1) el1.classList.toggle('active', secilen === 'dashboard');
   const el2 = document.getElementById('navAylikHesabat'); if (el2) el2.classList.toggle('active', secilen === 'aylikHesabat');
@@ -1097,7 +1118,7 @@ function ayarlarPaneliniKapat() {
 }
 function gunlukLimitYadSaxla() {
   const val = document.getElementById('gunlukLimitInput').value;
-  const limit = parseFloat((val || '').replace(',', '.'));
+  const limit = meblegOxu(val);
   if (isNaN(limit) || limit < 0) {
     document.getElementById('gunlukLimitError').innerText = tr('umumi.duzgunBirMebleg', 'Düzgün məbləğ yaz.');
     return;
@@ -1115,9 +1136,6 @@ function ayarlarSonEmeliyyatlarAc() {
   modalKapat('ayarlarModal');
   sonEmeliyyatlarPaneliniAc();
 }
-// "System" bölməsi: Google Drive + Firebase + Yedək faylı bir başlığın altında,
-// açılıb-bağlanan (collapsible) qrup kimi.
-
 // ==== Aylıq xülasə: "Bu ay hara pul gedir?" ====
 function aylikHesabatVerisi() {
   const indi = new Date();
@@ -1126,13 +1144,18 @@ function aylikHesabatVerisi() {
   if (kecenAy < 0) { kecenAy = 11; kecenIl -= 1; }
   const buAyToplam = {}, kecenAyToplam = {};
   let buAyCemi = 0;
+  // Müqayisə ədalətli olsun: bu ayın 1-dən bu günə qədərki xərclər keçən ayın EYNİ dövrü ilə müqayisə olunur
+  // (əvvəl yarımçıq bu ay keçən ayın tamamı ilə müqayisə edilirdi — ayın əvvəlində hər şey "↓" görünürdü).
+  // Bu gün ayın son günüdürsə, keçən ay bütövlükdə götürülür.
+  const ayinSonGunu = indi.getDate() === new Date(buIl, buAy + 1, 0).getDate();
+  const kecenGunHeddi = ayinSonGunu ? 31 : indi.getDate();
   giderler.forEach(g => {
     if (g.aylikRef) return;
     const t = new Date(g.tamTarix);
     if (t.getFullYear() === buIl && t.getMonth() === buAy) {
       buAyToplam[g.kategori] = (buAyToplam[g.kategori] || 0) + g.tutar;
       buAyCemi += g.tutar;
-    } else if (t.getFullYear() === kecenIl && t.getMonth() === kecenAy) {
+    } else if (t.getFullYear() === kecenIl && t.getMonth() === kecenAy && t.getDate() <= kecenGunHeddi) {
       kecenAyToplam[g.kategori] = (kecenAyToplam[g.kategori] || 0) + g.tutar;
     }
   });
@@ -1487,21 +1510,6 @@ window.addEventListener('appinstalled', () => {
 });
 function tetbiqRejimindedir() {
   return window.navigator.standalone === true || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
-}
-function qurasdirmaYoxla() {
-  const ua = navigator.userAgent || '';
-  const ios = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  const android = /Android/i.test(ua);
-  let kecib = false;
-  try { kecib = sessionStorage.getItem('qurasdir_kec') === '1'; } catch (e) {}
-  if (tetbiqRejimindedir() || kecib || !(ios || android)) return;
-  document.getElementById('qurasdirIos').style.display = ios ? '' : 'none';
-  document.getElementById('qurasdirKohneIos').style.display = ios ? '' : 'none';
-  document.getElementById('qurasdirWhatsapp').style.display = ios ? '' : 'none';
-  document.getElementById('qurasdirAndroid').style.display = android ? '' : 'none';
-  const btn = document.getElementById('qurasdirBtn');
-  if (btn && !qurasdirHadise) btn.style.display = 'none'; // Chrome təklif verməyibsə — menyu addımları
-  document.getElementById('qurasdirEkrani').classList.add('active');
 }
 function qurasdirBas() {
   if (!qurasdirHadise) return;
