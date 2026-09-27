@@ -882,12 +882,12 @@ function modalListesiniDoldur() {
       </label>
       <div class="field-row" style="font-size:12px; color:var(--muted); gap:6px;">
         <span>${escapeHtml(tr('katDuzenle.sabitTutar', 'Sabit məbləğ:'))}</span>
-        <input type="number" step="0.01" value="${sabitTutarVar(kat) ? kat.sabitTutar : ''}" placeholder="${escapeHtml(tr('katDuzenle.sorusPlaceholder', 'Soruş'))}" onchange="kategoriSabitTutarGuncelle(${index}, this.value)" style="width:78px;">
+        <input type="text" inputmode="decimal" autocomplete="off" value="${sabitTutarVar(kat) ? kat.sabitTutar : ''}" placeholder="${escapeHtml(tr('katDuzenle.sorusPlaceholder', 'Soruş'))}" onchange="kategoriSabitTutarGuncelle(${index}, this.value)" style="width:78px;">
       </div>
       <div class="renk-grid">${renkler}</div>
-      <label class="field-row" style="gap:6px; font-size:12px; color:var(--muted); padding-top:2px; cursor:pointer;">
-        <input type="checkbox" ${kat.sebebSoruş ? 'checked' : ''} onchange="kategoriSebebToggle(${index}, this.checked)" style="width:auto;">
-        <span>${escapeHtml(tr('katDuzenle.elaveEderkenSebebDe', 'Əlavə edəndə qeyd də soruşulsun'))}</span>
+      <label class="sw-setir" style="border-top:1px solid var(--line);">
+        <span class="sw-metn"><b>${escapeHtml(tr('katDuzenle.qeydSorus', 'Qeyd də soruşulsun'))}</b><small>${escapeHtml(tr('katDuzenle.qeydSorusIzah', 'Xərc əlavə edəndə qısa qeyd yazmaq imkanı'))}</small></span>
+        <input type="checkbox" class="sw-inp" role="switch" ${kat.sebebSoruş ? 'checked' : ''} onchange="kategoriSebebToggle(${index}, this.checked)">
       </label>
     `;
     konteyner.appendChild(item);
@@ -915,7 +915,7 @@ window.kategoriAdGuncelle = (i, val) => {
 window.kategoriIkonGuncelle = (i, val) => { if (val.trim() && kategoriler[i]) { kategoriler[i].ikon = val.trim(); veriKaydet(); } };
 window.kategoriSabitTutarGuncelle = (i, val) => {
   if (!kategoriler[i]) return;
-  if (val.trim() === '') kategoriler[i].sabitTutar = null;
+  if (String(val).trim() === '') kategoriler[i].sabitTutar = null;
   else { const p = meblegOxu(val); kategoriler[i].sabitTutar = p > 0 ? p : null; }
   veriKaydet();
 };
