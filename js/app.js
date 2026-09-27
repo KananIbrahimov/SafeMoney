@@ -1507,6 +1507,7 @@ function qurasdirmaYoxla() {
   try { kecib = sessionStorage.getItem('qurasdir_kec') === '1'; } catch (e) {}
   if (tetbiqRejimindedir() || kecib || !(ios || android)) return;
   document.getElementById('qurasdirIos').style.display = ios ? '' : 'none';
+  document.getElementById('qurasdirKohneIos').style.display = ios ? '' : 'none';
   document.getElementById('qurasdirAndroid').style.display = android ? '' : 'none';
   const btn = document.getElementById('qurasdirBtn');
   if (btn && !qurasdirHadise) btn.style.display = 'none'; // Chrome təklif verməyibsə — menyu addımları
@@ -1538,6 +1539,7 @@ function anaEkranaElaveEt() {
   const ua = navigator.userAgent || '';
   const ios = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   document.getElementById('qurasdirIos').style.display = ios ? '' : 'none';
+  document.getElementById('qurasdirKohneIos').style.display = ios ? '' : 'none';
   document.getElementById('qurasdirAndroid').style.display = ios ? 'none' : '';
   const btn = document.getElementById('qurasdirBtn'); if (btn) btn.style.display = 'none';
   const addim = document.getElementById('qurasdirAndroidAddim'); if (addim) addim.style.display = '';
