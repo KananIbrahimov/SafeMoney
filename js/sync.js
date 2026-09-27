@@ -686,6 +686,7 @@ function qonaqKimiDaxilOl() {
   appIskeletiOlustur();
   ekraniGuncelle();
   demoBannerGoster();
+  if (typeof turBaslat === 'function') setTimeout(turBaslat, 500); // tanışlıq turu
 }
 function qonaqdanCix() {
   // Səhifəni yenidən yüklə → nümunə data silinir, giriş ekranı açılır
@@ -696,7 +697,7 @@ function demoBannerGoster() {
   const el = document.createElement('div');
   el.id = 'demoBanner';
   el.className = 'demo-banner';
-  el.innerHTML = `<span>${escapeHtml(tr('demo.banner', 'Nümunə rejimi — dəyişikliklər saxlanılmır'))}</span><button onclick="qonaqdanCix()">${escapeHtml(tr('demo.qeydiyyat', 'Hesab yarat'))}</button>`;
+  el.innerHTML = `<span>${escapeHtml(tr('demo.banner', 'Nümunə rejimi — dəyişikliklər saxlanılmır'))}</span><button class="demo-tur" onclick="turBaslat()" aria-label="${escapeHtml(tr('tur.yeniden', 'Turu yenidən göstər'))}" title="${escapeHtml(tr('tur.yeniden', 'Turu yenidən göstər'))}">?</button><button onclick="qonaqdanCix()">${escapeHtml(tr('demo.qeydiyyat', 'Hesab yarat'))}</button>`;
   document.body.appendChild(el);
   document.body.classList.add('demo-aktiv');
 }
@@ -727,7 +728,7 @@ function demoDatasiniQur() {
       if (!kat[ki]) continue;
       const tutar = pulYuvarla(taban * (0.8 + rnd() * 0.6));
       const dt = gunEvvel(g, 8 + Math.floor(rnd() * 12), Math.floor(rnd() * 60));
-      if (dt > bugun) continue;
+      if (dt > bugun) dt.setTime(bugun.getTime() - Math.floor(5 + rnd() * 170) * 60000); // bu gün hələ o saat gəlməyibsə — son 3 saata
       giderler.push({ kategori: kat[ki].ad, tutar, tamTarix: dt.toISOString(), tarix: tarixSaatYaz(dt), hesabId: (i === 2 ? kart.id : debet.id) });
     }
   }
@@ -841,7 +842,7 @@ function firebasePanelGuncelle(mesaj, xetaMi) {
   if (demoRejim) {
     statusEl.innerText = tr('demo.banner', 'Nümunə rejimi — dəyişikliklər saxlanılmır');
     subEl.innerText = tr('demo.hesabIzah', 'Öz məlumatlarını saxlamaq üçün hesab yarat.');
-    btnsEl.innerHTML = `<button onclick="qonaqdanCix()">${escapeHtml(tr('demo.qeydiyyat', 'Hesab yarat'))}</button>`;
+    btnsEl.innerHTML = `<button class="demo-tur" onclick="turBaslat()" aria-label="${escapeHtml(tr('tur.yeniden', 'Turu yenidən göstər'))}" title="${escapeHtml(tr('tur.yeniden', 'Turu yenidən göstər'))}">?</button><button onclick="qonaqdanCix()">${escapeHtml(tr('demo.qeydiyyat', 'Hesab yarat'))}</button>`;
     const xk = document.getElementById('ayarlarXosGeldinKutu'); if (xk) xk.style.display = 'none';
     return;
   }
