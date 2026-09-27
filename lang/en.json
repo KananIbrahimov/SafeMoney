@@ -506,6 +506,10 @@
     "hesabSil.alinmadi": "Couldn't delete the account: {xeta}",
     "hesabSil.silindi": "Your account and all your data have been deleted.",
     "ayarlar.mexfilik": "Privacy Policy",
-    "ayarlar.sertler": "Terms of Use"
+    "ayarlar.sertler": "Terms of Use",
+    "qeyd.razilasma": "I have read and agree to the {mexfilik} and {sertler}.",
+    "qeyd.razilasmaMexfilik": "Privacy Policy",
+    "qeyd.razilasmaSertler": "Terms of Use",
+    "qeyd.razilasmaXeta": "To sign up, you need to agree to the Privacy Policy and Terms of Use."
   }
 }

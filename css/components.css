@@ -492,3 +492,8 @@ body.demo-aktiv .page-inner { padding-top: calc(56px + env(safe-area-inset-top, 
 .huquqi-linkler { text-align: center; font-size: 12px; color: var(--muted); margin: 14px 0 0; }
 .huquqi-linkler a { color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
 .drive-box .drive-btns button.hesab-sil-btn { flex-basis: 100%; background: transparent; border-color: transparent; color: var(--danger); font-weight: 600; }
+
+/* Qeydiyyat: Məxfilik siyasəti və İstifadə şərtləri ilə razılaşma tiki */
+.razilasma-setir { display: flex; align-items: flex-start; gap: 10px; margin: 14px 0 4px; text-align: left; font-size: 13px; line-height: 1.45; color: var(--ink); cursor: pointer; }
+.razilasma-setir input { flex: none; width: 20px; height: 20px; margin: 0; accent-color: var(--brand-ink); cursor: pointer; }
+.razilasma-setir a { color: var(--brand-ink); text-decoration: underline; text-underline-offset: 3px; }

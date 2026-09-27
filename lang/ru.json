@@ -506,6 +506,10 @@
     "hesabSil.alinmadi": "Не удалось удалить аккаунт: {xeta}",
     "hesabSil.silindi": "Ваш аккаунт и все данные удалены.",
     "ayarlar.mexfilik": "Политика конфиденциальности",
-    "ayarlar.sertler": "Условия использования"
+    "ayarlar.sertler": "Условия использования",
+    "qeyd.razilasma": "Я ознакомлен(а) и согласен(на) с {mexfilik} и {sertler}.",
+    "qeyd.razilasmaMexfilik": "Политикой конфиденциальности",
+    "qeyd.razilasmaSertler": "Условиями использования",
+    "qeyd.razilasmaXeta": "Для регистрации необходимо принять Политику конфиденциальности и Условия использования."
   }
 }

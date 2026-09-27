@@ -664,8 +664,24 @@ function qeydiyyatParametriniYoxla(acilsin) {
   if (acilsin) qeydiyyatModalAc();
 }
 
+// Razılaşma mətni: linklər mətnin içində — hər dildə söz sırası fərqlidir, ona görə {mexfilik}/{sertler} yer tutucuları
+function qeydiyyatRazilasmaCiz() {
+  const el = document.getElementById('qeydiyyatRazilasmaMetn');
+  if (!el) return;
+  const baza = typeof HUQUQI_SEHIFE_BAZA === 'string' ? HUQUQI_SEHIFE_BAZA : '';
+  const link = (fayl, metn) => `<a href="${escapeHtml(baza + fayl + '#' + dilKodu)}" target="_blank" rel="noopener">${escapeHtml(metn)}</a>`;
+  const sablon = escapeHtml(tr('qeyd.razilasma', '{mexfilik} və {sertler} ilə tanış oldum və razıyam.'));
+  el.innerHTML = sablon
+    .replace('{mexfilik}', link('privacy.html', tr('qeyd.razilasmaMexfilik', 'Məxfilik siyasəti')))
+    .replace('{sertler}', link('terms.html', tr('qeyd.razilasmaSertler', 'İstifadə şərtləri')));
+  // Linkə toxunmaq tiki dəyişməsin — yalnız səhifəni açsın
+  el.querySelectorAll('a').forEach(a => a.addEventListener('click', (e) => e.stopPropagation()));
+}
+
 function qeydiyyatModalAc() {
   if (qeydiyyataKec()) return;
+  const raz = document.getElementById('qeydiyyatRazilasma'); if (raz) raz.checked = false;
+  qeydiyyatRazilasmaCiz();
   document.getElementById('qeydiyyatAd').value = '';
   document.getElementById('qeydiyyatSoyad').value = '';
   document.getElementById('qeydiyyatEmail').value = document.getElementById('emailGirisEmail').value.trim();
@@ -690,12 +706,14 @@ function qeydiyyatGonder() {
   if (!sifre1 || !sifre2) { xetaEl.innerText = tr('qeyd.sifreni2DefeYaz', 'Şifrəni iki dəfə yaz.'); return; }
   if (sifre1 !== sifre2) { xetaEl.innerText = tr('qeyd.sifrelerUstUsteDusmur', 'Şifrələr eyni deyil.'); return; }
   if (!sifreGuclumu(sifre1)) { xetaEl.innerText = tr('qeyd.sifreQaydasiXeta', 'Şifrə ən azı 6 simvoldan ibarət olmalı və 1 böyük hərf, 1 kiçik hərf və 1 xüsusi simvol daxil etməlidir (məs.: Aa12345@).'); return; }
+  const razilasma = document.getElementById('qeydiyyatRazilasma');
+  if (razilasma && !razilasma.checked) { xetaEl.innerText = tr('qeyd.razilasmaXeta', 'Qeydiyyat üçün Məxfilik siyasəti və İstifadə şərtləri ilə razılaşmalısan.'); return; }
 
   firebaseBaslat().then((hazir) => {
     if (!hazir) { xetaEl.innerText = tr('giris.baglantiAlinmadi', 'Bağlantı alınmadı. İnterneti yoxla və yenidən cəhd et.'); return; }
     firebase.auth().createUserWithEmailAndPassword(email, sifre1).then((deyisim) => {
       const istifadeci = deyisim.user;
-      gozleyenProfilYaz(email, { ad, soyad });
+      gozleyenProfilYaz(email, { ad, soyad, razilasma: new Date().toISOString() }); // razılaşma anı profil ilə buluda yazılır
       return istifadeci.updateProfile({ displayName: ad + ' ' + soyad }).catch(() => {}).then(() => { try { firebase.auth().languageCode = dilKodu; } catch (e) { /* sakit keç */ } return istifadeci.sendEmailVerification(emailLinkAyarlari()); }).then(() => {
         tesdiqGozleyenIstifadeci = istifadeci;
         modalKapat('qeydiyyatModal');

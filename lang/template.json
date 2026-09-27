@@ -507,6 +507,10 @@
     "hesabSil.alinmadi": "Hesabı silmək alınmadı: {xeta}",
     "hesabSil.silindi": "Hesabın və bütün məlumatların silindi.",
     "ayarlar.mexfilik": "Məxfilik siyasəti",
-    "ayarlar.sertler": "İstifadə şərtləri"
+    "ayarlar.sertler": "İstifadə şərtləri",
+    "qeyd.razilasma": "{mexfilik} və {sertler} ilə tanış oldum və razıyam.",
+    "qeyd.razilasmaMexfilik": "Məxfilik siyasəti",
+    "qeyd.razilasmaSertler": "İstifadə şərtləri",
+    "qeyd.razilasmaXeta": "Qeydiyyat üçün Məxfilik siyasəti və İstifadə şərtləri ilə razılaşmalısan."
   }
 }
