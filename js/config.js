@@ -1,6 +1,17 @@
 /* Safe Money — Drive və ümumi sabitlər */
 // TƏHLÜKƏSİZLİK: HTML içərisinə istifadəçi məlumatı yazmazdan əvvəl xüsusi simvolları
 // təhlükəsiz formaya salır.
+// KananTest ilə eyni domendə (kananibrahimov.github.io) işlədiyi üçün localStorage açarları
+// qarışmasın deyə SafeMoney-in bütün açarlarına "sm:" prefiksi əlavə olunur.
+(function () {
+  try {
+    const ls = window.localStorage, P = 'sm:', SP = Storage.prototype;
+    const get = SP.getItem, set = SP.setItem, del = SP.removeItem;
+    SP.getItem = function (a) { return get.call(this, this === ls ? P + a : a); };
+    SP.setItem = function (a, b) { return set.call(this, this === ls ? P + a : a, b); };
+    SP.removeItem = function (a) { return del.call(this, this === ls ? P + a : a); };
+  } catch (e) {}
+})();
 function escapeHtml(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
     return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
