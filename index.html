@@ -246,7 +246,7 @@
       </div>
       <div class="field-row" style="font-size:12px; color:var(--muted); gap:6px;">
         <span data-i18n="katDuzenle.sabitTutar">Sabit məbləğ:</span>
-        <input type="number" step="0.01" min="0" id="catPanelSabit" placeholder="Soruş" data-i18n-placeholder="katDuzenle.sorusPlaceholder" style="width:78px;">
+        <input type="text" inputmode="decimal" autocomplete="off" id="catPanelSabit" placeholder="Soruş" data-i18n-placeholder="katDuzenle.sorusPlaceholder" style="width:78px;">
       </div>
       <div class="renk-grid" id="catPanelRenkGrid"></div>
     </div>
@@ -360,8 +360,9 @@
       </div>
       <div class="error-text" id="kilidAyarError"></div>
     </div>
-    <div class="ayarlar-kutu" style="margin-bottom:8px;">
-      <div class="ayarlar-setir-ic" style="justify-content:flex-start;"><span class="ayarlar-ikon"><i data-ikon="bulud"></i></span><span class="ayarlar-metin" data-i18n="ayarlar.googleDriveBaslik">Google Drive ehtiyat nüsxəsi</span></div>
+    <div class="ayarlar-qrup" id="driveQrup" style="margin-bottom:8px;">
+      <div class="ayarlar-kutu ayarlar-setir-ic ayarlar-qrup-bas" style="justify-content:flex-start; cursor:default;"><span class="ayarlar-ikon"><i data-ikon="bulud"></i></span><span class="ayarlar-metin" data-i18n="ayarlar.googleDriveBaslik">Google Drive ehtiyat nüsxəsi</span></div>
+      <div class="ayarlar-qrup-ic">
       <div class="drive-box" id="driveBox">
         <div data-i18n="ayarlar.googleDriveABagli" class="drive-status" id="driveStatus">Google Drive-a qoşulmayıb</div>
         <div data-i18n="ayarlar.baglansanGonderVeCek" class="drive-sub" id="driveSub">Qoşulduqdan sonra ehtiyat nüsxələr Google Drive-da saxlanılacaq.</div>
@@ -369,6 +370,7 @@
         <div class="drive-btns" id="driveBtns">
           <button data-i18n="ayarlar.baglan" onclick="driveBaglan()">Qoşul</button>
         </div>
+      </div>
       </div>
     </div>
 

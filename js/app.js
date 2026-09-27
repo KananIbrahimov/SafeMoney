@@ -880,15 +880,15 @@ function modalListesiniDoldur() {
         <span class="sw-metn"><b>${escapeHtml(tr('katDuzenle.aylikSabitXerc', 'Aylıq sabit xərc'))}</b><small>${escapeHtml(tr('katDuzenle.sondurulubseGunluk', 'Söndürülübsə — gündəlik xərc'))}</small></span>
         <input type="checkbox" class="sw-inp" role="switch" ${kat.aylik ? 'checked' : ''} onchange="kategoriAylikToggle(${index}, this.checked)">
       </label>
+      <label class="sw-setir">
+        <span class="sw-metn"><b>${escapeHtml(tr('katDuzenle.qeydSorus', 'Qeyd də soruşulsun'))}</b><small>${escapeHtml(tr('katDuzenle.qeydSorusIzah', 'Xərc əlavə edəndə qısa qeyd yazmaq imkanı'))}</small></span>
+        <input type="checkbox" class="sw-inp" role="switch" ${kat.sebebSoruş ? 'checked' : ''} onchange="kategoriSebebToggle(${index}, this.checked)">
+      </label>
       <div class="field-row" style="font-size:12px; color:var(--muted); gap:6px;">
         <span>${escapeHtml(tr('katDuzenle.sabitTutar', 'Sabit məbləğ:'))}</span>
         <input type="text" inputmode="decimal" autocomplete="off" value="${sabitTutarVar(kat) ? kat.sabitTutar : ''}" placeholder="${escapeHtml(tr('katDuzenle.sorusPlaceholder', 'Soruş'))}" onchange="kategoriSabitTutarGuncelle(${index}, this.value)" style="width:78px;">
       </div>
       <div class="renk-grid">${renkler}</div>
-      <label class="sw-setir" style="border-top:1px solid var(--line);">
-        <span class="sw-metn"><b>${escapeHtml(tr('katDuzenle.qeydSorus', 'Qeyd də soruşulsun'))}</b><small>${escapeHtml(tr('katDuzenle.qeydSorusIzah', 'Xərc əlavə edəndə qısa qeyd yazmaq imkanı'))}</small></span>
-        <input type="checkbox" class="sw-inp" role="switch" ${kat.sebebSoruş ? 'checked' : ''} onchange="kategoriSebebToggle(${index}, this.checked)">
-      </label>
     `;
     konteyner.appendChild(item);
   });
