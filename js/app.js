@@ -1547,7 +1547,7 @@ function anaEkranaElaveEt() {
   const ua = navigator.userAgent || '';
   const mobil = /iPhone|iPad|iPod|Android/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const btn = document.getElementById('anaEkranBtn');
-  if (btn && mobil && !tetbiqRejimindedir()) btn.style.display = '';
+  if (btn && mobil && !tetbiqRejimindedir()) btn.style.display = 'flex';
 })();
 qurasdirmaYoxla();
 

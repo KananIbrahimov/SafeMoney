@@ -424,12 +424,25 @@ body.demo-aktiv .page-inner { padding-top: calc(56px + env(safe-area-inset-top, 
 .qr-no { flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; background: var(--panel-alt); border: 1px solid var(--line); color: var(--brand-ink); }
 .qr-ik { display: inline-flex; vertical-align: -4px; margin-left: 4px; color: var(--brand-ink); }
 .qr-qeyd { font-size: 12px; color: var(--muted); line-height: 1.45; margin: 0 0 10px; }
-.ana-ekran-btn { width: 100%; margin-top: 6px; border: 1px solid var(--line) !important; justify-content: center; }
 
-/* App Store / Google Play — tezliklə */
-.magaza-sira { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
-.magaza-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 10px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; font: inherit; text-align: left; }
-.magaza-btn [data-ikon] { display: flex; color: var(--muted); }
-.magaza-btn .mg-metn { display: flex; flex-direction: column; line-height: 1.15; }
-.magaza-btn .mg-metn small { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
-.magaza-btn .mg-metn b { font-size: 13.5px; font-weight: 600; }
+/* Giriş ekranı düymələri — vahid ölçü və üslub */
+.giris-duymeler { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+.gd { width: 100%; min-height: 48px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 0 16px; border-radius: 14px; font: inherit; font-size: 15px; font-weight: 600; letter-spacing: .01em; cursor: pointer;
+  transition: background .15s, border-color .15s, opacity .15s; }
+.gd [data-ikon] { display: flex; flex-shrink: 0; }
+.gd-esas { border: none; background: var(--brand); color: var(--on-brand); }
+.gd-esas:hover { background: var(--brand-soft); }
+.gd-ikinci { border: 1px solid var(--line); background: var(--panel); color: var(--ink); }
+.gd-ikinci [data-ikon] { color: var(--muted); }
+.gd-ikinci:hover { border-color: var(--brand-soft); }
+.gd:active { opacity: .85; }
+.gd-link { align-self: center; padding: 0 !important; margin: -2px 0 2px; }
+.gd-ayrac { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 12px; margin: 2px 0; }
+.gd-ayrac::before, .gd-ayrac::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+.giris-duymeler .qonaq-btn { width: 100%; margin: 0; color: var(--ink); font-weight: 600; }
+.magaza-sira { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.magaza-btn { gap: 8px; padding: 0 10px; }
+.magaza-btn .mg-metn { display: flex; flex-direction: column; line-height: 1.15; text-align: left; }
+.magaza-btn .mg-metn small { font-size: 10px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.magaza-btn .mg-metn b { font-size: 14px; font-weight: 600; }

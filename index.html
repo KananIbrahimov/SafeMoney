@@ -62,16 +62,19 @@
     <p data-i18n="giris.davamEtmekUcunEmail" class="hint" id="emailGirisHint">Davam etmək üçün e-poçt və şifrənlə daxil ol. Məlumatların yalnız sənin hesabında saxlanılacaq.</p>
     <input type="email" id="emailGirisEmail" placeholder="E-poçt" data-i18n-placeholder="giris.ePoctPlaceholder" autocomplete="username" style="width:100%; margin-bottom:8px; box-sizing:border-box;">
     <input type="password" id="emailGirisSifre" placeholder="Şifrə (ən azı 6 simvol)" data-i18n-placeholder="giris.sifreEnAz6Placeholder" autocomplete="current-password" style="width:100%; margin-bottom:10px; box-sizing:border-box;">
-    <button data-i18n="giris.daxilOl" class="btn btn-primary" onclick="emailIleGirisEt()" style="width:100%; margin-bottom:8px;">Daxil ol</button>
-    <button type="button" class="link-btn" onclick="sifreSifirla()" data-i18n="giris.sifreniUnutdum">Şifrəni unutdum</button>
-    <button data-i18n="giris.hesabYaratIlkDefedirse" class="btn btn-ghost" onclick="qeydiyyatModalAc()" style="width:100%; margin-bottom:10px; border:1px solid var(--line);">Qeydiyyatdan keç</button>
-    <button type="button" class="btn btn-ghost qonaq-btn" onclick="qonaqKimiDaxilOl()" data-i18n="giris.qonaq">Qonaq kimi bax</button>
-    <button type="button" class="btn btn-ghost btn-ikonlu ana-ekran-btn" id="anaEkranBtn" onclick="anaEkranaElaveEt()" style="display:none;"><i data-ikon="elaveKvadrat" data-olcu="18"></i><span data-i18n="qurasdir.anaEkranBtn">Ana ekrana əlavə et</span></button>
-    <div class="magaza-sira">
-      <button type="button" class="magaza-btn" onclick="magazaTezlikle('App Store')"><i data-ikon="telefon" data-olcu="20"></i><span class="mg-metn"><small data-i18n="magaza.tezlikle">Tezliklə</small><b>App Store</b></span></button>
-      <button type="button" class="magaza-btn" onclick="magazaTezlikle('Google Play')"><i data-ikon="telefon" data-olcu="20"></i><span class="mg-metn"><small data-i18n="magaza.tezlikle">Tezliklə</small><b>Google Play</b></span></button>
+    <div class="giris-duymeler">
+      <button data-i18n="giris.daxilOl" class="gd gd-esas" onclick="emailIleGirisEt()">Daxil ol</button>
+      <button type="button" class="link-btn gd-link" onclick="sifreSifirla()" data-i18n="giris.sifreniUnutdum">Şifrəni unutdum</button>
+      <button class="gd gd-ikinci" id="tesdiqYenidenBtn" onclick="tesdiqEmailiYenidenGonder()" style="display:none;"><i data-ikon="yenile" data-olcu="18"></i><span data-i18n="giris.tesdiqEPoctunuYeniden">Təsdiq məktubunu yenidən göndər</span></button>
+      <div class="gd-ayrac"><span data-i18n="giris.veya">və ya</span></div>
+      <button class="gd gd-ikinci" onclick="qeydiyyatModalAc()"><i data-ikon="istifadeci" data-olcu="18"></i><span data-i18n="giris.hesabYaratIlkDefedirse">Qeydiyyatdan keç</span></button>
+      <button type="button" class="gd gd-ikinci qonaq-btn" onclick="qonaqKimiDaxilOl()"><i data-ikon="goz" data-olcu="18"></i><span data-i18n="giris.qonaq">Qonaq kimi bax</span></button>
+      <button type="button" class="gd gd-ikinci ana-ekran-btn" id="anaEkranBtn" onclick="anaEkranaElaveEt()" style="display:none;"><i data-ikon="elaveKvadrat" data-olcu="18"></i><span data-i18n="qurasdir.anaEkranBtn">Ana ekrana əlavə et</span></button>
+      <div class="magaza-sira">
+        <button type="button" class="gd gd-ikinci magaza-btn" onclick="magazaTezlikle('App Store')"><i data-ikon="telefon" data-olcu="18"></i><span class="mg-metn"><small data-i18n="magaza.tezlikle">Tezliklə</small><b>App Store</b></span></button>
+        <button type="button" class="gd gd-ikinci magaza-btn" onclick="magazaTezlikle('Google Play')"><i data-ikon="telefon" data-olcu="18"></i><span class="mg-metn"><small data-i18n="magaza.tezlikle">Tezliklə</small><b>Google Play</b></span></button>
+      </div>
     </div>
-    <button data-i18n="giris.tesdiqEPoctunuYeniden" class="btn btn-ghost" id="tesdiqYenidenBtn" onclick="tesdiqEmailiYenidenGonder()" style="width:100%; margin-bottom:10px; border:1px solid var(--line); display:none;">Təsdiq məktubunu yenidən göndər</button>
     <div class="error-text" id="googleGirisXeta"></div>
   </div>
 </div>

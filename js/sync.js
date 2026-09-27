@@ -563,7 +563,7 @@ function emailIleGirisEt() {
       if (istifadeci && !istifadeci.emailVerified) {
         tesdiqGozleyenIstifadeci = istifadeci;
         xetaEl.innerText = tr('giris.epoctTesdiqlenmeyibUzun', 'E-poçtun hələ təsdiqlənməyib. Poçt qutunu ("Spam" qovluğunu da) yoxla, linkə keçid et və yenidən daxil ol.');
-        document.getElementById('tesdiqYenidenBtn').style.display = 'block';
+        document.getElementById('tesdiqYenidenBtn').style.display = 'flex';
         firebase.auth().signOut().catch(() => {});
       }
     }).catch((e) => {
@@ -635,7 +635,7 @@ function qeydiyyatGonder() {
         const girisXetaEl = document.getElementById('googleGirisXeta');
         document.getElementById('emailGirisEmail').value = email;
         girisXetaEl.innerText = tr('qeyd.hesabYaradildiMesaj', 'Hesab yaradıldı! Təsdiq linkini e-poçtuna göndərdik. Poçtunu ("Spam" qovluğunu da) yoxla, linkə keçid et və sonra "Daxil ol" düyməsinə bas.');
-        document.getElementById('tesdiqYenidenBtn').style.display = 'block';
+        document.getElementById('tesdiqYenidenBtn').style.display = 'flex';
         return firebase.auth().signOut();
       });
     }).catch((e) => {
@@ -805,7 +805,7 @@ async function uygulamaGirisBaslat() {
       // Köhnə sessiyadan qalan, hələ təsdiqlənməmiş istifadəçi — buraxma.
       tesdiqGozleyenIstifadeci = istifadeci;
       document.getElementById('googleGirisXeta').innerText = tr('giris.epoctTesdiqlenmeyibQisa', 'E-poçtun hələ təsdiqlənməyib. Poçtunu yoxla, linkə keçid et və yenidən daxil ol.');
-      document.getElementById('tesdiqYenidenBtn').style.display = 'block';
+      document.getElementById('tesdiqYenidenBtn').style.display = 'flex';
       document.getElementById('googleGirisEkrani').classList.add('active');
       firebase.auth().signOut().catch(() => {});
       return;
