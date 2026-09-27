@@ -522,12 +522,12 @@ function fayldanBerpaOxu(fayl) {
 // qorunma Authentication + Security Rules-dadır, ona görə kod daxilinə
 // yazmaq təhlükəsizdir.
 function firebaseConfigOxu() {
-  // TEST layihəsi (kanantest) üçün konfiq — Firebase Console > Project settings
+  // SafeMoney layihəsi (safemoney-84ae2) üçün konfiq — Firebase Console > Project settings
   // (dişli işarə) > General > "Your apps" bölməsindən öz dəyərlərinlə əvəz et.
   return {
-    apiKey: 'AIzaSyAF39Xt36SUvjpYp55eIGR9XDmUaHHT7oo',
-    authDomain: 'kanantest.firebaseapp.com',
-    projectId: 'kanantest'
+    apiKey: 'AIzaSyDiP_e2XcpyeY55mfvoR_3mv23PQ8WpzUA',
+    authDomain: 'safemoney-84ae2.firebaseapp.com',
+    projectId: 'safemoney-84ae2'
   };
 }
 let firebaseConfig = firebaseConfigOxu();
