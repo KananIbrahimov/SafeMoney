@@ -668,14 +668,11 @@ function qeydiyyatParametriniYoxla(acilsin) {
 function qeydiyyatRazilasmaCiz() {
   const el = document.getElementById('qeydiyyatRazilasmaMetn');
   if (!el) return;
-  const baza = typeof HUQUQI_SEHIFE_BAZA === 'string' ? HUQUQI_SEHIFE_BAZA : '';
-  const link = (fayl, metn) => `<a href="${escapeHtml(baza + fayl + '#' + dilKodu)}" target="_blank" rel="noopener">${escapeHtml(metn)}</a>`;
+  const link = (fayl, metn) => `<a href="#" data-huquqi="${fayl}">${escapeHtml(metn)}</a>`; // klik: ui.js → huquqiSehifeAc
   const sablon = escapeHtml(tr('qeyd.razilasma', '{mexfilik} və {sertler} ilə tanış oldum və razıyam.'));
   el.innerHTML = sablon
     .replace('{mexfilik}', link('privacy.html', tr('qeyd.razilasmaMexfilik', 'Məxfilik siyasəti')))
     .replace('{sertler}', link('terms.html', tr('qeyd.razilasmaSertler', 'İstifadə şərtləri')));
-  // Linkə toxunmaq tiki dəyişməsin — yalnız səhifəni açsın
-  el.querySelectorAll('a').forEach(a => a.addEventListener('click', (e) => e.stopPropagation()));
 }
 
 function qeydiyyatModalAc() {

@@ -295,13 +295,35 @@ function girisFormasiniBerpaEt() {
     yaz('qeydiyyatAd', f.ad); yaz('qeydiyyatSoyad', f.soyad); yaz('qeydiyyatEmail', f.qEmail);
   }
 }
-// Məxfilik siyasəti / şərtlər linkləri: səhifə dilin bölməsinə açılır (#az, #en, #ru)
-function huquqiLinkleriQur() {
-  document.querySelectorAll('a[data-huquqi]').forEach(a => {
-    a.href = (typeof HUQUQI_SEHIFE_BAZA === 'string' ? HUQUQI_SEHIFE_BAZA : '') + a.dataset.huquqi + '#' + dilKodu;
-  });
+// Məxfilik siyasəti / İstifadə şərtləri: eyni pəncərədə, seçilmiş dil və tema ilə açılır. Səhifədəki "geri"
+// düyməsi tətbiqə qaytarır — qayıdanda açıq olan qeydiyyat forması (şifrələr istisna) və ya Parametrlər bərpa olunur.
+function huquqiSehifeUnvani(fayl) {
+  const tema = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+  return (typeof HUQUQI_SEHIFE_BAZA === 'string' ? HUQUQI_SEHIFE_BAZA : '') + fayl + '?dil=' + encodeURIComponent(dilKodu) + '&tema=' + tema;
 }
-document.addEventListener('DOMContentLoaded', () => { girisDilSeciciCiz(); girisFormasiniBerpaEt(); huquqiLinkleriQur(); });
+function huquqiSehifeAc(fayl) {
+  const deyer = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+  const qm = document.getElementById('qeydiyyatModal');
+  try {
+    if (qm && qm.classList.contains('active')) {
+      sessionStorage.setItem('giris_forma', JSON.stringify({ email: deyer('emailGirisEmail'), qeydiyyat: true, ad: deyer('qeydiyyatAd'), soyad: deyer('qeydiyyatSoyad'), qEmail: deyer('qeydiyyatEmail') }));
+    } else if (document.getElementById('ayarlarModal') && document.getElementById('ayarlarModal').classList.contains('active')) {
+      sessionStorage.setItem('geri_ayarlar', '1');
+    }
+  } catch (e) {}
+  location.href = huquqiSehifeUnvani(fayl);
+}
+document.addEventListener('click', (e) => {
+  const a = e.target.closest && e.target.closest('a[data-huquqi]');
+  if (!a) return;
+  e.preventDefault(); e.stopPropagation();
+  huquqiSehifeAc(a.getAttribute('data-huquqi'));
+}, true);
+// Səhifə brauzer keşindən (geri düyməsi ilə) olduğu kimi qayıdıbsa, vəziyyət artıq yerindədir — qeydləri sil
+window.addEventListener('pageshow', (e) => {
+  if (e.persisted) { try { sessionStorage.removeItem('giris_forma'); sessionStorage.removeItem('geri_ayarlar'); } catch (x) {} }
+});
+document.addEventListener('DOMContentLoaded', () => { girisDilSeciciCiz(); girisFormasiniBerpaEt(); });
 dilHazirPromise.then(girisDilSeciciCiz);
 // ==================== /Dil (i18n) ====================
 

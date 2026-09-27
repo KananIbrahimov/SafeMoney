@@ -1,5 +1,5 @@
 /* Safe Money — vəziyyət, yükləmə, yadda saxlama */
-const APP_VERSION = '3.43'; // hər yeni göndərilən html versiyasında əl ilə +1 artırılır
+const APP_VERSION = '3.44'; // hər yeni göndərilən html versiyasında əl ilə +1 artırılır
 let goruntulenenTarix = new Date(); goruntulenenTarix.setHours(0, 0, 0, 0);
 let kategoriler = [];
 let giderler = [];
@@ -183,6 +183,10 @@ async function veriYukle() {
   else if (firebaseDenGeldi && typeof bazaTeyinEt === 'function' && veriMenbeGuvenli && !oflaynYazmaXetasi) bazaTeyinEt(bazaData, bazaRev);
   if (typeof oflaynGostericiYenile === 'function') oflaynGostericiYenile();
   if (typeof driveAcilisYoxla === 'function') driveAcilisYoxla();
+  // Məxfilik siyasəti / şərtlər səhifəsindən geri qayıdılıbsa — Parametrlər yenidən açılsın
+  let ayarlaraQayit = false;
+  try { ayarlaraQayit = sessionStorage.getItem('geri_ayarlar') === '1'; sessionStorage.removeItem('geri_ayarlar'); } catch (e) {}
+  if (ayarlaraQayit && typeof sekmeSec === 'function') sekmeSec('ayarlar');
 }
 
 async function veriKaydet() {
