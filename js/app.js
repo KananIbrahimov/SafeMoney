@@ -1062,11 +1062,11 @@ async function tetbiqiYenile() {
   try {
     if ('caches' in window) {
       const adlar = await caches.keys();
-      await Promise.all(adlar.map((ad) => caches.delete(ad)));
+      await Promise.all(adlar.filter((ad) => ad.startsWith('safemoney-app-cache-')).map((ad) => caches.delete(ad))); // yalnız öz keşimiz
     }
     if ('serviceWorker' in navigator) {
       const qeydler = await navigator.serviceWorker.getRegistrations();
-      await Promise.all(qeydler.map((r) => r.unregister()));
+      await Promise.all(qeydler.filter((r) => location.href.startsWith(r.scope)).map((r) => r.unregister())); // yalnız bu tətbiqin SW-i
     }
   } catch (e) {
     console.warn('Keş təmizləmə xətası:', e);
