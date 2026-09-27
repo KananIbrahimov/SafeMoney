@@ -425,3 +425,11 @@ body.demo-aktiv .page-inner { padding-top: calc(56px + env(safe-area-inset-top, 
 .qr-ik { display: inline-flex; vertical-align: -4px; margin-left: 4px; color: var(--brand-ink); }
 .qr-qeyd { font-size: 12px; color: var(--muted); line-height: 1.45; margin: 0 0 10px; }
 .ana-ekran-btn { width: 100%; margin-top: 6px; border: 1px solid var(--line) !important; justify-content: center; }
+
+/* App Store / Google Play — tezliklə */
+.magaza-sira { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+.magaza-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 10px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; font: inherit; text-align: left; }
+.magaza-btn [data-ikon] { display: flex; color: var(--muted); }
+.magaza-btn .mg-metn { display: flex; flex-direction: column; line-height: 1.15; }
+.magaza-btn .mg-metn small { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.magaza-btn .mg-metn b { font-size: 13.5px; font-weight: 600; }

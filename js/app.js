@@ -1529,6 +1529,9 @@ function qurasdirKec() {
 }
 // Giriş ekranındakı "Ana ekrana əlavə et" düyməsi: Android-də birbaşa quraşdırır, iPhone-da təlimatı açır
 // (Apple heç bir saytın özünü avtomatik əlavə etməsinə icazə vermir).
+function magazaTezlikle(ad) {
+  alertAc(tr('magaza.mesaj', '{ad} versiyası tezliklə! Hələlik "Ana ekrana əlavə et" ilə tətbiq kimi istifadə edə bilərsən.', { ad }), tr('magaza.tezlikle', 'Tezliklə'));
+}
 function anaEkranaElaveEt() {
   if (qurasdirHadise) { qurasdirBas(); return; }
   try { sessionStorage.removeItem('qurasdir_kec'); } catch (e) {}
