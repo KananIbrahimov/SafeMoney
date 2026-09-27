@@ -1544,6 +1544,11 @@ function anaEkranaElaveEt() {
   const btn = document.getElementById('qurasdirBtn'); if (btn) btn.style.display = 'none';
   const addim = document.getElementById('qurasdirAndroidAddim'); if (addim) addim.style.display = '';
   document.getElementById('qurasdirEkrani').classList.add('active');
+  // SINAQ: iPhone-da Paylaş pəncərəsini birbaşa aç (1–2-ci addımlar atlanır). "Ana ekrana əlavə et" orada
+  // görünməsə, arxada açılmış təlimat ekranı qalır.
+  if (ios && navigator.share) {
+    navigator.share({ title: 'Safe Money', url: new URL('./', location.href).href }).catch(() => {});
+  }
 }
 (function () {
   const ua = navigator.userAgent || '';

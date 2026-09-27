@@ -27,7 +27,7 @@
 // ikonların/title-ın istifadəçilərdə qalmaması üçün versiya artırıldı.)
 // (v35: v33-də əlavə olunan Firebase/Chart.js keşi geri alındı — bəzi hallarda kitabxanalar yüklənmirdi və
 //  giriş işləmirdi. Xarici kitabxanaları yenə brauzer özü yükləyir.)
-const CACHE_ADI = 'safe-money-cache-v38';
+const CACHE_ADI = 'safe-money-cache-v39';
 
 const KESLENECEK_FAYLLAR = [
   './index.html',
