@@ -120,7 +120,6 @@
     "hesabAd.krediXett": "Credit line",
     "hesabAd.kredit": "Credit card",
     "hesabAd.nagd": "Cash",
-    "hesabDuzelt.limitReqemXeta": "The limit must be a valid number.",
     "hesablar.basliq": "Accounts",
     "hesablar.elaveOdenis": "extra payment: −{mebleg} AZN",
     "hesablar.hecHesabYox": "No accounts yet. Add one with the + button above.",
@@ -538,6 +537,7 @@
     "ana.xercHesabiBirDefe": "Only the next expense is charged to this account, then it switches back to your ★ main account.",
     "islemForm.hesab": "Account",
     "dash.aktivler": "Assets",
-    "dash.aktivYoxdur": "No accounts with a positive balance."
+    "dash.aktivYoxdur": "No accounts with a positive balance.",
+    "hesab.isareDeyis": "Switch balance sign (+/−)"
   }
 }

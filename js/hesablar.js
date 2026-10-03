@@ -11,7 +11,10 @@ const HESAB_TIPLERI = ['nagd', 'debit', 'kredit', 'depozit', 'krediXett'];
 
 function hesabIdUret() { return 'h_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7); }
 function hesabTap(id) { return hesablar.find(h => h.id === id) || null; }
-function anaHesabTap() { return hesablar.find(h => h.ana && h.tip !== 'krediXett') || null; }
+// ⭐ əsas hesab yalnız nağd pul, debet kartı və ya kredit kartı ola bilər (depozit və kredit xətti — yox)
+const ANA_HESAB_NOVLERI = ['nagd', 'debit', 'kredit'];
+function anaOlaBiler(h) { return !!h && ANA_HESAB_NOVLERI.indexOf(h.tip) !== -1; }
+function anaHesabTap() { return hesablar.find(h => h.ana && anaOlaBiler(h)) || null; }
 function hesabNovAdi(tip) {
   if (tip === 'nagd') return tr('hesabAd.nagd', 'Nağd pul');
   if (tip === 'debit') return tr('hesabAd.debit', 'Debet kartı');
@@ -78,7 +81,7 @@ function hesabNormallasdir(x) {
     kartSon4: (x && /^\d{4}$/.test(x.kartSon4 || '')) ? x.kartSon4 : '',
     balans: pulYuvarla(eded(x && x.balans, 0)),
     menfiOlar: tip === 'kredit' || tip === 'depozit' ? (x && typeof x.menfiOlar === 'boolean' ? x.menfiOlar : true) : !!(x && x.menfiOlar),
-    ana: !!(x && x.ana) && tip !== 'krediXett',
+    ana: !!(x && x.ana) && ANA_HESAB_NOVLERI.indexOf(tip) !== -1,
     hesabatda: !(x && x.hesabatda === false)
   };
   if (tip === 'kredit') h.limit = eded(x && x.limit, null);
@@ -115,6 +118,8 @@ function hesabDatasiniHazirla(parsed) {
   // Ən çox bir ⭐
   let ulduzTapildi = false;
   list.forEach(h => { if (h.ana) { if (ulduzTapildi) h.ana = false; ulduzTapildi = true; } });
+  // ⭐ əvvəl depozitdə idisə (indi icazə yoxdur) — ilk uyğun hesab əsas olsun ki, xərclər hesabsız qalmasın
+  if (!ulduzTapildi && list.length) { const ilk = list.find(h => ANA_HESAB_NOVLERI.indexOf(h.tip) !== -1); if (ilk) ilk.ana = true; }
 
   const transferler = (Array.isArray(parsed.hesabTransferleri) ? parsed.hesabTransferleri : []).filter(t => t && typeof t.tutar === 'number').map(t => {
     let x = t;
@@ -217,7 +222,7 @@ function hesabKartHtml(h, idareRejimi) {
   } else if (h.tip === 'krediXett') {
     elave = `<div class="hk-alt">${escapeHtml(tr('hesablar.taksitOdenilib', '{odenmis}/{say} taksit ödənilib · Aylıq: {aylik} AZN', { odenmis: h.odenmisTaksitSayi, say: h.taksitSayi, aylik: h.aylikMebleg.toFixed(2) }))} · ${escapeHtml(tarixFormat(h.baslangic))}–${escapeHtml(tarixFormat(h.bitis))}${h.elaveOdenis > 0 ? ' · ' + escapeHtml(tr('hesablar.elaveOdenis', 'əlavə ödəniş: −{mebleg} AZN', { mebleg: h.elaveOdenis.toFixed(2) })) : ''}</div>`;
   }
-  const ulduz = h.tip === 'krediXett' ? '' :
+  const ulduz = !anaOlaBiler(h) ? '' :
     `<button class="ulduz-btn${h.ana ? ' aktiv' : ''}" onclick="event.stopPropagation(); anaHesabSec('${escapeHtml(h.id)}')" aria-label="${escapeHtml(tr('hesab.anaSec', 'Əsas hesab et'))}" title="${escapeHtml(tr('hesab.anaSec', 'Əsas hesab et'))}">${ikon('ulduz', 20)}</button>`;
   const sag = idareRejimi ? `<span class="hk-ox">${ikon('sag', 18)}</span>` : ulduz;
   const tikla = idareRejimi ? ` onclick="hesabFormAc('${escapeHtml(h.id)}', 'idare')" role="button" tabindex="0"` : '';
@@ -244,7 +249,7 @@ function hesablarGoster() {
 
 function anaHesabSec(id) {
   const h = hesabTap(id);
-  if (!h || h.tip === 'krediXett') return;
+  if (!anaOlaBiler(h)) return;
   const yeni = !h.ana;
   hesablar.forEach(x => { x.ana = false; });
   h.ana = yeni; // eyni ulduza təkrar basmaq onu söndürür
@@ -509,6 +514,13 @@ function hesabFormKapat() {
   if (hesabFormQayit === 'idare') { hesabIdareCiz(); modalAc('hesabIdareModal'); }
   else { hesablarGoster(); modalAc('hesablarModal'); }
 }
+// iPhone-un onluq klaviaturasında "−" yoxdur — balansın işarəsini düymə ilə dəyişmək
+function hesabFormIsareDeyis() {
+  const el = document.getElementById('hfBalans'); if (!el) return;
+  const v = String(el.value || '').trim();
+  el.value = v.startsWith('-') ? v.slice(1) : '-' + v;
+  el.focus();
+}
 function hesabFormNovSec(tip, ilk) {
   hesabFormTip = tip;
   document.querySelectorAll('#hfNovSecim [data-tip]').forEach(b => b.classList.toggle('aktiv', b.dataset.tip === tip));
@@ -520,7 +532,7 @@ function hesabFormNovSec(tip, ilk) {
   goster('hfLimitSatir', tip === 'kredit');
   goster('hfMuvcudSatir', tip === 'kredit');
   goster('hfMenfiSatir', tip === 'nagd' || tip === 'debit' || tip === 'depozit');
-  goster('hfAnaSatir', !xett);
+  goster('hfAnaSatir', ANA_HESAB_NOVLERI.indexOf(tip) !== -1);
   goster('hfXettBlok', xett);
   const lbl = document.getElementById('hfBalansLbl');
   if (lbl) lbl.innerText = tr('hesab.balans', 'Balans (AZN)');
@@ -596,7 +608,7 @@ function hesabFormSaxla() {
       if (bal < 0 && !menfi) return err(tr('hesab.menfiIcazeYox', 'Mənfi balans üçün "Mənfi balansa icazə ver" tikini aktiv et.'));
       Object.assign(h, qeyd, { balans: bal, menfiOlar: menfi });
     }
-    const ana = document.getElementById('hfAna').checked;
+    const ana = document.getElementById('hfAna').checked && ANA_HESAB_NOVLERI.indexOf(tip) !== -1;
     if (ana) hesablar.forEach(x => { x.ana = false; });
     h.ana = ana;
   }
@@ -613,7 +625,7 @@ function hesabFormSil() {
     hesablar = hesablar.filter(x => x.id !== h.id);
     let yeniAna = null;
     if (h.ana) {
-      yeniAna = hesablar.find(x => x.tip !== 'krediXett') || null;
+      yeniAna = hesablar.find(anaOlaBiler) || null;
       if (yeniAna) yeniAna.ana = true;
     }
     veriKaydet();

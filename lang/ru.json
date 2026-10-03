@@ -120,7 +120,6 @@
     "hesabAd.krediXett": "Кредит",
     "hesabAd.kredit": "Кредитная карта",
     "hesabAd.nagd": "Наличные",
-    "hesabDuzelt.limitReqemXeta": "Лимит должен быть числом.",
     "hesablar.basliq": "Счета",
     "hesablar.elaveOdenis": "досрочно: −{mebleg} AZN",
     "hesablar.hecHesabYox": "Счетов пока нет. Добавьте счёт кнопкой + вверху.",
@@ -538,6 +537,7 @@
     "ana.xercHesabiBirDefe": "С этого счёта будет списан только следующий расход, затем выбор вернётся к ★ основному счёту.",
     "islemForm.hesab": "Счёт",
     "dash.aktivler": "Активы",
-    "dash.aktivYoxdur": "Нет счетов с положительным балансом."
+    "dash.aktivYoxdur": "Нет счетов с положительным балансом.",
+    "hesab.isareDeyis": "Сменить знак баланса (+/−)"
   }
 }

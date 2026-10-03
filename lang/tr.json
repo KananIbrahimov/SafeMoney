@@ -120,7 +120,6 @@
     "hesabAd.krediXett": "Kredi",
     "hesabAd.kredit": "Kredi kartı",
     "hesabAd.nagd": "Nakit",
-    "hesabDuzelt.limitReqemXeta": "Limit geçerli bir sayı olmalı.",
     "hesablar.basliq": "Hesaplar",
     "hesablar.elaveOdenis": "ek ödeme: −{mebleg} AZN",
     "hesablar.hecHesabYox": "Henüz hesap yok. Yukarıdaki + butonuyla ekle.",
@@ -538,6 +537,7 @@
     "ana.xercHesabiBirDefe": "Yalnızca bir sonraki harcama bu hesaptan düşülür, ardından ★ ana hesaba geri dönülür.",
     "islemForm.hesab": "Hesap",
     "dash.aktivler": "Varlıklar",
-    "dash.aktivYoxdur": "Pozitif bakiyeli hesap yok."
+    "dash.aktivYoxdur": "Pozitif bakiyeli hesap yok.",
+    "hesab.isareDeyis": "Bakiye işaretini değiştir (+/−)"
   }
 }

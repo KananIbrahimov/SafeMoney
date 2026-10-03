@@ -534,9 +534,8 @@ function geriAlToastGoster(mesaj, geriAlFn) {
 // NÖVBƏTİ bir xərc üçündür: xərc yazılan kimi seçim avtomatik ⭐ hesaba qayıdır. Yadda saxlanmır.
 let birDefelikHesabId = null;
 // Xərc yalnız nağd puldan, debet kartından və kredit kartından çıxıla bilər (depozit və kredit xətti seçimdə yoxdur).
-// ⭐ əsas hesab başqa növdədirsə, siyahıda yenə görünür ki, seçim düzgün göstərilsin.
 const XERC_HESAB_NOVLERI = ['nagd', 'debit', 'kredit'];
-function xercUcunHesablar() { return (typeof hesablar !== 'undefined' ? hesablar : []).filter(h => XERC_HESAB_NOVLERI.indexOf(h.tip) !== -1 || (h.ana && h.tip !== 'krediXett')); }
+function xercUcunHesablar() { return (typeof hesablar !== 'undefined' ? hesablar : []).filter(h => XERC_HESAB_NOVLERI.indexOf(h.tip) !== -1); }
 // Seçimdə görünən ad: nağd puldan başqa kartlarda son 4 rəqəm də yazılır ("BirBank · 8175")
 function xercHesabSecimAdi(h) { return (h.ana ? '★ ' : '') + hesabGorunenAd(h) + (h.tip !== 'nagd' && h.kartSon4 ? ' · ' + h.kartSon4 : ''); }
 function xercHesabSec(id) {

@@ -121,7 +121,6 @@
     "hesabAd.krediXett": "Kredit xətti",
     "hesabAd.kredit": "Kredit kartı",
     "hesabAd.nagd": "Nağd pul",
-    "hesabDuzelt.limitReqemXeta": "Limit düzgün rəqəm olmalıdır.",
     "hesablar.basliq": "Hesablar",
     "hesablar.elaveOdenis": "əlavə ödəniş: −{mebleg} AZN",
     "hesablar.hecHesabYox": "Hələ hesab yoxdur. Yuxarıdakı + düyməsi ilə əlavə et.",
@@ -539,6 +538,7 @@
     "ana.xercHesabiBirDefe": "Yalnız növbəti xərc bu hesabdan çıxılacaq, sonra ★ əsas hesaba qayıdır.",
     "islemForm.hesab": "Hesab",
     "dash.aktivler": "Aktivlər",
-    "dash.aktivYoxdur": "Müsbət balanslı hesab yoxdur."
+    "dash.aktivYoxdur": "Müsbət balanslı hesab yoxdur.",
+    "hesab.isareDeyis": "Balansın işarəsini dəyiş (+/−)"
   }
 }
