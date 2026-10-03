@@ -170,10 +170,10 @@ function xercHesabaQaytar(g) {
 // Borc: mənfidə olan istənilən hesab — kredit kartı, kredit xətti (qalan borc), eləcə də mənfiyə düşmüş
 // nağd/debet/depozit. Varlıq: müsbət balanslar. Xalis vəziyyət = varlıq − borc.
 function maliyyeCemleri() {
-  const r = { varliq: 0, borc: 0, borclar: [], kartlar: [], limit: 0, istifade: 0, xettler: [], aylik: 0, odenmis: 0, cemTaksit: 0, qalanBorc: 0 };
+  const r = { varliq: 0, borc: 0, borclar: [], aktivler: [], kartlar: [], limit: 0, istifade: 0, xettler: [], aylik: 0, odenmis: 0, cemTaksit: 0, qalanBorc: 0 };
   hesablar.filter(h => h.hesabatda !== false).forEach(h => {
     const bal = hesabBalansi(h);
-    if (bal > 0) r.varliq += bal;
+    if (bal > 0) { r.varliq += bal; r.aktivler.push({ ad: hesabGorunenAd(h), tutar: pulYuvarla(bal) }); }
     else if (bal < 0) { r.borc += -bal; r.borclar.push({ ad: hesabGorunenAd(h), tutar: pulYuvarla(-bal) }); }
     if (h.tip === 'kredit') {
       const ist = Math.max(0, -h.balans);
@@ -189,6 +189,7 @@ function maliyyeCemleri() {
   ['varliq', 'borc', 'limit', 'istifade', 'aylik', 'qalanBorc'].forEach(k => { r[k] = pulYuvarla(r[k]); });
   r.xalis = pulYuvarla(r.varliq - r.borc);
   r.borclar.sort((a, b) => b.tutar - a.tutar);
+  r.aktivler.sort((a, b) => b.tutar - a.tutar);
   return r;
 }
 

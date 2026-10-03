@@ -40,6 +40,11 @@ function appIskeletiOlustur() {
         <div class="v" id="insightTopKategori">—</div>
       </div>
     </div>
+    <div class="xerc-hesab-setir" id="xercHesabSetir" style="display:none;">
+      <label class="xh-lbl" for="xercHesabSecim" data-i18n="ana.xercHesabi">Xərc hesabı</label>
+      <select id="xercHesabSecim" class="xh-secim" onchange="xercHesabSec(this.value)"></select>
+    </div>
+    <div class="xh-ipucu" id="xercHesabIpucu" style="display:none;"></div>
     <div id="butonlarKonteyneri" class="grid-buttons"></div>
     <div class="history-head" style="margin-top:4px;"><span data-i18n="ana.gununXercleri">Günün xərcləri</span></div>
     <ul id="giderListesi" style="list-style:none; padding:0; margin:0 0 14px;"></ul>
@@ -197,6 +202,7 @@ function ekraniGuncelle() {
   }
   const butonlarKonteynerEl = document.getElementById('butonlarKonteyneri');
   if (butonlarKonteynerEl) butonlarKonteynerEl.style.display = tarixBugun ? '' : 'none';
+  xercHesabSecimGuncelle(tarixBugun);
 
   const filtrelenmis = donemeGoreFiltrele();
   let toplam = 0;
@@ -497,6 +503,8 @@ function kategoriyeTikla(index) {
       const idx = giderler.indexOf(yeni);
       if (idx === -1) return;
       xercHesabaQaytar(yeni);
+      const ana = anaHesabTap();
+      if (yeni.hesabId && (!ana || yeni.hesabId !== ana.id) && hesabTap(yeni.hesabId)) birDefelikHesabId = yeni.hesabId; // səhv toxunuş geri alınanda seçim də qayıtsın
       giderler.splice(idx, 1);
       veriKaydet();
       ekraniGuncelle();
@@ -521,6 +529,37 @@ function geriAlToastGoster(mesaj, geriAlFn) {
   setTimeout(() => { if (el.isConnected) { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); } }, 6000);
 }
 
+// ---- Xərc hesabı (Xərclər ekranında) ----
+// Adətən xərc ⭐ əsas hesabdan çıxılır. İstifadəçi Xərclər ekranında başqa hesab seçə bilər — bu seçim yalnız
+// NÖVBƏTİ bir xərc üçündür: xərc yazılan kimi seçim avtomatik ⭐ hesaba qayıdır. Yadda saxlanmır.
+let birDefelikHesabId = null;
+function xercUcunHesablar() { return (typeof hesablar !== 'undefined' ? hesablar : []).filter(h => h.tip !== 'krediXett'); }
+function xercHesabSec(id) {
+  const ana = anaHesabTap();
+  birDefelikHesabId = (id && (!ana || id !== ana.id) && hesabTap(id)) ? id : null;
+  xercHesabSecimGuncelle(true);
+}
+function xercHesabSecimGuncelle(gorunsun) {
+  const setir = document.getElementById('xercHesabSetir');
+  const sel = document.getElementById('xercHesabSecim');
+  const ipucu = document.getElementById('xercHesabIpucu');
+  if (!setir || !sel) return;
+  const siyahi = xercUcunHesablar();
+  const ana = anaHesabTap();
+  if (birDefelikHesabId && !hesabTap(birDefelikHesabId)) birDefelikHesabId = null;
+  // Yalnız bu gün baxılanda və seçmək üçün ən azı iki hesab olanda göstərilir
+  if (!gorunsun || duzenlemeRejimi || siyahi.length < 2) { setir.style.display = 'none'; if (ipucu) ipucu.style.display = 'none'; return; }
+  setir.style.display = '';
+  const secili = birDefelikHesabId || (ana ? ana.id : '');
+  sel.innerHTML = (ana ? '' : `<option value="" ${secili ? '' : 'selected'}>—</option>`) + siyahi.map(h =>
+    `<option value="${escapeHtml(h.id)}" ${h.id === secili ? 'selected' : ''}>${h.ana ? '★ ' : ''}${escapeHtml(hesabGorunenAd(h))}</option>`).join('');
+  setir.classList.toggle('deyisib', !!birDefelikHesabId);
+  if (ipucu) {
+    ipucu.style.display = birDefelikHesabId ? '' : 'none';
+    ipucu.innerText = birDefelikHesabId ? tr('ana.xercHesabiBirDefe', 'Yalnız növbəti xərc bu hesabdan çıxılacaq, sonra ★ əsas hesaba qayıdır.') : '';
+  }
+}
+
 function giderEkle(kategori, tutar, sebeb) {
   const simdi = new Date();
   const kayit = {
@@ -529,9 +568,10 @@ function giderEkle(kategori, tutar, sebeb) {
     tarix: tarixSaatYaz(simdi)
   };
   if (sebeb) kayit.sebeb = sebeb;
-  // Xərc ⭐ əsas hesabdan çıxılır; vəsait/limit çatmırsa xərc yazılmır və xəta mətni qaytarılır.
-  const xeta = xercHesabdanCix(kayit);
+  // Xərc ⭐ əsas hesabdan (və ya bir dəfəlik seçilmiş hesabdan) çıxılır; vəsait/limit çatmırsa xərc yazılmır.
+  const xeta = xercHesabdanCix(kayit, birDefelikHesabId);
   if (xeta) return xeta;
+  birDefelikHesabId = null; // seçim yalnız bir xərc üçündür
   giderler.unshift(kayit);
   veriKaydet();
   ekraniGuncelle();
@@ -553,6 +593,19 @@ function islemKategoriSecenekleriDoldur(seciliAd) {
   if (seciliAd && !kategoriler.some(k => k.ad === seciliAd)) {
     sel.innerHTML += `<option value="${escapeHtml(seciliAd)}" selected>${escapeHtml(seciliAd)} (—)</option>`;
   }
+}
+
+// Xərc formasında hesab seçimi. Köhnə xərc heç bir hesaba bağlı deyilsə (və ya hesabı silinibsə) — "—" seçimi qalır.
+function islemHesabSecenekleriDoldur(seciliId, duzeltMi) {
+  const sel = document.getElementById('islemFormHesab');
+  const wrap = document.getElementById('islemFormHesabWrap');
+  if (!sel) return;
+  const siyahi = xercUcunHesablar();
+  if (wrap) wrap.style.display = siyahi.length ? '' : 'none';
+  const tapildi = siyahi.some(h => h.id === seciliId);
+  const bosVar = duzeltMi ? !tapildi : !siyahi.length;
+  sel.innerHTML = (bosVar ? `<option value="" selected>${escapeHtml(seciliId ? tr('hesab.silinib', 'Silinmiş hesab') : '—')}</option>` : '') +
+    siyahi.map(h => `<option value="${escapeHtml(h.id)}" ${h.id === seciliId ? 'selected' : ''}>${h.ana ? '★ ' : ''}${escapeHtml(hesabGorunenAd(h))}</option>`).join('');
 }
 
 // Seçilən tarixi (YYYY-MM-DD) saat.dəqiqə.saniyə-ni orijinal (və ya indiki) andan alaraq birləşdirir.
@@ -577,6 +630,7 @@ function islemFormModalAc(index) {
   if (tutarEl) tutarEl.value = duzeltMi && g ? g.tutar : '';
   const sebebEl = document.getElementById('islemFormSebeb');
   if (sebebEl) sebebEl.value = duzeltMi && g ? (g.sebeb || '') : '';
+  islemHesabSecenekleriDoldur(duzeltMi && g ? (g.hesabId || '') : ((anaHesabTap() || {}).id || ''), duzeltMi);
 
   const tarixInput = document.getElementById('islemFormTarix');
   if (tarixInput) {
@@ -611,11 +665,13 @@ function islemFormOnayla() {
     if (!g || giderler.indexOf(g) === -1) { modalKapat('islemFormModal'); alertAc(tr('umumi.siyahiYenilendiXeta', 'Siyahı bu arada yeniləndi. Yenidən cəhd et.')); ekraniGuncelle(); return; }
     // Köhnə məbləği öz hesabına qaytar, yeni məbləği eyni hesabdan çıx (hesab silinibsə — əsas hesabdan).
     const kohneTutar = g.tutar, kohneHesab = g.hesabId;
+    const hesabSel = document.getElementById('islemFormHesab');
+    const yeniHesab = hesabSel ? hesabSel.value : (kohneHesab || '');
     xercHesabaQaytar(g);
     g.tutar = tutar;
-    // Heç bir hesaba bağlı olmayan köhnə xərc, eləcə də hesabı artıq silinmiş xərc dəyişəndə
-    // birdən ⭐ hesabdan çıxılmasın (silinmiş hesaba pul qaytarılmır — çıxılmamalıdır da).
-    const xeta = (kohneHesab && hesabTap(kohneHesab)) ? xercHesabdanCix(g, kohneHesab) : '';
+    // Köhnə məbləğ köhnə hesaba qaytarılır, yeni məbləğ seçilmiş hesabdan çıxılır. "—" seçilibsə (hesaba bağlı
+    // olmayan və ya hesabı silinmiş köhnə xərc) heç bir hesabdan çıxılmır — birdən ⭐ hesabdan çıxılmasın.
+    const xeta = (yeniHesab && hesabTap(yeniHesab)) ? xercHesabdanCix(g, yeniHesab) : '';
     if (xeta) {
       g.tutar = kohneTutar; if (kohneHesab) { g.hesabId = kohneHesab; const kh = hesabTap(kohneHesab); if (kh && kh.tip !== 'krediXett') kh.balans = pulYuvarla(kh.balans - kohneTutar); }
       if (errEl) errEl.innerText = xeta; return;
@@ -632,7 +688,8 @@ function islemFormOnayla() {
       tarix: tarixSaatYaz(dt)
     };
     if (sebeb) kayit.sebeb = sebeb;
-    const xeta = xercHesabdanCix(kayit);
+    const hesabSel = document.getElementById('islemFormHesab');
+    const xeta = xercHesabdanCix(kayit, hesabSel && hesabSel.value ? hesabSel.value : null);
     if (xeta) { if (errEl) errEl.innerText = xeta; return; }
     giderler.unshift(kayit);
   }
@@ -957,14 +1014,18 @@ function dashboardPaneliniAc() {
 }
 
 // ---- Dashboard: 3 dairəvi (doughnut) diaqram — Chart.js ilə ----
-function dairaviCiz(canvasId, mevcudChart, parcalar, legendId, vahid, emptyMesaj) {
+// opts: { isare: 'menfi' | 'musbet' — məbləğ rəngi (menfi → qırmızı və "−" işarəsi),
+//         segmentler: [{tutar, renk}] — halqa legenddən fərqli bölünsün (məs. kredit xəttində hər ay ayrıca) }
+function dairaviCiz(canvasId, mevcudChart, parcalar, legendId, vahid, emptyMesaj, opts) {
+  opts = opts || {};
   if (mevcudChart) mevcudChart.destroy();
   const canvasEl = document.getElementById(canvasId);
   const legendEl = document.getElementById(legendId);
   if (!canvasEl || !legendEl) return null;
   const dolu = parcalar.filter(p => p.tutar > 0);
   const pulVahididirmi = (vahid || '').trim() === VK();
-  const deyerYaz = (v) => pulVahididirmi ? v.toFixed(2) : Math.round(v).toString();
+  const deyerYaz = (v) => (opts.isare === 'menfi' && v > 0 ? '−' : '') + (pulVahididirmi ? v.toFixed(2) : Math.round(v).toString());
+  const amtKlass = opts.isare ? ' ' + opts.isare : '';
   legendEl.innerHTML = '';
   if (dolu.length === 0) {
     legendEl.innerHTML = `<div class="pie-empty">${escapeHtml(emptyMesaj || tr('dash.melumatYoxdur', 'Məlumat yoxdur.'))}</div>`;
@@ -977,20 +1038,23 @@ function dairaviCiz(canvasId, mevcudChart, parcalar, legendId, vahid, emptyMesaj
   dolu.forEach(p => {
     const row = document.createElement('div');
     row.className = 'pie-legend-row';
-    row.innerHTML = `<span class="lbl"><span class="dot" style="background:${escapeHtml(p.renk)}"></span>${escapeHtml(p.ad)}</span><span class="amt">${deyerYaz(p.tutar)}${escapeHtml(vahid)}</span>`;
+    row.innerHTML = `<span class="lbl"><span class="dot" style="background:${escapeHtml(p.renk)}"></span>${escapeHtml(p.ad)}</span><span class="amt${p.amtKlass ? ' ' + p.amtKlass : amtKlass}">${deyerYaz(p.tutar)}${escapeHtml(vahid)}</span>`;
     legendEl.appendChild(row);
   });
+  const seg = (opts.segmentler || []).filter(x => x.tutar > 0);
+  const ayriSeg = seg.length > 0;
   return new Chart(canvasEl.getContext('2d'), {
     type: 'doughnut',
     data: {
-      labels: dolu.map(p => p.ad),
-      datasets: [{ data: dolu.map(p => p.tutar), backgroundColor: dolu.map(p => p.renk), borderWidth: 2, borderColor: cssVar('--panel') || '#fff' }]
+      labels: ayriSeg ? seg.map(x => x.ad || '') : dolu.map(p => p.ad),
+      datasets: [{ data: ayriSeg ? seg.map(x => x.tutar) : dolu.map(p => p.tutar), backgroundColor: ayriSeg ? seg.map(x => x.renk) : dolu.map(p => p.renk), borderWidth: 2, borderColor: cssVar('--panel') || '#fff' }]
     },
     options: {
       cutout: '68%',
       plugins: {
         legend: { display: false },
         tooltip: {
+          enabled: !ayriSeg || seg.every(x => x.ad),
           callbacks: {
             label: (ctx) => ` ${ctx.label}: ${deyerYaz(ctx.parsed)}${vahid}`
           }
@@ -1000,10 +1064,17 @@ function dairaviCiz(canvasId, mevcudChart, parcalar, legendId, vahid, emptyMesaj
   });
 }
 
+// "#e0776b" → "rgba(224,119,107,a)" — eyni rəngin açıq-tünd tonları üçün
+function renkTon(hex, a) {
+  const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(String(hex || '').trim());
+  if (!m) return hex;
+  return `rgba(${parseInt(m[1], 16)},${parseInt(m[2], 16)},${parseInt(m[3], 16)},${a})`;
+}
+let dashAktivChart = null;
 let dashElaveChartlar = []; // hər kredit kartı / kredit xətti üçün ayrıca qrafiklər
 function dashboardDairaviDiaqramlariCiz() {
-  const legendler = ['dashVeziyyetLegend', 'dashUmumiBorcLegend'];
-  const merkezler = ['dashVeziyyetMerkez', 'dashUmumiBorcMerkez'];
+  const legendler = ['dashVeziyyetLegend', 'dashAktivLegend', 'dashUmumiBorcLegend'];
+  const merkezler = ['dashVeziyyetMerkez', 'dashAktivMerkez', 'dashUmumiBorcMerkez'];
   if (typeof Chart === 'undefined') {
     // Chart.js CDN yüklənməyibsə (internet yoxdursa) istifadəçiyə xəbər ver.
     legendler.forEach(id => {
@@ -1017,7 +1088,7 @@ function dashboardDairaviDiaqramlariCiz() {
   const reng = ['--chart-1', '--chart-2', '--chart-3'].map(v => cssVar(v)).concat(['#6f767e', '#a9afb7', '#3a3f45', '#bfc4cb', '#565c63']);
   const altYaz = (id, setirler) => {
     const el = document.getElementById(id); if (!el) return;
-    el.innerHTML = setirler.map(x => `<div class="pie-alt-setir"><span>${escapeHtml(x[0])}</span><b>${escapeHtml(x[1])}</b></div>`).join('');
+    el.innerHTML = setirler.map(x => `<div class="pie-alt-setir"><span>${escapeHtml(x[0])}</span><b${x[2] ? ` class="${x[2]}"` : ''}>${escapeHtml(x[1])}</b></div>`).join('');
   };
 
   // 1. Ümumi maliyyə vəziyyəti: varlıq − borc
@@ -1029,11 +1100,26 @@ function dashboardDairaviDiaqramlariCiz() {
     { ad: tr('dash.borcCemi', 'Öhdəliklər (mənfi balanslı hesablar)'), tutar: c.borc, renk: cssVar('--danger') || '#d63a3a' }
   ], 'dashVeziyyetLegend', ' ' + VK(), tr('dash.hesabYoxdur', 'Hesabatda göstərilən hesab yoxdur.'));
 
-  // 2. Ümumi borc: mənfidə olan hər hesab ayrıca
-  document.getElementById('dashUmumiBorcMerkez').innerText = c.borc.toFixed(2);
+  const qirmizi = cssVar('--danger') || '#d63a3a';
+  const yasil = cssVar('--success-ink') || '#2f7a57';
+  const qirmiziTonlar = [1, 0.7, 0.48, 0.32, 0.85, 0.58, 0.4];
+  const yasilTonlar = [1, 0.7, 0.48, 0.32, 0.85, 0.58, 0.4];
+
+  // 1b. Aktivlər: müsbət balanslı hər hesab ayrıca (yaşıl)
+  const aEl = document.getElementById('dashAktivMerkez');
+  aEl.innerText = c.varliq.toFixed(2);
+  aEl.classList.toggle('musbet', c.varliq > 0);
+  dashAktivChart = dairaviCiz('dashAktivCanvas', dashAktivChart,
+    c.aktivler.map((b, i) => ({ ad: b.ad, tutar: b.tutar, renk: renkTon(yasil, yasilTonlar[i % yasilTonlar.length]) })),
+    'dashAktivLegend', ' ' + VK(), tr('dash.aktivYoxdur', 'Müsbət balanslı hesab yoxdur.'), { isare: 'musbet' });
+
+  // 2. Ümumi borc: mənfidə olan hər hesab ayrıca (qırmızı tonlar, mənfi işarə ilə)
+  const bEl = document.getElementById('dashUmumiBorcMerkez');
+  bEl.innerText = c.borc > 0 ? '−' + c.borc.toFixed(2) : c.borc.toFixed(2);
+  bEl.classList.toggle('menfi', c.borc > 0);
   dashUmumiBorcChart = dairaviCiz('dashUmumiBorcCanvas', dashUmumiBorcChart,
-    c.borclar.map((b, i) => ({ ad: b.ad, tutar: b.tutar, renk: reng[i % reng.length] })),
-    'dashUmumiBorcLegend', ' ' + VK(), tr('dash.borcYoxdur', 'Borc yoxdur.'));
+    c.borclar.map((b, i) => ({ ad: b.ad, tutar: b.tutar, renk: renkTon(qirmizi, qirmiziTonlar[i % qirmiziTonlar.length]) })),
+    'dashUmumiBorcLegend', ' ' + VK(), tr('dash.borcYoxdur', 'Borc yoxdur.'), { isare: 'menfi' });
 
   // 3–4. Hər kredit kartı və hər kredit xətti üçün ayrıca qrafik (yalnız tiki aktiv olanlar)
   dashElaveChartlar.forEach(ch => { try { ch.destroy(); } catch (e) {} });
@@ -1065,12 +1151,16 @@ function dashboardDairaviDiaqramlariCiz() {
   c.xettler.forEach(x => {
     n++;
     kartQutu(xq, n, x.ad, x.altYazi, x.qalan > 0 ? x.aylik.toFixed(2) : '0.00', tr('dash.ayda', 'AZN / ay'));
+    // Halqa ay-ay bölünür: ödənilmiş aylar yaşıl, ödənilməmişlər qırmızı
+    const odenmis = Math.max(0, Math.min(x.say, x.odenmis || 0));
+    const aylar = [];
+    for (let i = 0; i < x.say; i++) aylar.push({ tutar: 1, renk: i < odenmis ? yasil : qirmizi });
     dashElaveChartlar.push(dairaviCiz('dashEx' + n + 'Canvas', null, [
-      { ad: tr('dash.odenilib', 'Ödənilib'), tutar: x.odenmis, renk: cssVar('--chart-1') || '#c9ced6' },
-      { ad: tr('dash.qalib', 'Qalıb'), tutar: x.say - x.odenmis, renk: cssVar('--input-border') || '#d9c9cd' }
-    ], 'dashEx' + n + 'Legend', ' ' + tr('dash.taksitVahid', 'taksit'), tr('dash.krediXettYoxdur', 'Kredit xətti hələ əlavə edilməyib.')));
+      { ad: tr('dash.odenilib', 'Ödənilib'), tutar: odenmis, renk: yasil, amtKlass: 'musbet' },
+      { ad: tr('dash.qalib', 'Qalıb'), tutar: x.say - odenmis, renk: qirmizi, amtKlass: 'menfi' }
+    ], 'dashEx' + n + 'Legend', ' ' + tr('dash.taksitVahid', 'taksit'), tr('dash.krediXettYoxdur', 'Kredit xətti hələ əlavə edilməyib.'), { segmentler: x.say <= 120 ? aylar : null }));
     altYaz('dashEx' + n + 'Alt', [
-      [tr('dash.qalanBorc', 'Qalan borc'), x.qalan.toFixed(2) + ' ' + VK()],
+      [tr('dash.qalanBorc', 'Qalan borc'), (x.qalan > 0 ? '−' : '') + x.qalan.toFixed(2) + ' ' + VK(), x.qalan > 0 ? 'menfi' : ''],
       [tr('dash.bitis', 'Bitmə tarixi'), typeof tarixFormat === 'function' ? tarixFormat(x.bitis) : (x.bitis || '—')]
     ]);
   });

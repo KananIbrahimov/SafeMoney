@@ -130,7 +130,7 @@
     "hesablar.taksitOdenilib": "{odenmis}/{say} taksit ödənilib · Aylıq: {aylik} AZN",
     "islemForm.gelecekTarixXeta": "Gələcək tarixi seçmək olmaz.",
     "islemForm.kateqoriya": "Kateqoriya",
-    "islemForm.kateqoriyaMeblegSebebVe": "Kateqoriyanı, məbləği, qeydi və tarixi dəyiş.",
+    "islemForm.kateqoriyaMeblegSebebVe": "Kateqoriyanı, məbləği, hesabı, qeydi və tarixi dəyiş.",
     "islemForm.kateqoriyaSecXeta": "Kateqoriya seç.",
     "islemForm.mesTaksiHediyyePlaceholder": "Məs.: taksi, hədiyyə...",
     "islemForm.sebebIsteyeBagli": "Qeyd (istəyə bağlı)",
@@ -534,6 +534,11 @@
     "kurulum.limitBasliq": "Gündəlik xərc limiti",
     "kurulum.limitIzah": "Gündəlik xərclərin bu məbləği keçəndə ana ekranda xəbərdar olacaqsan. İstəmirsənsə boş burax.",
     "kurulum.limitLbl": "Gündəlik limit (AZN)",
-    "kurulum.hazir": "Hazırdır! İlk xərcini kateqoriyaya toxunaraq qeyd et."
+    "kurulum.hazir": "Hazırdır! İlk xərcini kateqoriyaya toxunaraq qeyd et.",
+    "ana.xercHesabi": "Xərc hesabı",
+    "ana.xercHesabiBirDefe": "Yalnız növbəti xərc bu hesabdan çıxılacaq, sonra ★ əsas hesaba qayıdır.",
+    "islemForm.hesab": "Hesab",
+    "dash.aktivler": "Aktivlər",
+    "dash.aktivYoxdur": "Müsbət balanslı hesab yoxdur."
   }
 }

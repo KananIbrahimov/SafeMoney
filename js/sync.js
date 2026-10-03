@@ -381,6 +381,11 @@ function driveBackupVaxtiGelib() {
   if (driveBackupSaati()) return !son || son < driveSonPlanAni();
   return !son || Date.now() - son >= DRIVE_BACKUP_ARALIQ;
 }
+// Bağlanmış xatırlatmanın açarı: seçilmiş vaxt rejimində — həmin planın anı; 24 saat rejimində — son backup anı
+// (əvvəl sabit 'gun' idi və bir dəfə bağlanandan sonra xatırlatma bir daha çıxmırdı).
+function driveXatirlatmaAcari() {
+  return driveBackupSaati() ? String(driveSonPlanAni()) : ('gun' + (localStorage.getItem('drive_son_backup_ms') || 0));
+}
 function driveBackupSaatiSaxla(v) {
   try {
     if (v) localStorage.setItem('drive_backup_saat', v); else localStorage.removeItem('drive_backup_saat');
@@ -393,7 +398,7 @@ function driveBackupSaatiSaxla(v) {
 function driveVaxtYoxla() {
   if (demoRejim || !veriYuklendi || !veriMenbeGuvenli || !driveBagli || driveSyncGedirmi || !driveBackupVaxtiGelib()) return;
   if (driveAccessToken && Date.now() < driveTokenBitisZamani) { driveArxaPlanGonder(true); return; }
-  const plan = String(driveSonPlanAni() || 'gun');
+  const plan = driveXatirlatmaAcari();
   if (localStorage.getItem('drive_xatirlatma_plan') === plan) return; // bu vaxt üçün xatırlatma artıq bağlanıb
   driveXatirlatmaGoster();
 }
@@ -401,7 +406,7 @@ setInterval(driveVaxtYoxla, 60000);
 function driveXatirlatmaGizle() {
   const el = document.getElementById('driveXatirlatma');
   if (el) el.remove();
-  try { localStorage.setItem('drive_xatirlatma_plan', String(driveSonPlanAni() || 'gun')); } catch (e) {}
+  try { localStorage.setItem('drive_xatirlatma_plan', driveXatirlatmaAcari()); } catch (e) {}
 }
 function driveXatirlatmaGoster() {
   if (document.getElementById('driveXatirlatma')) return;
@@ -455,7 +460,7 @@ function driveAcilisYoxla() {
   if (driveBagli) driveGisSkriptiniYukle().then(driveTokenClientHazirla).catch(() => {});
   if (!driveBagli || !driveBackupVaxtiGelib()) return;
   if (driveAccessToken && Date.now() < driveTokenBitisZamani) driveArxaPlanGonder(true);
-  else setTimeout(driveXatirlatmaGoster, 800);
+  else if (localStorage.getItem('drive_xatirlatma_plan') !== driveXatirlatmaAcari()) setTimeout(driveXatirlatmaGoster, 800);
 }
 
 // ---- Fayl ehtiyatı (Google pəncərəsindən asılı deyil — iPhone-da ana ekran tətbiqi üçün etibarlı yol) ----

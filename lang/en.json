@@ -129,7 +129,7 @@
     "hesablar.taksitOdenilib": "{odenmis} of {say} payments made · Monthly: {aylik} AZN",
     "islemForm.gelecekTarixXeta": "You can't pick a future date.",
     "islemForm.kateqoriya": "Category",
-    "islemForm.kateqoriyaMeblegSebebVe": "Change the category, amount, note and date.",
+    "islemForm.kateqoriyaMeblegSebebVe": "Change the category, amount, account, note and date.",
     "islemForm.kateqoriyaSecXeta": "Choose a category.",
     "islemForm.mesTaksiHediyyePlaceholder": "E.g. taxi, gift...",
     "islemForm.sebebIsteyeBagli": "Note (optional)",
@@ -533,6 +533,11 @@
     "kurulum.limitBasliq": "Daily spending limit",
     "kurulum.limitIzah": "You'll be alerted on the home screen when your daily spending goes over this amount. Leave it empty if you don't want a limit.",
     "kurulum.limitLbl": "Daily limit (AZN)",
-    "kurulum.hazir": "All set! Tap a category to record your first expense."
+    "kurulum.hazir": "All set! Tap a category to record your first expense.",
+    "ana.xercHesabi": "Pay from",
+    "ana.xercHesabiBirDefe": "Only the next expense is charged to this account, then it switches back to your ★ main account.",
+    "islemForm.hesab": "Account",
+    "dash.aktivler": "Assets",
+    "dash.aktivYoxdur": "No accounts with a positive balance."
   }
 }

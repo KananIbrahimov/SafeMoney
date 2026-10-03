@@ -4,9 +4,9 @@
   const DILLER = ['az', 'en', 'ru', 'tr'];
   const q = new URLSearchParams(location.search);
   const oxu = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
-  let dil = q.get('dil') || location.hash.replace('#', '') || oxu('sm:dil') || 'en';
+  let dil = q.get('dil') || location.hash.replace('#', '') || oxu('dil') || oxu('sm:dil') || 'en';
   if (DILLER.indexOf(dil) === -1) dil = 'en';
-  const tema = q.get('tema') || oxu('sm:tema') || 'dark';
+  const tema = q.get('tema') || oxu('tema') || oxu('sm:tema') || 'dark';
   document.documentElement.setAttribute('data-theme', tema === 'light' ? 'light' : 'dark');
   const metaTema = document.querySelector('meta[name="theme-color"]');
   if (metaTema) metaTema.setAttribute('content', tema === 'light' ? '#f3f4f6' : '#0b0c0e');

@@ -382,6 +382,9 @@ body.demo-aktiv .page-inner { padding-top: calc(56px + env(safe-area-inset-top, 
 
 /* Maliyyə səhifəsi */
 .pie-center-label .n.menfi { color: var(--danger); }
+.pie-center-label .n.musbet { color: var(--success-ink); }
+.pie-legend-row .amt.menfi, .pie-alt-setir b.menfi { color: var(--danger); }
+.pie-legend-row .amt.musbet { color: var(--success-ink); }
 .pie-alt:empty { display: none; }
 .pie-alt { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 4px; }
 .pie-alt-setir { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; color: var(--muted); }

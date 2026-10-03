@@ -129,7 +129,7 @@
     "hesablar.taksitOdenilib": "Оплачено {odenmis} из {say} · В месяц: {aylik} AZN",
     "islemForm.gelecekTarixXeta": "Нельзя выбрать дату в будущем.",
     "islemForm.kateqoriya": "Категория",
-    "islemForm.kateqoriyaMeblegSebebVe": "Измените категорию, сумму, комментарий и дату.",
+    "islemForm.kateqoriyaMeblegSebebVe": "Измените категорию, сумму, счёт, комментарий и дату.",
     "islemForm.kateqoriyaSecXeta": "Выберите категорию.",
     "islemForm.mesTaksiHediyyePlaceholder": "Напр.: такси, подарок...",
     "islemForm.sebebIsteyeBagli": "Комментарий (необязательно)",
@@ -533,6 +533,11 @@
     "kurulum.limitBasliq": "Дневной лимит расходов",
     "kurulum.limitIzah": "Если дневные расходы превысят эту сумму, вы увидите предупреждение на главном экране. Оставьте поле пустым, если лимит не нужен.",
     "kurulum.limitLbl": "Дневной лимит (AZN)",
-    "kurulum.hazir": "Готово! Нажмите на категорию, чтобы записать первый расход."
+    "kurulum.hazir": "Готово! Нажмите на категорию, чтобы записать первый расход.",
+    "ana.xercHesabi": "Списать с",
+    "ana.xercHesabiBirDefe": "С этого счёта будет списан только следующий расход, затем выбор вернётся к ★ основному счёту.",
+    "islemForm.hesab": "Счёт",
+    "dash.aktivler": "Активы",
+    "dash.aktivYoxdur": "Нет счетов с положительным балансом."
   }
 }

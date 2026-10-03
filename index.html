@@ -170,6 +170,17 @@
       </div>
     </div>
 
+    <!-- 1b. Aktivlər: müsbət balanslı hər hesab -->
+    <div class="pie-card" id="dashKartAktiv">
+      <div data-i18n="dash.aktivler" class="pie-title">Aktivlər</div>
+      <div class="pie-card-row">
+        <div class="pie-canvas-wrap"><canvas id="dashAktivCanvas"></canvas>
+          <div class="pie-center-label"><span class="n" id="dashAktivMerkez">—</span><span data-i18n="dash.cem" class="l">cəmi</span></div>
+        </div>
+        <div class="pie-legend" id="dashAktivLegend"></div>
+      </div>
+    </div>
+
     <!-- 2. Ümumi borc: mənfidə olan hər hesab -->
     <div class="pie-card" id="dashKart2">
       <div data-i18n="dash.umumiBorc" class="pie-title">Ümumi borc</div>
@@ -213,7 +224,7 @@
   <div class="modal-content">
     <h2 data-i18n="mebleg.tutariDaxilEt" id="amountModalTitle">Məbləği daxil et</h2>
     <p data-i18n="mebleg.buXercUcunMeblegi" class="hint">Bu xərcin məbləğini AZN ilə yaz.</p>
-    <input type="number" step="0.01" min="0" id="amountInput" placeholder="0.00" style="margin-bottom:10px;">
+    <input type="text" inputmode="decimal" autocomplete="off" id="amountInput" placeholder="0.00" style="margin-bottom:10px;">
     <div id="amountReasonWrap" style="display:none;">
       <label data-i18n="mebleg.sebeb" style="font-size:12px; color:var(--muted); font-weight:600; display:block; margin-bottom:4px;">Qeyd</label>
       <input type="text" id="amountReasonInput" placeholder="Məs.: taksi, hədiyyə, təmir..." data-i18n-placeholder="mebleg.mesTaksiHediyyeTemirPlaceholder">
@@ -260,14 +271,18 @@
 <div id="islemFormModal" class="modal">
   <div class="modal-content">
     <h2 data-i18n="islemForm.xerciDuzelt" id="islemFormBaslik">Xərci dəyiş</h2>
-    <p data-i18n="islemForm.kateqoriyaMeblegSebebVe" class="hint">Kateqoriyanı, məbləği, qeydi və tarixi dəyiş.</p>
+    <p data-i18n="islemForm.kateqoriyaMeblegSebebVe" class="hint">Kateqoriyanı, məbləği, hesabı, qeydi və tarixi dəyiş.</p>
     <div style="margin-bottom:10px;">
       <label data-i18n="islemForm.kateqoriya" style="font-size:12px; color:var(--muted); font-weight:600; display:block; margin-bottom:4px;">Kateqoriya</label>
       <select id="islemFormKategori" style="width:100%; padding:9px 10px; border:1px solid var(--input-border); border-radius:8px; font-size:14px; background:var(--panel); color:var(--ink);"></select>
     </div>
     <div style="margin-bottom:10px;">
       <label data-i18n="transfer.meblegLbl" style="font-size:12px; color:var(--muted); font-weight:600; display:block; margin-bottom:4px;">Məbləğ (AZN)</label>
-      <input type="number" step="0.01" min="0" id="islemFormTutar" placeholder="0.00">
+      <input type="text" inputmode="decimal" autocomplete="off" id="islemFormTutar" placeholder="0.00">
+    </div>
+    <div style="margin-bottom:10px;" id="islemFormHesabWrap">
+      <label data-i18n="islemForm.hesab" for="islemFormHesab" style="font-size:12px; color:var(--muted); font-weight:600; display:block; margin-bottom:4px;">Hesab</label>
+      <select id="islemFormHesab" style="width:100%; padding:9px 10px; border:1px solid var(--input-border); border-radius:8px; font-size:14px; background:var(--panel); color:var(--ink);"></select>
     </div>
     <div style="margin-bottom:10px;">
       <label data-i18n="islemForm.sebebIsteyeBagli" style="font-size:12px; color:var(--muted); font-weight:600; display:block; margin-bottom:4px;">Qeyd (istəyə bağlı)</label>
@@ -361,7 +376,7 @@
       <div class="ayarlar-setir-ic" style="gap:8px;">
         <span class="ayarlar-metin" style="min-width:0; line-height:1.25;" data-i18n="ayarlar.gunlukLimit">Gündəlik xərc limiti</span>
         <div style="display:flex; gap:6px; align-items:center; flex:none;">
-          <input type="number" step="0.01" min="0" id="gunlukLimitInput" placeholder="20" style="width:64px; padding:8px; border:1px solid var(--input-border); border-radius:8px; font-size:14px; background:var(--panel); color:var(--ink);">
+          <input type="text" inputmode="decimal" autocomplete="off" id="gunlukLimitInput" placeholder="20" style="width:64px; padding:8px; border:1px solid var(--input-border); border-radius:8px; font-size:14px; background:var(--panel); color:var(--ink);">
           <button class="btn btn-primary" onclick="gunlukLimitYadSaxla()" style="white-space:nowrap; padding:8px 12px; font-size:13px;" data-i18n="umumi.yaddaSaxla">Yadda saxla</button>
         </div>
       </div>
@@ -400,7 +415,6 @@
       <div class="drive-box" id="driveBox">
         <div data-i18n="ayarlar.googleDriveABagli" class="drive-status" id="driveStatus">Google Drive-a qoşulmayıb</div>
         <div data-i18n="ayarlar.baglansanGonderVeCek" class="drive-sub" id="driveSub">Qoşulduqdan sonra ehtiyat nüsxələr Google Drive-da saxlanılacaq.</div>
-        <div class="drive-sub" id="driveDebug" style="display:none;"></div>
         <div class="drive-btns" id="driveBtns">
           <button data-i18n="ayarlar.baglan" onclick="driveBaglan()">Qoşul</button>
         </div>
@@ -615,7 +629,7 @@
           <div><label class="filtr-lbl" for="hfSay" data-i18n="krediBorc.taksitSayisi">Taksit sayı</label><input type="number" step="1" min="1" id="hfSay" class="filtr-inp" oninput="hesabFormXettHesabla()" placeholder="Məs.: 8" data-i18n-placeholder="krediBorc.mes8Placeholder"></div>
           <div><label class="filtr-lbl" for="hfOdenmis" data-i18n="hesab.odenmis">Ödənilmiş taksit</label><input type="number" step="1" min="0" id="hfOdenmis" class="filtr-inp" oninput="hesabFormXettHesabla()" placeholder="0"></div>
         </div>
-        <label class="filtr-lbl" for="hfAylik" data-i18n="krediBorc.ayliqTaksitAzn">Aylıq taksit (AZN)</label><input type="number" step="0.01" min="0" id="hfAylik" class="filtr-inp" oninput="hesabFormXettHesabla()" placeholder="Məs.: 550" data-i18n-placeholder="krediBorc.mes550Placeholder">
+        <label class="filtr-lbl" for="hfAylik" data-i18n="krediBorc.ayliqTaksitAzn">Aylıq taksit (AZN)</label><input type="text" inputmode="decimal" autocomplete="off" id="hfAylik" class="filtr-inp" oninput="hesabFormXettHesabla()" placeholder="Məs.: 550" data-i18n-placeholder="krediBorc.mes550Placeholder">
         <div class="hf-netice" id="hfXettNetice"></div>
       </div>
     </div>
@@ -662,7 +676,7 @@
     </div>
     <div style="margin-bottom:12px;">
       <label class="filtr-lbl" for="medaxilMebleg" data-i18n="transfer.meblegLbl">Məbləğ (AZN)</label>
-      <input type="number" step="0.01" min="0" id="medaxilMebleg" placeholder="Məs.: 600" data-i18n-placeholder="medaxil.meblegPlaceholder" inputmode="decimal">
+      <input type="text" inputmode="decimal" autocomplete="off" id="medaxilMebleg" placeholder="Məs.: 600" data-i18n-placeholder="medaxil.meblegPlaceholder">
     </div>
     <div style="margin-bottom:6px;">
       <label class="filtr-lbl" for="medaxilAciqlama" data-i18n="medaxil.aciqlama">Açıqlama (istəyə bağlı)</label>
@@ -690,7 +704,7 @@
     </div>
     <div style="margin-bottom:6px;">
       <label style="font-size:12px; color:var(--muted); font-weight:600; display:block; margin-bottom:4px;" data-i18n="transfer.meblegLbl">Məbləğ (AZN)</label>
-      <input type="number" step="0.01" min="0" id="transferMebleg" placeholder="Məs.: 100" data-i18n-placeholder="transfer.meblegPlaceholder">
+      <input type="text" inputmode="decimal" autocomplete="off" id="transferMebleg" placeholder="Məs.: 100" data-i18n-placeholder="transfer.meblegPlaceholder">
     </div>
     <div class="error-text" id="transferError"></div>
     <div class="modal-footer">
