@@ -533,7 +533,12 @@ function geriAlToastGoster(mesaj, geriAlFn) {
 // Adətən xərc ⭐ əsas hesabdan çıxılır. İstifadəçi Xərclər ekranında başqa hesab seçə bilər — bu seçim yalnız
 // NÖVBƏTİ bir xərc üçündür: xərc yazılan kimi seçim avtomatik ⭐ hesaba qayıdır. Yadda saxlanmır.
 let birDefelikHesabId = null;
-function xercUcunHesablar() { return (typeof hesablar !== 'undefined' ? hesablar : []).filter(h => h.tip !== 'krediXett'); }
+// Xərc yalnız nağd puldan, debet kartından və kredit kartından çıxıla bilər (depozit və kredit xətti seçimdə yoxdur).
+// ⭐ əsas hesab başqa növdədirsə, siyahıda yenə görünür ki, seçim düzgün göstərilsin.
+const XERC_HESAB_NOVLERI = ['nagd', 'debit', 'kredit'];
+function xercUcunHesablar() { return (typeof hesablar !== 'undefined' ? hesablar : []).filter(h => XERC_HESAB_NOVLERI.indexOf(h.tip) !== -1 || (h.ana && h.tip !== 'krediXett')); }
+// Seçimdə görünən ad: nağd puldan başqa kartlarda son 4 rəqəm də yazılır ("BirBank · 8175")
+function xercHesabSecimAdi(h) { return (h.ana ? '★ ' : '') + hesabGorunenAd(h) + (h.tip !== 'nagd' && h.kartSon4 ? ' · ' + h.kartSon4 : ''); }
 function xercHesabSec(id) {
   const ana = anaHesabTap();
   birDefelikHesabId = (id && (!ana || id !== ana.id) && hesabTap(id)) ? id : null;
@@ -552,7 +557,7 @@ function xercHesabSecimGuncelle(gorunsun) {
   setir.style.display = '';
   const secili = birDefelikHesabId || (ana ? ana.id : '');
   sel.innerHTML = (ana ? '' : `<option value="" ${secili ? '' : 'selected'}>—</option>`) + siyahi.map(h =>
-    `<option value="${escapeHtml(h.id)}" ${h.id === secili ? 'selected' : ''}>${h.ana ? '★ ' : ''}${escapeHtml(hesabGorunenAd(h))}</option>`).join('');
+    `<option value="${escapeHtml(h.id)}" ${h.id === secili ? 'selected' : ''}>${escapeHtml(xercHesabSecimAdi(h))}</option>`).join('');
   setir.classList.toggle('deyisib', !!birDefelikHesabId);
   if (ipucu) {
     ipucu.style.display = birDefelikHesabId ? '' : 'none';
@@ -602,10 +607,13 @@ function islemHesabSecenekleriDoldur(seciliId, duzeltMi) {
   if (!sel) return;
   const siyahi = xercUcunHesablar();
   if (wrap) wrap.style.display = siyahi.length ? '' : 'none';
+  // Köhnə xərc siyahıda olmayan hesabdan (məs. depozitdən) çıxılıbsa — həmin hesab da seçimdə qalsın
+  const kohne = seciliId && !siyahi.some(h => h.id === seciliId) ? hesabTap(seciliId) : null;
+  if (kohne && kohne.tip !== 'krediXett') siyahi.unshift(kohne);
   const tapildi = siyahi.some(h => h.id === seciliId);
   const bosVar = duzeltMi ? !tapildi : !siyahi.length;
   sel.innerHTML = (bosVar ? `<option value="" selected>${escapeHtml(seciliId ? tr('hesab.silinib', 'Silinmiş hesab') : '—')}</option>` : '') +
-    siyahi.map(h => `<option value="${escapeHtml(h.id)}" ${h.id === seciliId ? 'selected' : ''}>${h.ana ? '★ ' : ''}${escapeHtml(hesabGorunenAd(h))}</option>`).join('');
+    siyahi.map(h => `<option value="${escapeHtml(h.id)}" ${h.id === seciliId ? 'selected' : ''}>${escapeHtml(xercHesabSecimAdi(h))}</option>`).join('');
 }
 
 // Seçilən tarixi (YYYY-MM-DD) saat.dəqiqə.saniyə-ni orijinal (və ya indiki) andan alaraq birləşdirir.
