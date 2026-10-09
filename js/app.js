@@ -1442,7 +1442,7 @@ function aylikHesabatGoster() {
   if (trendEl) {
     trendEl.innerHTML = '';
     if (Object.keys(kecenAyToplam).length === 0) {
-      trendEl.innerHTML = `<div class="breakdown-empty">${tr('aylik.muqayiseUcunMelumatYoxdur', 'Müqayisə üçün keçən aya aid məlumat yoxdur.')}</div>`;
+      trendEl.innerHTML = `<div class="breakdown-empty">${tr('aylik.muqayiseUcunMelumatYoxdur', 'Keçən ayın eyni dövrünə aid məlumat yoxdur.')}</div>`;
     } else {
       const hamiKatAdlari = new Set([...Object.keys(buAyToplam), ...Object.keys(kecenAyToplam)]);
       const trendSiyahi = [];

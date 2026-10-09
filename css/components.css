@@ -50,7 +50,7 @@ input:focus { border-color: var(--brand-soft); }
 .page-inner .modal-list { max-height: none; }
 /* Long pages (like Hesablar və Borclar) have more content than fits one screen.
    Without this, flexbox silently shrinks — and for elements with overflow:hidden/auto,
-   crops — children like .debt-summary-card or .modal-list instead of just letting the
+   crops — children like .modal-list instead of just letting the
    page scroll. Forcing every direct child to keep its natural size fixes that. */
 .page-inner > * { flex-shrink: 0; }
 
