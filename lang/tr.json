@@ -152,7 +152,7 @@
     "kateqoriyalar.yeniKateqoriya": "Yeni kategori",
     "kilid.ac": "Kilidi aç",
     "kilid.davamEtmekUcunTesdiqle": "Devam etmek için kimliğini doğrula.",
-    "kilid.faceIdHint": "Devam etmek için Face ID / Touch ID ile doğrula.",
+    "kilid.faceIdHint": "Devam etmek için \"Face ID / Touch ID ile aç\" düğmesine dokun.",
     "kilid.faceIdTouchId": "Face ID / Touch ID ile aç",
     "kilid.httpsTelebOlunur": "Face ID / Touch ID yalnızca https:// adresinde çalışır. Şimdilik bir PIN belirleyelim.",
     "kilid.pinHint": "Devam etmek için PIN kodunu gir.",
@@ -538,6 +538,7 @@
     "islemForm.hesab": "Hesap",
     "dash.aktivler": "Varlıklar",
     "dash.aktivYoxdur": "Pozitif bakiyeli hesap yok.",
-    "hesab.isareDeyis": "Bakiye işaretini değiştir (+/−)"
+    "hesab.isareDeyis": "Bakiye işaretini değiştir (+/−)",
+    "demo.kilidYox": "Örnek modda uygulama kilidi kullanılamaz. Hesap oluşturduktan sonra açabilirsin."
   }
 }

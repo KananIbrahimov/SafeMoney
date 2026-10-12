@@ -998,6 +998,9 @@ async function uygulamaGirisBaslat() {
       // yaddaşdakı datası və Drive bağlantısı növbəti girişə qalmasın.
       if (firebaseUnsubscribe) { firebaseUnsubscribe(); firebaseUnsubscribe = null; }
       if (cariGoogleIstifadeci) { driveCihazMelumatiniSil(); oflaynSil(cariGoogleIstifadeci.uid); yerliVeriniYukle(); }
+      // Daxil olmuş istifadəçi yoxdursa kilidin qoruduğu data da yoxdur — kilid giriş və "Qonaq kimi bax"
+      // ekranının qarşısını kəsməsin (məs. nümunə rejimində qurulmuş köhnə kilid).
+      if (typeof kilidVar !== 'undefined' && kilidVar) { kilidTemizle(); kilidAc(); kilidAyarGoster(); }
       cariGoogleIstifadeci = null;
       senkronKey = null;
       veriYuklendi = false;

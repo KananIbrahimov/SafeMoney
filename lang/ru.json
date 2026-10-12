@@ -152,7 +152,7 @@
     "kateqoriyalar.yeniKateqoriya": "Новая категория",
     "kilid.ac": "Разблокировать",
     "kilid.davamEtmekUcunTesdiqle": "Подтвердите личность, чтобы продолжить.",
-    "kilid.faceIdHint": "Подтвердите через Face ID / Touch ID, чтобы продолжить.",
+    "kilid.faceIdHint": "Нажмите «Открыть через Face ID / Touch ID», чтобы продолжить.",
     "kilid.faceIdTouchId": "Открыть через Face ID / Touch ID",
     "kilid.httpsTelebOlunur": "Face ID / Touch ID работает только по https://. Пока установим PIN-код.",
     "kilid.pinHint": "Введите PIN-код, чтобы продолжить.",
@@ -538,6 +538,7 @@
     "islemForm.hesab": "Счёт",
     "dash.aktivler": "Активы",
     "dash.aktivYoxdur": "Нет счетов с положительным балансом.",
-    "hesab.isareDeyis": "Сменить знак баланса (+/−)"
+    "hesab.isareDeyis": "Сменить знак баланса (+/−)",
+    "demo.kilidYox": "В демо-режиме блокировка недоступна. Её можно включить после создания аккаунта."
   }
 }

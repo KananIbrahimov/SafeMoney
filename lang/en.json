@@ -152,7 +152,7 @@
     "kateqoriyalar.yeniKateqoriya": "New category",
     "kilid.ac": "Unlock",
     "kilid.davamEtmekUcunTesdiqle": "Verify it's you to continue.",
-    "kilid.faceIdHint": "Use Face ID / Touch ID to continue.",
+    "kilid.faceIdHint": "Tap \"Unlock with Face ID / Touch ID\" to continue.",
     "kilid.faceIdTouchId": "Unlock with Face ID / Touch ID",
     "kilid.httpsTelebOlunur": "Face ID / Touch ID only works over https://. Let's set a PIN for now.",
     "kilid.pinHint": "Enter your PIN to continue.",
@@ -538,6 +538,7 @@
     "islemForm.hesab": "Account",
     "dash.aktivler": "Assets",
     "dash.aktivYoxdur": "No accounts with a positive balance.",
-    "hesab.isareDeyis": "Switch balance sign (+/−)"
+    "hesab.isareDeyis": "Switch balance sign (+/−)",
+    "demo.kilidYox": "App lock isn't available in demo mode. You can turn it on after creating an account."
   }
 }

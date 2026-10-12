@@ -41,7 +41,9 @@ function kilidYoxla() {
   // PIN təyin olunubsa həmişə görünür — Face ID işləməsə də giriş yolu qalsın
   pinWrap.style.display = kilidPinVar() ? 'block' : 'none';
   hint.innerText = faceVar ? tr('kilid.faceIdHint', 'Davam etmək üçün Face ID / Touch ID ilə təsdiqlə.') : tr('kilid.pinHint', 'Davam etmək üçün PIN kodu daxil et.');
-  if (faceVar) setTimeout(kilidWebAuthnDogrula, 350); // avtomatik sına — bəzi brauzerlər düymə klikini gözləyəcək
+  // Face ID AVTOMATİK başladılmır: iPhone (Safari/PWA) toxunuşsuz çağırışı NotAllowedError ilə rədd edir və
+  // istifadəçi heç nə etmədən "Təsdiqlənmədi" xətası görürdü. Face ID yalnız düyməyə toxunanda başlayır.
+  document.getElementById('kilidError').innerText = '';
 }
 
 function kilidAc() {
@@ -49,13 +51,16 @@ function kilidAc() {
   document.getElementById('kilidError').innerText = '';
 }
 
+let kilidWebAuthnGedir = false; // eyni anda iki Face ID sorğusu olmasın (ikincisi xəta ilə qayıdırdı)
 async function kilidWebAuthnDogrula() {
   const errEl = document.getElementById('kilidError');
+  if (kilidWebAuthnGedir) return;
   errEl.innerText = '';
   if (!kilidCredentialId || !window.PublicKeyCredential) {
     document.getElementById('kilidPinWrap').style.display = 'block';
     return;
   }
+  kilidWebAuthnGedir = true;
   try {
     const idBytes = Uint8Array.from(atob(kilidCredentialId), c => c.charCodeAt(0));
     const challenge = crypto.getRandomValues(new Uint8Array(32));
@@ -68,6 +73,8 @@ async function kilidWebAuthnDogrula() {
       ? tr('kilid.tesdiqlenmediXeta', 'Təsdiqlənmədi. Yenidən cəhd et və ya PIN koddan istifadə et.')
       : tr('kilid.tesdiqlenmediPinsiz', 'Təsdiqlənmədi. Yenidən cəhd et və ya aşağıdan hesabdan çıx.');
     if (kilidPinVar()) document.getElementById('kilidPinWrap').style.display = 'block';
+  } finally {
+    kilidWebAuthnGedir = false;
   }
 }
 
@@ -123,6 +130,11 @@ function kilidAyarGoster() {
 }
 
 function kilidToggle() {
+  // Nümunə rejimində kilid qurulmur: qonaq çıxanda kilid cihazda qalıb giriş/nümunə ekranının qarşısını kəsirdi.
+  if (!kilidVar && typeof demoRejim !== 'undefined' && demoRejim) {
+    alertAc(tr('demo.kilidYox', 'Nümunə rejimində tətbiq kilidi istifadə olunmur. Hesab yaradandan sonra aktiv edə bilərsən.'));
+    return;
+  }
   if (kilidVar) {
     confirmAc(tr('kilid.sondurBaslik', 'Kilidi söndür'), tr('kilid.sondurSual', 'Tətbiq kilidini söndürmək istəyirsən?'), () => {
       kilidTemizle();
