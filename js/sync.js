@@ -603,15 +603,7 @@ function emailSifreOxu() {
 // dərhal signOut edir və "Yenidən göndər" düyməsini göstərir.
 let tesdiqGozleyenIstifadeci = null;
 
-// iPhone Parollar (iCloud Keychain): e-poçt sahəsinə fokus → klaviatura üstündə saxlanmış hesab çıxır,
-// Face ID ilə təsdiqlənir və hər iki sahə dolur. Brauzer sayta Face ID ilə şifrəni birbaşa oxumağa icazə vermir —
-// ona görə düymə yalnız sahəni fokuslayır, qalanını iOS edir.
-function faceIdIleGiris() {
-  const el = document.getElementById('emailGirisEmail');
-  if (!el) return;
-  el.focus();
-  try { el.setSelectionRange(el.value.length, el.value.length); } catch (e) {}
-}
+// iPhone Parollar (iCloud Keychain): e-poçt sahəsinə fokus → saxlanmış hesab təklif olunur, Face ID ilə dolur.
 // Avtomatik doldurma: şifrə bir anda (simvol-simvol yox) dolubsa və e-poçt da varsa — "Daxil ol"a basmadan giriş.
 let girisGedir = false;
 let sonSifreUzunlugu = 0;
@@ -630,8 +622,9 @@ function girisAvtoDoldurmaYoxla() {
     ['input', 'change'].forEach(n => { s.addEventListener(n, girisAvtoDoldurmaYoxla); e.addEventListener(n, girisAvtoDoldurmaYoxla); });
     const ua = navigator.userAgent || '';
     const apple = /iPhone|iPad|iPod|Macintosh/.test(ua) && !/Android/.test(ua);
-    const btn = document.getElementById('faceIdGirisBtn');
-    if (btn && apple) btn.style.display = 'flex';
+    // Tək düymə: "Daxil ol" Apple cihazlarında Face ID ikonu ilə görünür
+    const ik = document.getElementById('emailGirisBtnIkon');
+    if (ik && apple) ik.style.display = 'flex';
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bagla); else bagla();
 })();
@@ -642,7 +635,13 @@ function emailIleGirisEt() {
   const { email, sifre } = emailSifreOxu();
   xetaEl.innerText = '';
   document.getElementById('tesdiqYenidenBtn').style.display = 'none';
-  if (!email || !sifre) { xetaEl.innerText = tr('giris.epoctVeSifreYaz', 'E-poçtu və şifrəni daxil et.'); return; }
+  // Sahələr boşdursa — xəta yox, e-poçt sahəsi açılır: iPhone saxlanmış hesabı təklif edir (Face ID ilə doldurur)
+  if (!email || !sifre) {
+    const bos = document.getElementById(!email ? 'emailGirisEmail' : 'emailGirisSifre');
+    if (bos) bos.focus();
+    if (email && !sifre) xetaEl.innerText = tr('giris.epoctVeSifreYaz', 'E-poçtu və şifrəni daxil et.');
+    return;
+  }
   girisGedir = true;
   const btn = document.getElementById('emailGirisBtn'); if (btn) btn.disabled = true;
   const bitdi = () => { girisGedir = false; if (btn) btn.disabled = false; };
