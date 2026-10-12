@@ -32,14 +32,20 @@ function turBaslat() {
     el.className = 'tur-qat';
     el.innerHTML = '<div class="tur-isiq" id="turIsiq"></div><div class="tur-kart" id="turKart" role="dialog" aria-live="polite"></div>';
     el.addEventListener('click', (e) => { if (!e.target.closest('button')) turNovbeti(); });
+    // Tur zamanı arxadakı səhifə sürüşdürülməsin — əks halda işıqlandırılan sahə yerindən çıxırdı
+    const dayandir = (e) => { e.preventDefault(); };
+    el.addEventListener('touchmove', dayandir, { passive: false });
+    el.addEventListener('wheel', dayandir, { passive: false });
     document.body.appendChild(el);
   }
   el.classList.add('active');
+  document.documentElement.classList.add('tur-aktiv');
   turNovbeti();
 }
 function turBitir() {
   const el = document.getElementById('turQat');
   if (el) el.classList.remove('active');
+  document.documentElement.classList.remove('tur-aktiv');
   turIndeks = -1;
   if (typeof sekmeSec === 'function') sekmeSec('ana');
 }
@@ -88,4 +94,7 @@ function turYerlesdir(hedef) {
   y = Math.min(Math.max(12, y), vh - kh - 12);
   kart.style.cssText = `top:${y}px;`;
 }
-window.addEventListener('resize', () => { if (turIndeks >= 0) { const a = TUR_ADDIMLARI[turIndeks]; turYerlesdir(a && a.hedef ? a.hedef() : null); } });
+function turYenidenYerlesdir() { if (turIndeks >= 0) { const a = TUR_ADDIMLARI[turIndeks]; turYerlesdir(a && a.hedef ? a.hedef() : null); } }
+window.addEventListener('resize', turYenidenYerlesdir);
+// Ehtiyat: səhifə hər hansı yolla (klaviatura, proqram) sürüşsə də işıq hədəfin üstündə qalsın
+window.addEventListener('scroll', turYenidenYerlesdir, true);

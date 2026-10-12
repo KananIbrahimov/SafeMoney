@@ -372,6 +372,8 @@ body.demo-aktiv .page-inner { padding-top: calc(56px + env(safe-area-inset-top, 
 /* Qonaq rejimi: tanışlıq turu */
 .tur-qat { position: fixed; inset: 0; z-index: 400; display: none; cursor: pointer; }
 .tur-qat.active { display: block; }
+html.tur-aktiv, html.tur-aktiv body, html.tur-aktiv .page-screen { overflow: hidden !important; overscroll-behavior: none; }
+.tur-qat { touch-action: none; }
 .tur-isiq { position: fixed; border-radius: 16px; box-shadow: 0 0 0 9999px rgba(0,0,0,.72); outline: 2px solid var(--brand-ink); outline-offset: 0; transition: all .28s ease; pointer-events: none; }
 .tur-kart { position: fixed; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 360px; box-sizing: border-box; padding: 16px 16px 14px;
   border-radius: 18px; background: var(--panel); border: 1px solid var(--line); box-shadow: 0 14px 40px rgba(0,0,0,.5); color: var(--ink); cursor: default; transition: top .28s ease; }
