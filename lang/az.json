@@ -539,6 +539,7 @@
     "dash.aktivler": "Aktivlər",
     "dash.aktivYoxdur": "Müsbət balanslı hesab yoxdur.",
     "hesab.isareDeyis": "Balansın işarəsini dəyiş (+/−)",
-    "demo.kilidYox": "Nümunə rejimində tətbiq kilidi istifadə olunmur. Hesab yaradandan sonra aktiv edə bilərsən."
+    "demo.kilidYox": "Nümunə rejimində tətbiq kilidi istifadə olunmur. Hesab yaradandan sonra aktiv edə bilərsən.",
+    "giris.faceIdIle": "Face ID ilə daxil ol"
   }
 }

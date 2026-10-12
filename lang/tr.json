@@ -539,6 +539,7 @@
     "dash.aktivler": "Varlıklar",
     "dash.aktivYoxdur": "Pozitif bakiyeli hesap yok.",
     "hesab.isareDeyis": "Bakiye işaretini değiştir (+/−)",
-    "demo.kilidYox": "Örnek modda uygulama kilidi kullanılamaz. Hesap oluşturduktan sonra açabilirsin."
+    "demo.kilidYox": "Örnek modda uygulama kilidi kullanılamaz. Hesap oluşturduktan sonra açabilirsin.",
+    "giris.faceIdIle": "Face ID ile giriş yap"
   }
 }

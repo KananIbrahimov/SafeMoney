@@ -76,6 +76,7 @@ const IKON_YOLLARI = {
   goz: '<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/>',
   axtar: '<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>',
   medaxil: '<path d="M12 3.5v10M7.5 9l4.5 4.5L16.5 9"/><path d="M4 14.5v3A2.5 2.5 0 0 0 6.5 20h11a2.5 2.5 0 0 0 2.5-2.5v-3"/>',
+  uzTanima: '<path d="M4 8.5V6.5A2.5 2.5 0 0 1 6.5 4h2M15.5 4h2A2.5 2.5 0 0 1 20 6.5v2M20 15.5v2a2.5 2.5 0 0 1-2.5 2.5h-2M8.5 20h-2A2.5 2.5 0 0 1 4 17.5v-2"/><path d="M9 9.5v1M15 9.5v1M12 9.5v3.5h-1M9.5 15.5a3.8 3.8 0 0 0 5 0"/>',
   istifadeci: '<circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/>'
 };
 function ikon(ad, olcu) {

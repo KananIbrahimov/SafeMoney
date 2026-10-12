@@ -539,6 +539,7 @@
     "dash.aktivler": "Assets",
     "dash.aktivYoxdur": "No accounts with a positive balance.",
     "hesab.isareDeyis": "Switch balance sign (+/−)",
-    "demo.kilidYox": "App lock isn't available in demo mode. You can turn it on after creating an account."
+    "demo.kilidYox": "App lock isn't available in demo mode. You can turn it on after creating an account.",
+    "giris.faceIdIle": "Sign in with Face ID"
   }
 }

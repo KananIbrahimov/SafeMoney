@@ -65,17 +65,22 @@
     <img src="icon-192.png" alt="" class="brand-logo brand-logo-lg" width="76" height="76">
     <h2 class="brand-wordmark brand-wordmark-lg">Safe Money</h2>
     <p data-i18n="giris.davamEtmekUcunEmail" class="hint" id="emailGirisHint">Davam etmək üçün e-poçt və şifrənlə daxil ol. Məlumatların yalnız sənin hesabında saxlanılacaq.</p>
-    <input type="email" id="emailGirisEmail" placeholder="E-poçt" data-i18n-placeholder="giris.ePoctPlaceholder" autocomplete="username" style="width:100%; margin-bottom:8px; box-sizing:border-box;">
-    <input type="password" id="emailGirisSifre" placeholder="Şifrə (ən azı 6 simvol)" data-i18n-placeholder="giris.sifreEnAz6Placeholder" autocomplete="current-password" style="width:100%; margin-bottom:10px; box-sizing:border-box;">
+    <!-- <form>: iPhone "Parollar" (iCloud Keychain) şifrəni yalnız forma göndəriləndə yadda saxlayır və
+         e-poçt sahəsinə toxunanda Face ID ilə avtomatik doldurmağı təklif edir. -->
+    <form id="emailGirisForm" class="giris-forma" action="#" method="post" autocomplete="on" onsubmit="event.preventDefault(); emailIleGirisEt();">
+    <input type="email" id="emailGirisEmail" name="email" placeholder="E-poçt" data-i18n-placeholder="giris.ePoctPlaceholder" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" inputmode="email" style="width:100%; margin-bottom:8px; box-sizing:border-box;">
+    <input type="password" id="emailGirisSifre" name="password" placeholder="Şifrə (ən azı 6 simvol)" data-i18n-placeholder="giris.sifreEnAz6Placeholder" autocomplete="current-password" style="width:100%; margin-bottom:10px; box-sizing:border-box;">
     <div class="giris-duymeler">
-      <button data-i18n="giris.daxilOl" class="gd gd-esas" onclick="emailIleGirisEt()">Daxil ol</button>
+      <button type="submit" data-i18n="giris.daxilOl" class="gd gd-esas" id="emailGirisBtn">Daxil ol</button>
+      <button type="button" class="gd gd-ikinci faceid-giris-btn" id="faceIdGirisBtn" onclick="faceIdIleGiris()" style="display:none;"><i data-ikon="uzTanima" data-olcu="20"></i><span data-i18n="giris.faceIdIle">Face ID ilə daxil ol</span></button>
       <button type="button" class="link-btn gd-link" onclick="sifreSifirla()" data-i18n="giris.sifreniUnutdum">Şifrəni unutdum</button>
-      <button class="gd gd-ikinci" id="tesdiqYenidenBtn" onclick="tesdiqEmailiYenidenGonder()" style="display:none;"><i data-ikon="yenile" data-olcu="18"></i><span data-i18n="giris.tesdiqEPoctunuYeniden">Təsdiq məktubunu yenidən göndər</span></button>
+      <button type="button" class="gd gd-ikinci" id="tesdiqYenidenBtn" onclick="tesdiqEmailiYenidenGonder()" style="display:none;"><i data-ikon="yenile" data-olcu="18"></i><span data-i18n="giris.tesdiqEPoctunuYeniden">Təsdiq məktubunu yenidən göndər</span></button>
       <div class="gd-ayrac"><span data-i18n="giris.veya">və ya</span></div>
-      <button class="gd gd-ikinci" onclick="qeydiyyatModalAc()"><i data-ikon="istifadeci" data-olcu="18"></i><span data-i18n="giris.hesabYaratIlkDefedirse">Qeydiyyatdan keç</span></button>
+      <button type="button" class="gd gd-ikinci" onclick="qeydiyyatModalAc()"><i data-ikon="istifadeci" data-olcu="18"></i><span data-i18n="giris.hesabYaratIlkDefedirse">Qeydiyyatdan keç</span></button>
       <button type="button" class="gd gd-ikinci qonaq-btn" onclick="qonaqKimiDaxilOl()"><i data-ikon="goz" data-olcu="18"></i><span data-i18n="giris.qonaq">Qonaq kimi bax</span></button>
       <button type="button" class="gd gd-ikinci ana-ekran-btn" id="anaEkranBtn" onclick="anaEkranaElaveEt()" style="display:none;"><i data-ikon="elaveKvadrat" data-olcu="18"></i><span data-i18n="qurasdir.anaEkranBtn">Ana ekrana əlavə et</span></button>
     </div>
+    </form>
     <div class="error-text" id="googleGirisXeta"></div>
     <p class="huquqi-linkler"><a data-huquqi="privacy.html" data-i18n="ayarlar.mexfilik" href="#">Məxfilik siyasəti</a> · <a data-huquqi="terms.html" data-i18n="ayarlar.sertler" href="#">İstifadə şərtləri</a></p>
   </div>

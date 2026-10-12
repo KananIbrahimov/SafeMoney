@@ -603,16 +603,53 @@ function emailSifreOxu() {
 // dərhal signOut edir və "Yenidən göndər" düyməsini göstərir.
 let tesdiqGozleyenIstifadeci = null;
 
+// iPhone Parollar (iCloud Keychain): e-poçt sahəsinə fokus → klaviatura üstündə saxlanmış hesab çıxır,
+// Face ID ilə təsdiqlənir və hər iki sahə dolur. Brauzer sayta Face ID ilə şifrəni birbaşa oxumağa icazə vermir —
+// ona görə düymə yalnız sahəni fokuslayır, qalanını iOS edir.
+function faceIdIleGiris() {
+  const el = document.getElementById('emailGirisEmail');
+  if (!el) return;
+  el.focus();
+  try { el.setSelectionRange(el.value.length, el.value.length); } catch (e) {}
+}
+// Avtomatik doldurma: şifrə bir anda (simvol-simvol yox) dolubsa və e-poçt da varsa — "Daxil ol"a basmadan giriş.
+let girisGedir = false;
+let sonSifreUzunlugu = 0;
+function girisAvtoDoldurmaYoxla() {
+  const e = document.getElementById('emailGirisEmail'), s = document.getElementById('emailGirisSifre');
+  if (!e || !s) return;
+  const uz = s.value.length;
+  const birdenDoldu = uz >= 6 && uz - sonSifreUzunlugu >= 4;
+  sonSifreUzunlugu = uz;
+  if (birdenDoldu && e.value.trim() && !girisGedir) setTimeout(() => { if (s.value && e.value.trim() && !girisGedir) emailIleGirisEt(); }, 250);
+}
+(function girisAvtoDoldurmaBagla() {
+  const bagla = () => {
+    const s = document.getElementById('emailGirisSifre'), e = document.getElementById('emailGirisEmail');
+    if (!s || !e) return;
+    ['input', 'change'].forEach(n => { s.addEventListener(n, girisAvtoDoldurmaYoxla); e.addEventListener(n, girisAvtoDoldurmaYoxla); });
+    const ua = navigator.userAgent || '';
+    const apple = /iPhone|iPad|iPod|Macintosh/.test(ua) && !/Android/.test(ua);
+    const btn = document.getElementById('faceIdGirisBtn');
+    if (btn && apple) btn.style.display = 'flex';
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bagla); else bagla();
+})();
 function emailIleGirisEt() {
+  if (girisGedir) return;
   const xetaEl = document.getElementById('googleGirisXeta');
   xetaEl.classList.remove('ugur');
   const { email, sifre } = emailSifreOxu();
   xetaEl.innerText = '';
   document.getElementById('tesdiqYenidenBtn').style.display = 'none';
   if (!email || !sifre) { xetaEl.innerText = tr('giris.epoctVeSifreYaz', 'E-poçtu və şifrəni daxil et.'); return; }
+  girisGedir = true;
+  const btn = document.getElementById('emailGirisBtn'); if (btn) btn.disabled = true;
+  const bitdi = () => { girisGedir = false; if (btn) btn.disabled = false; };
   firebaseBaslat().then((hazir) => {
-    if (!hazir) { xetaEl.innerText = tr('giris.baglantiAlinmadi', 'Bağlantı alınmadı. İnterneti yoxla və yenidən cəhd et.'); return; }
+    if (!hazir) { bitdi(); xetaEl.innerText = tr('giris.baglantiAlinmadi', 'Bağlantı alınmadı. İnterneti yoxla və yenidən cəhd et.'); return; }
     firebase.auth().signInWithEmailAndPassword(email, sifre).then((deyisim) => {
+      bitdi();
       const istifadeci = deyisim.user;
       if (istifadeci && !istifadeci.emailVerified) {
         tesdiqGozleyenIstifadeci = istifadeci;
@@ -621,6 +658,7 @@ function emailIleGirisEt() {
         firebase.auth().signOut().catch(() => {});
       }
     }).catch((e) => {
+      bitdi();
       console.warn('Email giriş xətası:', e);
       if (e && e.code === 'auth/user-not-found') xetaEl.innerText = tr('giris.hesabTapilmadi', 'Bu e-poçtla hesab tapılmadı. Əvvəlcə "Hesab yarat" ilə qeydiyyatdan keç.');
       else if (e && (e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential')) xetaEl.innerText = tr('giris.sifreSehvdir', 'Şifrə yanlışdır.');
