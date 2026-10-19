@@ -1,0 +1,30 @@
+rules_version = '2';
+
+// SafeMoney — Firestore təhlükəsizlik qaydaları
+// Hər istifadəçinin bütün məlumatı syncs/{uid} sənədində və onun parcalar/{i} alt kolleksiyasındadır.
+// Yalnız həmin hesab (e-poçtu təsdiqlənmiş) öz sənədini oxuyur, yazır və silir. Qalan hər şey bağlıdır.
+//
+// Tətbiq etmək: Firebase Console → Firestore Database → Rules → bu faylın məzmununu yapışdır → Publish
+// (və ya: firebase deploy --only firestore:rules)
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function owner(uid) {
+      return request.auth != null
+        && request.auth.uid == uid
+        && request.auth.token.email_verified == true;
+    }
+
+    match /syncs/{uid} {
+      allow read, write: if owner(uid);
+
+      match /parcalar/{parca} {
+        allow read, write: if owner(uid);
+      }
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
